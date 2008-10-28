@@ -11,7 +11,7 @@ def init(file):
     else:
         raise Exception("Config file isn't valid")
 
-def getOption(name):
+def option(name):
     return options[name]
 
 def setOption(name, value):

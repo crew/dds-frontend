@@ -29,7 +29,8 @@ class Slideshow(Group):
         self._current.width = canvas.width * 0.99
         self._current.font_height = 4/17.0
         self._current.visible = True
-        self._current.opacity = 0
+        self._current.opacity = 255
+        self._current.x = -10
         self._last = None
         self._animated = implicit.AnimatedObject(self._current)
         self._animated.setup_next_animations(transformation = implicit.SMOOTH)
@@ -39,7 +40,7 @@ class Slideshow(Group):
     def init(self):
         """Initializes the cache of slides"""
 
-        files = glob.glob(config.getOption("cache") + "/*.xml")
+        files = glob.glob(config.option("cache") + "/*.xml")
         for file in files:
             tree = etree.parse(file)
             root = tree.getroot()
@@ -75,13 +76,12 @@ class Slideshow(Group):
         self._load_next()
         self._paint()
 
-    #TODO: Document this a bit more
+    #TODO: Use a animation setup function to abstract the transitions
     def _load_next(self):
         """Prepare the next slide to be painted"""
 
         if len(self.slides) > 1:
-            #initialize the fade out
-            self._animated.opacity = 0
+            self._animated.x = 20
             if self._last:
                 self.remove(self._last)
                 del self._last
@@ -89,11 +89,12 @@ class Slideshow(Group):
             self.nextSlide()
             self._current = pgm.Text(self.currentSlide()["text"])
             self._current.visible = True
-            self._current.opacity = 0
+            self._current.opacity = 255
             self._current.bg_color = (0, 0, 0, 0)
             self._current.position = (0.0, 0.0, 0.0)
             self._current.height = self._canvas.height * 0.99
             self._current.width = self._canvas.width * 0.99
+            self._current.x = -10
             self._current.font_height = 4/17.0
             #set up the animations for _current
             self._animated = implicit.AnimatedObject(self._current)
@@ -104,7 +105,7 @@ class Slideshow(Group):
 
         if self._current:
             #initialize the fade in
-            self._animated.opacity = 255
+            self._animated.x = 0
             self.add(self._current)
 
 class Slider(Slideshow):

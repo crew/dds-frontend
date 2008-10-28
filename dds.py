@@ -51,7 +51,7 @@ def main(args):
     canvas.size = (16.0, 9.0)
     gl.set_canvas(canvas)
     background.size = canvas.size
-    background.bg_color = (22, 245, 100, 255)
+    background.bg_color = (45, 45, 45, 255)
     background.show()
     canvas.add(pgm.DRAWABLE_FAR, background)
     gl.connect('delete-event', on_delete)
