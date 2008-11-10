@@ -1,41 +1,44 @@
 import config
 import glob
 import time
-import pgm
+import clutter
+from clutter import Label
+from clutter import Group
+from clutter import Color
+from clutter import EffectTemplate
+from clutter import Timeline
 from threading import Timer
-from pgm.graph.group import Group
-from pgm.timing import implicit
 import xml.etree.ElementTree as etree
 
 def create(canvas):
     """Public creator for the slider"""
     return Slider(canvas)
 
-class Slideshow(Group):
+class Slide(Group):
+
+    def __init__(self):
+        transition = None
+        duration = None
+        Group.__init__(self)
+
+class Slideshow():
     """Slideshow class
 
     @param canvas: the canvas to paint on
     """
 
     slides = []
+    canvas = None
 
-    def __init__(self, canvas):
+    def __init__(self, stage):
 
-        Group.__init__(self, canvas)
+        self.stage = stage
         self.init()
-        self._current = pgm.Text(self.currentSlide()["text"])
-        self._current.bg_color = (0, 0, 0, 0)
-        self._current.height = canvas.height * 0.99
-        self._current.width = canvas.width * 0.99
-        self._current.font_height = 4/17.0
-        self._current.visible = True
-        self._current.opacity = 255
-        self._current.x = -10
-        self._last = None
-        self._animated = implicit.AnimatedObject(self._current)
-        self._animated.setup_next_animations(transformation = implicit.SMOOTH)
+        self.current = self.currentSlide()
+        self.setup_animation()
+        self.last = None
         if not len(self.slides) == 0:
-            self._paint()
+            self.paint()
 
     def init(self):
         """Initializes the cache of slides"""
@@ -45,27 +48,40 @@ class Slideshow(Group):
             tree = etree.parse(file)
             root = tree.getroot()
             if(root.tag == "slide"):
-                slideEntry = {}
-                for element in root.getchildren():
-                    slideEntry[element.tag] = element.text
-                self.addSlide(**slideEntry)
+                self.parseSlide(root);
             else:
                 pass
 
-    def addSlide(self, title, text, duration):
+    def parseSlide(self, xml):
+        slide = Slide()
+        #TODO: replace the hardcoded attributes with ones in the xml
+        for element in xml.getchildren():
+            if(element.tag == "text"):
+                label = Label()
+                label.set_text(element.text)
+                label.set_font_name("sans 32")
+                label.set_line_wrap(True)
+                label.set_color(Color(0xff, 0xff, 0xff, 0xff))
+                label.set_size(self.stage.get_width(),
+                               self.stage.get_height())
+                slide.add(label);
+            elif(element.tag == "image"):
+                pass
+            elif(element.tag == "transition"):
+                slide.transition = element.text
+            elif(element.tag == "duration"):
+                slide.duration = element.text
+        self.addSlide(slide)
+
+    def addSlide(self, slide):
         """Add a new slide to the interal cache"""
 
-        self.slides.append({"title": title,
-                            "text": text,
-                            "duration": duration})
+        self.slides.append(slide)
 
     def nextSlide(self):
         """Rotate the next slide to the front of the list"""
 
-        try:
-            self.slides.append(self.slides.pop(0))
-        except IndexError:
-            pass
+        self.slides.append(self.slides.pop(0))
 
     def currentSlide(self):
         """Return the current slide"""
@@ -73,79 +89,95 @@ class Slideshow(Group):
         return self.slides[0]
 
     def next(self):
-        self._load_next()
-        self._paint()
+        self.load_next()
+        self.paint()
 
-    #TODO: Use a animation setup function to abstract the transitions
-    def _load_next(self):
+    def setup_animation(self):
+        if(self.current.transition == "fade"):
+            self.current.set_opacity(0)
+        elif(self.current.transition == "slide-x"):
+            self.current.set_x(-1 * self.stage.get_width())
+
+    def in_animation(self):
+        timeline = clutter.Timeline(fps=60, duration=500)
+        template = clutter.EffectTemplate(timeline, clutter.ramp_inc_func)
+        effect = None
+        if(self.current.transition == "fade"):
+            effect = clutter.effect_fade(template, self.current, 255)
+        elif(self.current.transition == "slide-x"):
+            effect = clutter.effect_move(template, self.current, 0, 0)
+
+        if(effect):
+            effect.start()
+
+    def out_animation(self):
+        timeline = clutter.Timeline(fps=60, duration=500)
+        template = clutter.EffectTemplate(timeline, clutter.ramp_inc_func)
+        effect = None
+        if(self.current.transition == "fade"):
+            effect = clutter.effect_fade(template, self.current, 0)
+        elif(self.current.transition == "slide-x"):
+            effect = clutter.effect_move(template, self.current,
+                                         self.stage.get_width(), 0)
+
+        if(effect):
+            effect.start()
+
+    def load_next(self):
         """Prepare the next slide to be painted"""
 
         if len(self.slides) > 1:
-            self._animated.x = 20
-            if self._last:
-                self.remove(self._last)
-                del self._last
-            self._last = self._current
+            self.out_animation()
+            if self.last:
+                self.last.hide_all()
+                self.stage.remove(self.last)
+            self.last = self.current
             self.nextSlide()
-            self._current = pgm.Text(self.currentSlide()["text"])
-            self._current.visible = True
-            self._current.opacity = 255
-            self._current.bg_color = (0, 0, 0, 0)
-            self._current.position = (0.0, 0.0, 0.0)
-            self._current.height = self._canvas.height * 0.99
-            self._current.width = self._canvas.width * 0.99
-            self._current.x = -10
-            self._current.font_height = 4/17.0
-            #set up the animations for _current
-            self._animated = implicit.AnimatedObject(self._current)
-            self._animated.setup_next_animations(transformation = implicit.DECELERATE)
+            self.current = self.currentSlide()
+            self.setup_animation()
 
-    def _paint(self):
+    def paint(self):
         """Paint the next slide to the screen"""
-
-        if self._current:
-            #initialize the fade in
-            self._animated.x = 0
-            self.add(self._current)
+        if self.current:
+            self.in_animation()
+            self.current.show_all()
+            self.stage.add(self.current)
 
 class Slider(Slideshow):
     """Manages the order and timing of slide switching"""
 
     def __init__(self, canvas):
-        self._timer = None
-        self._active = False
+        self.timer = None
+        self.active = False
         Slideshow.__init__(self, canvas)
 
     def start(self):
         """Starts the Slideshow"""
 
-        self._active = True
-        self.visible = True
-        self._timer = Timer(float(self.currentSlide()["duration"]),
-                            self.next)
-        self._timer.start()
+        self.active = True
+        self.reset_timer()
 
     def stop(self):
         """Stops the Slideshow"""
 
-        self._active = False
-        if self._timer:
-            self._timer = None
+        self.active = False
+        if self.timer:
+            self.timer = None
 
-    def _reset_timer(self):
+    def reset_timer(self):
         """Runs the next timer thread to change slides"""
 
-        if self._timer:
-            self._timer = None
+        if self.timer:
+            self.timer = None
 
-        if self._active:
-            self._timer = Timer(float(self.slides[1]["duration"]),
+        if self.active:
+            self.timer = Timer(float(self.currentSlide().duration),
                                 self.next)
-            self._timer.daemon = True
-            self._timer.start()
+            self.timer.daemon = True
+            self.timer.start()
 
     def next(self):
         """Runs the timer thread for, and shows the next slide"""
 
-        self._reset_timer()
         Slideshow.next(self)
+        self.reset_timer()

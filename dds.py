@@ -1,4 +1,4 @@
-import pgm
+import clutter
 import sys
 import os
 import config
@@ -14,9 +14,7 @@ configFile = home + "/.dds/config.xml"
 logFile = home + "/.dds/log"
 cache = None
 
-canvas = pgm.Canvas()
-gl = pgm.viewport_factory_make('opengl')
-background = pgm.Image()
+stage = clutter.Stage()
 
 def parse_args():
     parser = OptionParser(usage="usage: %prog [options]")
@@ -34,12 +32,9 @@ def parse_args():
     if(options.slides):
         cache = options.slides
 
-def on_delete(viewport, event):
-    pgm.main_quit()
-
-def on_key_press(viewport, event):
-    if event.keyval == pgm.keysyms.q:
-        pgm.main_quit()
+def on_key_press_event(stage, event):
+    if(event.keyval == 113):
+        clutter.main_quit()
 
 def main(args):
     gobject.threads_init()
@@ -47,20 +42,14 @@ def main(args):
     config.init(configFile)
     if(cache):
         config.setOption("cache", cache)
-    gl.title = 'Crew Digial Display System'
-    canvas.size = (16.0, 9.0)
-    gl.set_canvas(canvas)
-    background.size = canvas.size
-    background.bg_color = (45, 45, 45, 255)
-    background.show()
-    canvas.add(pgm.DRAWABLE_FAR, background)
-    gl.connect('delete-event', on_delete)
-    gl.connect('key-press-event', on_key_press)
-    gl.fullscreen = True
-    gl.show()
-    show = slider.create(canvas)
+    stage.fullscreen()
+    stage.set_color(clutter.Color(0x2d, 0x2d, 0x2d, 0xff))
+    stage.connect('destroy', clutter.main_quit)
+    stage.connect('key-press-event', on_key_press_event)
+    stage.show_all()
+    show = slider.create(stage)
     show.start()
-    pgm.main()
+    clutter.main()
 
 
 if __name__ == '__main__':
