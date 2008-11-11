@@ -6,6 +6,7 @@ import threading
 import time
 import gobject
 import slider
+import xmpper
 from optparse import OptionParser
 
 
@@ -49,6 +50,7 @@ def main(args):
     stage.show_all()
     show = slider.create(stage)
     show.start()
+    xmpper.create(show).start()
     clutter.main()
 
 
