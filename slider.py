@@ -28,7 +28,6 @@ class Slideshow():
     """
 
     slides = []
-    canvas = None
 
     def __init__(self, stage):
 
@@ -54,6 +53,8 @@ class Slideshow():
 
     def parseSlide(self, xml):
         slide = Slide()
+        slide.transition = xml.get("transition")
+        slide.duration = xml.get("duration")
         #TODO: replace the hardcoded attributes with ones in the xml
         for element in xml.getchildren():
             if(element.tag == "text"):
@@ -67,10 +68,6 @@ class Slideshow():
                 slide.add(label);
             elif(element.tag == "image"):
                 pass
-            elif(element.tag == "transition"):
-                slide.transition = element.text
-            elif(element.tag == "duration"):
-                slide.duration = element.text
         self.addSlide(slide)
 
     def addSlide(self, slide):
