@@ -9,7 +9,7 @@ import slider
 import xmpper
 from optparse import OptionParser
 
-sys.path.extend('../../backend/trunk/server-jabber-client/')
+sys.path.insert(0, '../../backend/trunk/server-jabber-client/')
 from dds_client import Listener
 from slide import SlideSet
 
