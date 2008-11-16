@@ -8,8 +8,7 @@ import gobject
 import slider
 import xmpper
 from optparse import OptionParser
-
-sys.path.insert(0, '../../backend/trunk/server-jabber-client/')
+sys.path.insert(0, '../backend/server-jabber-client/')
 from dds_client import Listener
 from slide import SlideSet
 
@@ -53,10 +52,10 @@ def main(args):
     stage.show_all()
     show = slider.create(stage)
     show.start()
-
-    ss = SlideSet()
-    client = Listener(ss)
-    client.start()
+    xmpper.create(show).start()
+    #ss = SlideSet()
+    #client = Listener(ss)
+    #client.start()
     clutter.main()
 
 
