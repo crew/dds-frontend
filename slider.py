@@ -50,6 +50,9 @@ class Slideshow():
                 self.parseSlide(root);
             else:
                 pass
+        if len(self.slides) == 0: 
+            self.active = False
+            print "No slides found in the cache"
 
     def parseSlide(self, xml):
         slide = Slide()

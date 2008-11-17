@@ -1,3 +1,4 @@
 <config>
+  <!-- you *must* set this to wherever your slides are -->
   <option name="cache" value="/home/roderic/.dds/slides"/>
 </config>
