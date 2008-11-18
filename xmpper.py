@@ -1,4 +1,6 @@
 from xmpp import *
+import xmlrpclib
+import os
 import config
 import xml.sax as sax
 from xml.sax.handler import ContentHandler
@@ -25,29 +27,48 @@ class Xmpper(Thread):
         self.setupXmpp()
 
     def addSlide(self, slide):
-        print slide
+        #slide[0] has a hash with the id, duration, and priority of the slide
+        #slide[1] has a list of hashes, where each hash has the url and id of an asset
+        info = slide[0]
+        assets = slide[1]
+        directory = config.option("cache") + "/" + info["id"]
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+        #for stuff in info.keys():
+        for asset in assets:
+            opener = urllib.URLopener()
+            opener.retrieve(asset["url"], directory)
+        info["assets"] = assets
+        info["directory"] = directory
+        slider.addSlide(**info)
+        slider.start()
 
     def removeSlide(self, slide):
-        print slide
+        info = slide[0]
+        slider.removeSlide(info["id"])
+        if slider.isEmpty(): slider.stop()
 
     def updateSlide(self, slide):
         print slide
+        print "update slide!"
 
     def addAsset(self, slide):
         print slide
+        print "add asset!"
 
     def removeAsset(self, slide):
-        pass
+        print slide
+        print "remove asset!"
 
     def updateAsset(self, slide):
-        pass
+        print slide
+        print "update asset!"
 
     def handlePresence(self, dispatch, pr):
         jid = pr.getAttr('from')
         dispatch.send(Presence(jid, 'subscribed'))
 
     def handleIQ(self, connection, iq):
-        print iq
         if iq.getQueryNS() == NS_RPC:
             if iq.getAttr("type") == "error":
                 self.logError(iq.getAttr("from"), "rpc error")
