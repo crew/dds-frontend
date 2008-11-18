@@ -48,7 +48,6 @@ def main(args):
     stage.connect('key-press-event', on_key_press_event)
     stage.show_all()
     show = slider.create(stage)
-    show.start()
     xmpper.create(show).start()
     clutter.main()
 

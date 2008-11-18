@@ -1,8 +1,10 @@
 import config
 import glob
+import urllib
 import time
 import clutter
 from clutter import Label
+from clutter import Texture
 from clutter import Group
 from clutter import Color
 from clutter import EffectTemplate
@@ -12,6 +14,7 @@ import xml.sax as sax
 from xml.sax.handler import ContentHandler
 from xml.sax.handler import ErrorHandler
 
+
 def create(canvas):
     """Public creator for the slider"""
 
@@ -19,15 +22,15 @@ def create(canvas):
 
 class Slide(Group):
 
-    def __init__(self, duration, transition):
+    def __init__(self, transition):
         self.transition = transition
-        self.duration = duration
         Group.__init__(self)
 
-class SlideHandler(ContentHandler):
+class LayoutHandler(ContentHandler):
 
-    def __init__(self, stage):
+    def __init__(self, stage, directory):
         self.stage = stage
+        self.directory = directory
         self.locator = None
         self.slide = None
         self.label = None
@@ -54,11 +57,9 @@ class SlideHandler(ContentHandler):
             pass
 
         elif name == "slide":
-            duration = attrs.get("duration")
             transition = attrs.get("transition")
-            if duration is None: pass #TODO: handle error
             if transition is None: pass #TODO: handle error
-            self.slide = Slide(duration, transition)
+            self.slide = Slide(transition)
 
         elif name == "text":
             label = Label()
@@ -70,8 +71,8 @@ class SlideHandler(ContentHandler):
             self.label = label
 
         elif name == "image":
-            #TODO: implement this
-            pass
+            image = Texture()
+            self.image = image
 
         elif name == "video":
             #TODO: implement this
@@ -84,8 +85,8 @@ class SlideHandler(ContentHandler):
             self.label = None
 
         if name == "image":
-            #TODO: implement
-            pass
+            self.slide.add(self.image)
+            self.image = None
 
         if name == "video":
             #TODO: implement
@@ -97,8 +98,8 @@ class SlideHandler(ContentHandler):
             self.label.set_text(content)
 
         elif not (self.image is None):
-            #TODO: implement
-            pass
+            file = self.directory + content
+            self.image.set_from_file(file)
 
         elif not (self.video is None):
             #TODO: implement
@@ -116,34 +117,56 @@ class Slideshow():
     def __init__(self, stage):
 
         self.stage = stage
-        self.init()
-        self.current = self.currentSlide()
-        self.setup_animation()
+        #defaultSlide = Slide(stage)
+        #defaultText = Label()
+        #defaultText.set_font_name(attrs.get("font", "sans 32"))
+        #defaultText.set_line_wrap(True)
+        #defaultText.set_color(clutter.color_parse(attrs.get("color", "white")))
+        #defaultText.label.set_text("No Slides.. Yet")
+        #defaultSlide.add(defaultText)
+        #defaultSlide.transition = "fade"
+        #defaultSlide.duration = 3
+        self.current = None
+        #self.setup_animation()
         self.last = None
-        if not len(self.slides) == 0:
-            self.paint()
+        #self.paint()
+        #self.init()
+        #self.current = self.currentSlide()
+        #self.setup_animation()
+        #self.last = None
+        #if not len(self.slides) == 0:
+            #self.paint()
 
     def init(self):
         """Initializes the cache of slides"""
 
-        files = glob.glob(config.option("cache") + "/*.xml")
-        for file in files:
-            self.parseSlide(file)
-        if len(self.slides) == 0:
-            self.active = False
-            print "No slides found in the cache"
+        #files = glob.glob(config.option("cache") + "/*.xml")
+        #for file in files:
+        #    self.parseLayout(file)
+        #if len(self.slides) == 0:
+        #    self.active = False
+        #    print "No slides found in the cache"
 
-    def parseSlide(self, file):
+    def isEmpty(self):
+        return len(slides) == 0
+
+    def parseLayout(self, file, directory):
         """Parses the given file into a slide"""
 
-        handler = SlideHandler(self.stage)
+        handler = LayoutHandler(self.stage, directory)
         sax.parse(file, handler)
-        self.addSlide(handler.slide)
+        return handler.slide
 
-    def addSlide(self, slide):
+    def addSlide(self, id, duration, priority, assets, directory):
         """Add a new slide to the interal cache"""
 
+        slide = self.parseLayout(directory + "/layout.xml", directory)
+        slide.id = id
+        slide.duration = duration
+        slide.priority = priority
         self.slides.append(slide)
+        if not self.current:
+            self.current = self.currentSlide()
 
     def nextSlide(self):
         """Rotate the next slide to the front of the list"""
