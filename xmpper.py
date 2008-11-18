@@ -25,16 +25,16 @@ class Xmpper(Thread):
         self.setupXmpp()
 
     def addSlide(self, slide):
-        pass
+        print slide
 
     def removeSlide(self, slide):
-        pass
+        print slide
 
     def updateSlide(self, slide):
-        pass
+        print slide
 
     def addAsset(self, slide):
-        pass
+        print slide
 
     def removeAsset(self, slide):
         pass
@@ -47,7 +47,7 @@ class Xmpper(Thread):
         dispatch.send(Presence(jid, 'subscribed'))
 
     def handleIQ(self, connection, iq):
-
+        print iq
         if iq.getQueryNS() == NS_RPC:
             if iq.getAttr("type") == "error":
                 self.logError(iq.getAttr("from"), "rpc error")
@@ -88,5 +88,6 @@ class Xmpper(Thread):
         client.RegisterHandler("iq", self.handleIQ)
         client.RegisterHandler("presense", self.handlePresence)
         client.sendInitPresence()
+        client.sendPresence(jid="test@centipede.ccs.neu.edu/dds-server-init")
 
         self.proceed(client)
