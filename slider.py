@@ -8,18 +8,102 @@ from clutter import Color
 from clutter import EffectTemplate
 from clutter import Timeline
 from threading import Timer
-import xml.etree.ElementTree as etree
+import xml.sax as sax
+from xml.sax.handler import ContentHandler
+from xml.sax.handler import ErrorHandler
 
 def create(canvas):
     """Public creator for the slider"""
+
     return Slider(canvas)
 
 class Slide(Group):
 
-    def __init__(self):
-        transition = None
-        duration = None
+    def __init__(self, duration, transition):
+        self.transition = transition
+        self.duration = duration
         Group.__init__(self)
+
+class SlideHandler(ContentHandler):
+
+    def __init__(self, stage):
+        self.stage = stage
+        self.locator = None
+        self.slide = None
+        self.label = None
+        self.image = None
+        self.video = None
+
+        ContentHandler.__init__(self)
+
+    def setDocumentLocator(self, locator):
+        """Set the locator for this document"""
+
+        self.locator = locator
+
+    def startDocument(self):
+        """Handle the start of the xml document"""
+
+        pass
+
+    def startElement(self, name, attrs):
+        """Handle the start of an xml element"""
+
+        if (self.slide is None) and (name != "slide"):
+            #TODO: handle error
+            pass
+
+        elif name == "slide":
+            duration = attrs.get("duration")
+            transition = attrs.get("transition")
+            if duration is None: pass #TODO: handle error
+            if transition is None: pass #TODO: handle error
+            self.slide = Slide(duration, transition)
+
+        elif name == "text":
+            label = Label()
+            label.set_font_name(attrs.get("font", "sans 32"))
+            label.set_line_wrap(True)
+            label.set_color(clutter.color_parse(attrs.get("color", "white")))
+            label.set_width(attrs.get("width", self.stage.get_width()))
+            label.set_height(attrs.get("height", self.stage.get_height()))
+            self.label = label
+
+        elif name == "image":
+            #TODO: implement this
+            pass
+
+        elif name == "video":
+            #TODO: implement this
+            pass
+
+    def endElement(self, name):
+
+        if name == "text":
+            self.slide.add(self.label)
+            self.label = None
+
+        if name == "image":
+            #TODO: implement
+            pass
+
+        if name == "video":
+            #TODO: implement
+            pass
+
+    def characters(self, content):
+
+        if not (self.label is None):
+            self.label.set_text(content)
+
+        elif not (self.image is None):
+            #TODO: implement
+            pass
+
+        elif not (self.video is None):
+            #TODO: implement
+            pass
+
 
 class Slideshow():
     """Slideshow class
@@ -44,34 +128,17 @@ class Slideshow():
 
         files = glob.glob(config.option("cache") + "/*.xml")
         for file in files:
-            tree = etree.parse(file)
-            root = tree.getroot()
-            if(root.tag == "slide"):
-                self.parseSlide(root);
-            else:
-                pass
-        if len(self.slides) == 0: 
+            self.parseSlide(file)
+        if len(self.slides) == 0:
             self.active = False
             print "No slides found in the cache"
 
-    def parseSlide(self, xml):
-        slide = Slide()
-        slide.transition = xml.get("transition")
-        slide.duration = xml.get("duration")
-        #TODO: replace the hardcoded attributes with ones in the xml
-        for element in xml.getchildren():
-            if(element.tag == "text"):
-                label = Label()
-                label.set_text(element.text)
-                label.set_font_name("sans 32")
-                label.set_line_wrap(True)
-                label.set_color(Color(0xff, 0xff, 0xff, 0xff))
-                label.set_size(self.stage.get_width(),
-                               self.stage.get_height())
-                slide.add(label);
-            elif(element.tag == "image"):
-                pass
-        self.addSlide(slide)
+    def parseSlide(self, file):
+        """Parses the given file into a slide"""
+
+        handler = SlideHandler(self.stage)
+        sax.parse(file, handler)
+        self.addSlide(handler.slide)
 
     def addSlide(self, slide):
         """Add a new slide to the interal cache"""
