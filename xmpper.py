@@ -1,48 +1,92 @@
-import xmpp
+from xmpp import *
+import config
+import xml.sax as sax
+from xml.sax.handler import ContentHandler
+from xml.sax.handler import ErrorHandler
 from threading import Thread
 
 def create(slider):
     return Xmpper(slider)
 
+
 class Xmpper(Thread):
 
     def __init__(self, slider):
         self.slider = slider
+        self.methods = { "addSlide"   : self.addSlide,
+                         "removeSlide" : self.removeSlide,
+                         "updateSlide" : self.updateSlide,
+                         "addAsset"    : self.addAsset,
+                         "removeAsset" : self.removeAsset,
+                         "updateAsset" : self.updateAsset }
         Thread.__init__(self)
 
     def run(self):
-        self.setup_xmpp()
+        self.setupXmpp()
 
-    def got_msg(self, conn, msg):
-        print "Sender: " + str(msg.getFrom())
-        print "Content: " + str(msg.getBody())
-        print msg
+    def addSlide(self, slide):
+        pass
 
-    def check_xmpp(self, conn):
+    def removeSlide(self, slide):
+        pass
+
+    def updateSlide(self, slide):
+        pass
+
+    def addAsset(self, slide):
+        pass
+
+    def removeAsset(self, slide):
+        pass
+
+    def updateAsset(self, slide):
+        pass
+
+    def handlePresence(self, dispatch, pr):
+        jid = pr.getAttr('from')
+        dispatch.send(Presence(jid, 'subscribed'))
+
+    def handleIQ(self, connection, iq):
+
+        if iq.getQueryNS() == NS_RPC:
+            if iq.getAttr("type") == "error":
+                self.logError(iq.getAttr("from"), "rpc error")
+            else:
+                payload = xmlrpclib.loads(str(iq))
+                methodName = payload[1]
+                # payload[0] returns a tuple of arguments
+                # and the only argument we want is the first one
+                try:
+                    self.methods[methodName](payload[0][0])
+                except KeyError:
+                    print "rpc function " + methodName + " is not defined"
+
+    def checkXmpp(self, connection):
         try:
-            conn.Process(1)
+            connection.Process(1)
+            return True
         except KeyboardInterrupt:
-            return 0
-        return 1
+            return False
 
-    def proceed(self, conn):
-        while self.check_xmpp(conn):
+    def proceed(self, connection):
+        while self.checkXmpp(connection):
             pass
 
-    def setup_xmpp(self):
-        jid="rms@centipede.ccs.neu.edu"
-        pwd="foo"
+    def setupXmpp(self):
+        jid = config.option("xmpp-id")
+        password = config.option("xmpp-password")
 
-        jid=xmpp.protocol.JID(jid)
-        cl=xmpp.Client(jid.getDomain(), debug=[])
+        jid = protocol.JID(jid)
+        client = Client(jid.getDomain(), debug=[])
 
-        if cl.connect() == "":
-            print "Not Connected!"
+        if client.connect() == "":
+            print "Could not connection to the XMPP server"
 
-        if cl.auth(jid.getNode(), pwd) == None:
-            print "Wrong Password Loser"
+        if client.auth(jid.getNode(), password) == None:
+            print "XMPP password was incorrect"
 
-        cl.RegisterHandler('message', self.got_msg)
-        cl.sendInitPresence()
+        client.RegisterHandler("iq", self.handleIQ)
+        client.RegisterHandler("presense", self.handlePresence)
+        client.sendInitPresence()
 
-        self.proceed(cl)
+        self.proceed(client)
