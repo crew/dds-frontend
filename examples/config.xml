@@ -1,4 +1,6 @@
 <config>
   <!-- you *must* set this to wherever your slides are -->
   <option name="cache" value="/home/roderic/.dds/slides"/>
+  <option name="xmpp-id" value="rms@centipede.ccs.neu.edu"/>
+  <option name="xmpp-password" value="foo"/>
 </config>
