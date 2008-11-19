@@ -30,7 +30,6 @@ class Xmpper(Thread):
         self.setupXmpp()
 
     def addSlide(self, slide):
-        #print slide
         #slide[0] has a hash with the id, duration, and priority of the slide
         #slide[1] has a list of hashes, where each hash has the url and id of an asset
         info = slide[0]
@@ -38,7 +37,6 @@ class Xmpper(Thread):
         directory = config.option("cache") + "/" + str(info["id"])
         if not os.path.exists(directory):
             os.mkdir(directory)
-        #for stuff in info.keys():
         for asset in assets:
             opener = urllib.URLopener()
             path = urlparse.urlparse(asset["url"])[2]
@@ -51,6 +49,7 @@ class Xmpper(Thread):
         self.slider.start()
 
     def removeSlide(self, slide):
+        print "REMOVE"
         info = slide[0]
         self.slider.removeSlide(info["id"])
         if self.slider.isEmpty():
@@ -87,8 +86,7 @@ class Xmpper(Thread):
                 # payload[0] returns a tuple of arguments
                 # and the only argument we want is the first one
                 if methodName in self.methods:
-                    m = self.methods[methodName]
-                    m(payload[0])
+                    self.methods[methodName](payload[0])
                 else:
                     print "rpc function " + methodName + " is not defined"
 
@@ -113,7 +111,7 @@ class Xmpper(Thread):
         if client.connect() == "":
             print "Could not connection to the XMPP server"
 
-        if client.auth(jid.getNode(), password) == None:
+        if client.auth(jid.getNode(), password, jid.getResource()) == None:
             print "XMPP password was incorrect"
 
         client.RegisterHandler("iq", self.handleIQ)
