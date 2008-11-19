@@ -84,7 +84,7 @@ class Xmpper(Thread):
                 self.logError(iq.getAttr("from"), "rpc error")
             else:
                 payload = xmlrpclib.loads(str(iq))
-                logging.debug('Payload: %s' % payload)
+                logging.debug('Payload: %s' % str(payload))
                 methodName = payload[1]
                 # payload[0] returns a tuple of arguments
                 # and the only argument we want is the first one
@@ -118,7 +118,7 @@ class Xmpper(Thread):
             logging.error("Could not connection to the XMPP server")
 
         if client.auth(jid.getNode(), password, jid.getResource()) == None:
-            logging.error"XMPP password was incorrect")
+            logging.error("XMPP password was incorrect")
 
         client.RegisterHandler("iq", self.handleIQ)
         client.RegisterHandler("presense", self.handlePresence)
