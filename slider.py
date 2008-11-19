@@ -61,7 +61,7 @@ class LayoutHandler(ContentHandler):
         elif name == "slide":
             transition = attrs.get("transition")
             if transition is None:
-                pass 
+                pass
                 #TODO: handle error
             self.slide = Slide(transition)
 
@@ -174,7 +174,7 @@ class Slideshow():
         """Add a new slide to the interal cache"""
 
         slide = self.parseLayout(directory + "/layout.xml", directory)
-        slide.id = id
+        slide.___id = id
         slide.duration = duration
         slide.priority = priority
         self.slides.append(slide)
