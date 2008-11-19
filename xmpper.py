@@ -95,6 +95,8 @@ class Xmpper(Thread):
                 else:
                     print "rpc function " + methodName + " is not defined"
 
+        raise NodeProcessed
+
     def checkXmpp(self, connection):
         try:
             connection.Process(1)
