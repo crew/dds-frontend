@@ -80,13 +80,13 @@ class LayoutHandler(ContentHandler):
         elif name == "image":
             image = Texture()
             imageWidth = (self.stage.get_width() / 16) * attrs.get("width", 16)
-            image.set_width(labelWidth)
+            image.set_width(imageWidth)
             imageHeight = (self.stage.get_height() / 9) * attrs.get("height", 9)
-            image.set_height(labelHeight)
+            image.set_height(imageHeight)
             imageX = (self.stage.get_width() / 16) * attrs.get("x", 0)
-            image.set_x(labelX)
+            image.set_x(imageX)
             imageY = (self.stage.get_height() / 9) * attrs.get("y", 0)
-            image.set_y(labelY)
+            image.set_y(imageY)
             self.image = image
 
         elif name == "video":
