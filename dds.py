@@ -44,6 +44,8 @@ class DDS:
         logging.debug('Got keypress %s' % event.keyval)
         if (event.keyval == 113):
             clutter.main_quit()
+        elif (event.keyval == 65365):
+            self._show.next()
 
     def main(self,args):
         gobject.threads_init()
@@ -62,6 +64,8 @@ class DDS:
         self._xmpp = xmpper.create(self._show)
         self._xmpp.setupXmpp()
         self._xmpp.proceed()
+        self._stage.paint()
+        self._stage.queue_redraw()
         gobject.timeout_add(5000, self._xmpp.proceed)
         clutter.main()
 
