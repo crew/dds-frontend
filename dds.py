@@ -45,6 +45,7 @@ def on_key_press_event(stage, event):
 
 def main(args):
     gobject.threads_init()
+    clutter.threads_init()
     parse_args()
     config.init(configFile)
     if (cache):
@@ -53,6 +54,7 @@ def main(args):
     stage.set_color(clutter.Color(0x00, 0x00, 0x00, 0x00))
     stage.connect('destroy', clutter.main_quit)
     stage.connect('key-press-event', on_key_press_event)
+    stage.hide_cursor()
     stage.show_all()
     show = slider.create(stage)
     p = xmpper.create(show)
