@@ -2,6 +2,7 @@ from xmpp import *
 import xmlrpclib
 import os
 import os.path
+import logging
 
 import config
 import urllib
@@ -54,30 +55,27 @@ class Xmpper(Thread):
             self.slider.start()
 
     def removeSlide(self, slide):
-        print "REMOVE"
+        logging.debug("REMOVE")
         info = slide[0]
         self.slider.removeSlide(info["id"])
         if self.slider.isEmpty():
             slider.stop()
 
     def updateSlide(self, slide):
-        print slide
-        print "update slide!"
+        logging.debug('Update slide: %s' % slide)
 
     def addAsset(self, slide):
-        print slide
-        print "add asset!"
+        logging.debug('Add Asset: %s' % slide)
 
     def removeAsset(self, slide):
-        print slide
-        print "remove asset!"
+        logging.debug('Remove Asset: %s' % slide)
 
     def updateAsset(self, slide):
-        print slide
-        print "update asset!"
+        logging.debug('Update Asset: %s' % slide)
 
     def handlePresence(self, dispatch, pr):
         jid = pr.getAttr('from')
+        logging.debug('Handle Presence From: %s' % jid)
         dispatch.send(Presence(jid, 'subscribed'))
 
     def handleIQ(self, connection, iq):
@@ -86,14 +84,15 @@ class Xmpper(Thread):
                 self.logError(iq.getAttr("from"), "rpc error")
             else:
                 payload = xmlrpclib.loads(str(iq))
-                print payload
+                logging.debug('Payload: %s' % payload)
                 methodName = payload[1]
                 # payload[0] returns a tuple of arguments
                 # and the only argument we want is the first one
                 if methodName in self.methods:
                     self.methods[methodName](payload[0])
                 else:
-                    print "rpc function " + methodName + " is not defined"
+                    logging.error("rpc function " + methodName +
+                                  " is not defined")
 
         raise NodeProcessed
 
@@ -116,10 +115,10 @@ class Xmpper(Thread):
         client = Client(jid.getDomain(), debug=[])
 
         if client.connect() == "":
-            print "Could not connection to the XMPP server"
+            logging.error("Could not connection to the XMPP server")
 
         if client.auth(jid.getNode(), password, jid.getResource()) == None:
-            print "XMPP password was incorrect"
+            logging.error"XMPP password was incorrect")
 
         client.RegisterHandler("iq", self.handleIQ)
         client.RegisterHandler("presense", self.handlePresence)

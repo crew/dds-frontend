@@ -7,6 +7,7 @@ import time
 import gobject
 import slider
 import xmpper
+import logging
 from optparse import OptionParser
 
 home = os.environ["HOME"]
@@ -15,6 +16,9 @@ logFile = home + "/.dds/log"
 cache = None
 
 stage = clutter.stage_get_default()
+
+## Setup stupid logging for the client
+logging.basicConfig(level=logging.DEBUG)
 
 def parse_args():
     parser = OptionParser(usage="usage: %prog [options]")
@@ -34,6 +38,7 @@ def parse_args():
         cache = options.slides
 
 def on_key_press_event(stage, event):
+    logging.debug('Got keypress %s' % event.keyval)
     if (event.keyval == 113):
         clutter.main_quit()
 

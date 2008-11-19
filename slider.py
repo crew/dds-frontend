@@ -4,6 +4,7 @@ import urllib
 import time
 import clutter
 import os.path
+import logging
 from clutter import Label
 from clutter import Texture
 from clutter import Group
@@ -59,10 +60,13 @@ class LayoutHandler(ContentHandler):
 
         elif name == "slide":
             transition = attrs.get("transition")
-            if transition is None: pass #TODO: handle error
+            if transition is None:
+                pass 
+                #TODO: handle error
             self.slide = Slide(transition)
 
         elif name == "text":
+            logging.debug('Adding text element')
             label = Label()
             label.set_font_name(attrs.get("font", "sans 32"))
             label.set_line_wrap(True)
@@ -71,21 +75,22 @@ class LayoutHandler(ContentHandler):
             label.set_width(labelWidth)
             labelHeight = (self.stage.get_height() / 9) * attrs.get("height", 9)
             label.set_height(labelHeight)
-            labelX = (self.stage.get_width() / 16) * attrs.get("x", 0)
+            labelX = (self.stage.get_width() / 16) * attrs.get("x", 1)
             label.set_x(labelX)
-            labelY = (self.stage.get_height() / 9) * attrs.get("y", 0)
+            labelY = (self.stage.get_height() / 9) * attrs.get("y", 1)
             label.set_y(labelY)
             self.label = label
 
         elif name == "image":
+            logging.debug('Adding image element')
             image = Texture()
             imageWidth = (self.stage.get_width() / 16) * attrs.get("width", 16)
             image.set_width(imageWidth)
             imageHeight = (self.stage.get_height() / 9) * attrs.get("height", 9)
             image.set_height(imageHeight)
-            imageX = (self.stage.get_width() / 16) * attrs.get("x", 0)
+            imageX = (self.stage.get_width() / 16) * attrs.get("x", 1)
             image.set_x(imageX)
-            imageY = (self.stage.get_height() / 9) * attrs.get("y", 0)
+            imageY = (self.stage.get_height() / 9) * attrs.get("y", 1)
             image.set_y(imageY)
             self.image = image
 
@@ -110,10 +115,12 @@ class LayoutHandler(ContentHandler):
     def characters(self, content):
 
         if not (self.label is None):
+            logging.debug('setting text label: %s' % content)
             self.label.set_text(content)
 
         elif not (self.image is None):
             file = self.directory + "/" + content
+            logging.debug('setting image src: %s' % file)
             self.image.set_from_file(file)
 
         elif not (self.video is None):
@@ -144,7 +151,7 @@ class Slideshow():
         self.current = None
         #self.setup_animation()
         self.last = None
-        #self.paint()
+        self.paint()
         #self.init()
         #self.current = self.currentSlide()
         #self.setup_animation()
@@ -157,12 +164,13 @@ class Slideshow():
 
     def parseLayout(self, file, directory):
         """Parses the given file into a slide"""
-
+        logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
         handler = LayoutHandler(self.stage, directory)
         sax.parse(file, handler)
         return handler.slide
 
     def addSlide(self, id, duration, priority, assets, directory):
+	logging.debug('Adding New Slide')
         """Add a new slide to the interal cache"""
 
         slide = self.parseLayout(directory + "/layout.xml", directory)
@@ -188,6 +196,7 @@ class Slideshow():
         self.paint()
 
     def setup_animation(self):
+	logging.debug('Setting up animation')
         if(self.current.transition == "fade"):
             self.current.set_opacity(0)
         elif(self.current.transition == "slide-right-left"):
@@ -200,6 +209,7 @@ class Slideshow():
             self.current.set_y(self.stage.get_height())
 
     def in_animation(self):
+	logging.debug('in animation')
         timeline = clutter.Timeline(fps=60, duration=500)
         template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
         effect = None
@@ -215,6 +225,7 @@ class Slideshow():
             effect.start()
 
     def out_animation(self):
+	logging.debug('out animation')
         timeline = clutter.Timeline(fps=60, duration=500)
         template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
         effect = None
@@ -238,6 +249,7 @@ class Slideshow():
 
     def load_next(self):
         """Prepare the next slide to be painted"""
+	logging.debug('load_next')
 
         if len(self.slides) > 1:
             self.out_animation()
@@ -251,7 +263,9 @@ class Slideshow():
 
     def paint(self):
         """Paint the next slide to the screen"""
+	logging.debug('paint method begin')
         if self.current:
+	    logging.debug('painting')
             self.in_animation()
             self.current.show_all()
             self.stage.add(self.current)
@@ -266,7 +280,7 @@ class Slider(Slideshow):
 
     def start(self):
         """Starts the Slideshow"""
-
+	logging.debug('starting slider')
         self.active = True
         self.setup_animation()
         self.paint()
@@ -274,6 +288,7 @@ class Slider(Slideshow):
 
     def stop(self):
         """Stops the Slideshow"""
+	logging.debug('stopping slider')
 
         self.active = False
         if self.timer:
