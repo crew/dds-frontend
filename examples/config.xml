@@ -1,6 +1,6 @@
 <config>
   <!-- you *must* set this to wherever your slides are -->
-  <option name="cache" value="/home/roderic/.dds/slides"/>
+  <option name="cache" value="~/.dds/slides"/>
   <option name="client-jid" value="rms@centipede.ccs.neu.edu/dds-client"/>
   <option name="client-password" value="foo"/>
   <option name="server-jid" value="test@centipede.ccs.neu.edu/dds-server-init"/>
