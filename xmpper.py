@@ -32,6 +32,7 @@ class Xmpper(Thread):
         self.setupXmpp()
 
     def addSlide(self, slide):
+        logging.debug('adding slide to the pot')
         #slide[0] has a hash with the id, duration, and priority of the slide
         #slide[1] has a list of hashes, where each hash has the url and id of
         # an asset
@@ -52,6 +53,7 @@ class Xmpper(Thread):
         flag = self.slider.isEmpty()
         self.slider.addSlide(**info)
         if flag:
+            logging.debug('starting slider')
             self.slider.start()
 
     def removeSlide(self, slide):

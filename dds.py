@@ -16,9 +16,10 @@ logFile = home + "/.dds/log"
 cache = None
 
 stage = clutter.stage_get_default()
-
+p = None
 ## Setup stupid logging for the client
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(message)s', )
 
 def parse_args():
     parser = OptionParser(usage="usage: %prog [options]")
@@ -48,13 +49,14 @@ def main(args):
     config.init(configFile)
     if (cache):
         config.setOption("cache", cache)
-    stage.fullscreen()
-    stage.set_color(clutter.Color(0x2d, 0x2d, 0x2d, 0xff))
+    #stage.fullscreen()
+    stage.set_color(clutter.Color(0x00, 0x00, 0x00, 0x00))
     stage.connect('destroy', clutter.main_quit)
     stage.connect('key-press-event', on_key_press_event)
     stage.show_all()
     show = slider.create(stage)
-    xmpper.create(show).start()
+    p = xmpper.create(show)
+    p.start()
     clutter.main()
 
 
