@@ -17,13 +17,13 @@ logging.basicConfig(level=logging.DEBUG,
 class DDS:
     def __init__(self):
         self._home = os.environ["HOME"]
-        self._configFile = home + "/.dds/config.xml"
-        self._logFile = home + "/.dds/log"
+        self._configFile = self._home + "/.dds/config.xml"
+        self._logFile = self._home + "/.dds/log"
         self._cache = None
         self._stage = clutter.stage_get_default()
         self._xmpp = None
 
-    def parse_args():
+    def parse_args(self):
         parser = OptionParser(usage="usage: %prog [options]")
         parser.add_option("-c", "--config", dest="config",
                           help="location of the config file")
@@ -40,12 +40,12 @@ class DDS:
         if (options.slides):
             self._cache = options.slides
 
-    def on_key_press_event(stage, event):
+    def on_key_press_event(self,stage, event):
         logging.debug('Got keypress %s' % event.keyval)
         if (event.keyval == 113):
             clutter.main_quit()
 
-    def main(args):
+    def main(self,args):
         gobject.threads_init()
         clutter.threads_init()
         self.parse_args()
@@ -55,10 +55,10 @@ class DDS:
         self._stage.fullscreen()
         self._stage.set_color(clutter.Color(0x00, 0x00, 0x00, 0x00))
         self._stage.connect('destroy', clutter.main_quit)
-        self._stage.connect('key-press-event', on_key_press_event)
+        self._stage.connect('key-press-event', self.on_key_press_event)
         self._stage.hide_cursor()
         self._stage.show_all()
-        self._show = slider.create(stage)
+        self._show = slider.create(self._stage)
         self._xmpp = xmpper.create(self._show)
         self._xmpp.setupXmpp()
         self._xmpp.proceed()
@@ -68,4 +68,6 @@ class DDS:
 
 if __name__ == '__main__':
     d = DDS()
-    d.main(sys.argv)
+    retcode = d.main(sys.argv)
+    print retcode
+    sys.exit(retcode)
