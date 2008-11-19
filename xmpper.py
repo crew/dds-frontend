@@ -45,8 +45,10 @@ class Xmpper(Thread):
             opener.retrieve(asset["url"], place)
         info["assets"] = assets
         info["directory"] = directory
+        flag = self.slider.isEmpty()
         self.slider.addSlide(**info)
-        self.slider.start()
+        if flag:
+            self.slider.start()
 
     def removeSlide(self, slide):
         print "REMOVE"
