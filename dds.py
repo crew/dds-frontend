@@ -14,7 +14,7 @@ configFile = home + "/.dds/config.xml"
 logFile = home + "/.dds/log"
 cache = None
 
-stage = clutter.Stage()
+stage = clutter.stage_get_default()
 
 def parse_args():
     parser = OptionParser(usage="usage: %prog [options]")
