@@ -131,7 +131,6 @@ class LayoutHandler(ContentHandler):
 class Slideshow():
     """Slideshow class
 
-    @param canvas: the canvas to paint on
     """
 
     slides = []
@@ -154,7 +153,7 @@ class Slideshow():
         return handler.slide
 
     def addSlide(self, id, duration, priority, assets, directory):
-	logging.debug('Adding New Slide')
+        logging.debug('Adding New Slide')
         """Add a new slide to the interal cache"""
 
         slide = self.parseLayout(directory + "/layout.xml", directory)
@@ -180,7 +179,7 @@ class Slideshow():
         self.paint()
 
     def setup_animation(self):
-	logging.debug('Setting up animation')
+        logging.debug('Setting up animation')
         if(self.current.transition == "fade"):
             self.current.set_opacity(0)
         elif(self.current.transition == "slide-right-left"):
@@ -193,7 +192,7 @@ class Slideshow():
             self.current.set_y(self.stage.get_height())
 
     def in_animation(self):
-	logging.debug('in animation')
+        logging.debug('in animation')
         timeline = clutter.Timeline(fps=60, duration=500)
         template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
         effect = None
@@ -209,7 +208,7 @@ class Slideshow():
             effect.start()
 
     def out_animation(self):
-	logging.debug('out animation')
+        logging.debug('out animation')
         timeline = clutter.Timeline(fps=60, duration=500)
         template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
         effect = None
@@ -233,7 +232,7 @@ class Slideshow():
 
     def load_next(self):
         """Prepare the next slide to be painted"""
-	logging.debug('load_next')
+        logging.debug('load_next')
 
         if len(self.slides) > 1:
             self.out_animation()
@@ -247,9 +246,9 @@ class Slideshow():
 
     def paint(self):
         """Paint the next slide to the screen"""
-	logging.debug('paint method begin')
+        logging.debug('paint method begin')
         if self.current:
-	    logging.debug('painting')
+            logging.debug('painting')
             self.in_animation()
             self.current.show_all()
             self.stage.add(self.current)
@@ -264,15 +263,15 @@ class Slider(Slideshow):
 
     def start(self):
         """Starts the Slideshow"""
-	logging.debug('starting slider')
+        logging.debug('starting slider')
         self.active = True
         self.setup_animation()
-        self.paint()
         self.reset_timer()
+        self.paint()
 
     def stop(self):
         """Stops the Slideshow"""
-	logging.debug('stopping slider')
+        logging.debug('stopping slider')
 
         self.active = False
         if self.timer:
