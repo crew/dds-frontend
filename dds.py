@@ -57,6 +57,7 @@ def main(args):
     show = slider.create(stage)
     p = xmpper.create(show)
     p.setupXmpp()
+    p.proceed()
     gobject.timeout_add(5000, p.proceed)
     clutter.main()
 
