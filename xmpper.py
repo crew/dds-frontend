@@ -1,6 +1,7 @@
 from xmpp import *
 import xmlrpclib
 import os
+import os.path
 
 import config
 import urllib
@@ -31,10 +32,12 @@ class Xmpper(Thread):
 
     def addSlide(self, slide):
         #slide[0] has a hash with the id, duration, and priority of the slide
-        #slide[1] has a list of hashes, where each hash has the url and id of an asset
+        #slide[1] has a list of hashes, where each hash has the url and id of
+        # an asset
         info = slide[0]
         assets = slide[1]
-        directory = config.option("cache") + "/" + str(info["id"])
+        configdirectory = config.option("cache") + "/" + str(info["id"])
+	directory = os.path.expanduser(configdirectory)
         if not os.path.exists(directory):
             os.mkdir(directory)
         for asset in assets:

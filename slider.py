@@ -3,6 +3,7 @@ import glob
 import urllib
 import time
 import clutter
+import os.path
 from clutter import Label
 from clutter import Texture
 from clutter import Group
@@ -30,7 +31,7 @@ class LayoutHandler(ContentHandler):
 
     def __init__(self, stage, directory):
         self.stage = stage
-        self.directory = directory
+        self.directory = os.path.expanduser(directory)
         self.locator = None
         self.slide = None
         self.label = None
