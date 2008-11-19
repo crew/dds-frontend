@@ -112,7 +112,7 @@ class LayoutHandler(ContentHandler):
             self.label.set_text(content)
 
         elif not (self.image is None):
-            file = self.directory + content
+            file = self.directory + "/" + content
             self.image.set_from_file(file)
 
         elif not (self.video is None):
