@@ -79,6 +79,7 @@ class LayoutHandler(ContentHandler):
             label.set_x(labelX)
             labelY = (self.stage.get_height() / 9) * attrs.get("y",0)
             label.set_y(labelY)
+            label.set_depth(attrs.get("z", 0))
             self.label = label
 
         elif name == "image":
@@ -92,6 +93,7 @@ class LayoutHandler(ContentHandler):
             image.set_x(imageX)
             imageY = (self.stage.get_height() / 9) * attrs.get("y", 0)
             image.set_y(imageY)
+            image.set_depth(attrs.get("z", 0))
             self.image = image
 
         elif name == "video":
