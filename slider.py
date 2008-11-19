@@ -75,9 +75,9 @@ class LayoutHandler(ContentHandler):
             label.set_width(labelWidth)
             labelHeight = (self.stage.get_height() / 9) * attrs.get("height", 9)
             label.set_height(labelHeight)
-            labelX = (self.stage.get_width() / 16) * attrs.get("x", 1)
+            labelX = (self.stage.get_width() / 16) * attrs.get("x", 0)
             label.set_x(labelX)
-            labelY = (self.stage.get_height() / 9) * attrs.get("y", 1)
+            labelY = (self.stage.get_height() / 9) * attrs.get("y",0)
             label.set_y(labelY)
             self.label = label
 
@@ -88,9 +88,9 @@ class LayoutHandler(ContentHandler):
             image.set_width(imageWidth)
             imageHeight = (self.stage.get_height() / 9) * attrs.get("height", 9)
             image.set_height(imageHeight)
-            imageX = (self.stage.get_width() / 16) * attrs.get("x", 1)
+            imageX = (self.stage.get_width() / 16) * attrs.get("x", 0)
             image.set_x(imageX)
-            imageY = (self.stage.get_height() / 9) * attrs.get("y", 1)
+            imageY = (self.stage.get_height() / 9) * attrs.get("y", 0)
             image.set_y(imageY)
             self.image = image
 
