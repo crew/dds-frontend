@@ -24,6 +24,7 @@ class DDS:
         self._xmpp = None
 
     def parse_args(self):
+        logging.debug('Parsing Args')
         parser = OptionParser(usage="usage: %prog [options]")
         parser.add_option("-c", "--config", dest="config",
                           help="location of the config file")
@@ -48,25 +49,31 @@ class DDS:
             self._show.next()
 
     def main(self,args):
+        logging.debug('Main method turn on!')
         gobject.threads_init()
         clutter.threads_init()
         self.parse_args()
         config.init(self._configFile)
         if (self._cache):
             config.setOption("cache", cache)
+        logging.debug('Going Fullscreen')
         self._stage.fullscreen()
         self._stage.set_color(clutter.Color(0x00, 0x00, 0x00, 0x00))
         self._stage.connect('destroy', clutter.main_quit)
         self._stage.connect('key-press-event', self.on_key_press_event)
         self._stage.hide_cursor()
         self._stage.show_all()
+        logging.debug('Creating slider')
         self._show = slider.create(self._stage)
+        logging.debug('Creating xmpper')
         self._xmpp = xmpper.create(self._show)
         self._xmpp.setupXmpp()
         self._xmpp.proceed()
         self._stage.paint()
         self._stage.queue_redraw()
+        logging.debug('Creating gobject timeout')
         gobject.timeout_add(5000, self._xmpp.proceed)
+        logging.debug('Clutter Main invocation')
         clutter.main()
 
 
