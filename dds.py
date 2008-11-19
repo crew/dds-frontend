@@ -49,7 +49,7 @@ def main(args):
     config.init(configFile)
     if (cache):
         config.setOption("cache", cache)
-    #stage.fullscreen()
+    stage.fullscreen()
     stage.set_color(clutter.Color(0x00, 0x00, 0x00, 0x00))
     stage.connect('destroy', clutter.main_quit)
     stage.connect('key-press-event', on_key_press_event)
