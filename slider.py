@@ -137,16 +137,6 @@ class Slideshow():
         #if not len(self.slides) == 0:
             #self.paint()
 
-    def init(self):
-        """Initializes the cache of slides"""
-
-        #files = glob.glob(config.option("cache") + "/*.xml")
-        #for file in files:
-        #    self.parseLayout(file)
-        #if len(self.slides) == 0:
-        #    self.active = False
-        #    print "No slides found in the cache"
-
     def isEmpty(self):
         return len(slides) == 0
 
@@ -263,6 +253,8 @@ class Slider(Slideshow):
         """Starts the Slideshow"""
 
         self.active = True
+        self.setup_animation()
+        self.paint()
         self.reset_timer()
 
     def stop(self):
