@@ -16,17 +16,18 @@ def create(slider):
     return Xmpper(slider)
 
 
-class Xmpper(Thread):
+class Xmpper():
 
     def __init__(self, slider):
         self.slider = slider
+        self.client = None
         self.methods = { "addSlide"   : self.addSlide,
                          "removeSlide" : self.removeSlide,
                          "updateSlide" : self.updateSlide,
                          "addAsset"    : self.addAsset,
                          "removeAsset" : self.removeAsset,
                          "updateAsset" : self.updateAsset }
-        Thread.__init__(self)
+        #Thread.__init__(self)
 
     def run(self):
         self.setupXmpp()
@@ -105,9 +106,9 @@ class Xmpper(Thread):
         except KeyboardInterrupt:
             return False
 
-    def proceed(self, connection):
-        while self.checkXmpp(connection):
-            pass
+    def proceed(self):
+        self.checkXmpp(self.client)
+        return True
 
     def setupXmpp(self):
         jid = config.option("client-jid")
@@ -126,5 +127,5 @@ class Xmpper(Thread):
         client.RegisterHandler("presense", self.handlePresence)
         client.sendInitPresence()
         client.sendPresence(jid = config.option("server-jid"))
-
-        self.proceed(client)
+        self.client = client
+        self.proceed()
