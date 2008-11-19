@@ -66,12 +66,26 @@ class LayoutHandler(ContentHandler):
             label.set_font_name(attrs.get("font", "sans 32"))
             label.set_line_wrap(True)
             label.set_color(clutter.color_parse(attrs.get("color", "white")))
-            label.set_width(attrs.get("width", self.stage.get_width()))
-            label.set_height(attrs.get("height", self.stage.get_height()))
+            width = (self.stage.get_width() / 16) * attrs.get("width", 16)
+            label.set_width(width)
+            height = (self.stage.get_height() / 9) * attrs.get("height", 9)
+            label.set_height(height)
+            x = (self.stage.get_width() / 16) * attrs.get("x", 0)
+            label.set_x(x)
+            y = (self.stage.get_height() / 9) * attrs.get("y", 0)
+            label.set_y(y)
             self.label = label
 
         elif name == "image":
             image = Texture()
+            width = (self.stage.get_width() / 16) * attrs.get("width", 16)
+            image.set_width(width)
+            height = (self.stage.get_height() / 9) * attrs.get("height", 9)
+            image.set_height(height)
+            x = (self.stage.get_width() / 16) * attrs.get("x", 0)
+            image.set_x(x)
+            y = (self.stage.get_height() / 9) * attrs.get("y", 0)
+            image.set_y(y)
             self.image = image
 
         elif name == "video":
@@ -138,7 +152,7 @@ class Slideshow():
             #self.paint()
 
     def isEmpty(self):
-        return len(slides) == 0
+        return len(self.slides) == 0
 
     def parseLayout(self, file, directory):
         """Parses the given file into a slide"""
