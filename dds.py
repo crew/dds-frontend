@@ -23,24 +23,25 @@ def parse_args():
     parser.add_option("-l", "--log", dest="log",
                       help="location of the log file")
     parser.add_option("-s", "--slides", dest="slides",
-                      help="location of the slide cache directory (overides config file)")
+                      help=("location of the slide cache directory "
+                            "(overides config file)"))
     (options, args) = parser.parse_args()
-    if(options.config):
+    if (options.config):
         configFile = options.config
-    if(options.log):
+    if (options.log):
         logFile = options.log
-    if(options.slides):
+    if (options.slides):
         cache = options.slides
 
 def on_key_press_event(stage, event):
-    if(event.keyval == 113):
+    if (event.keyval == 113):
         clutter.main_quit()
 
 def main(args):
     gobject.threads_init()
     parse_args()
     config.init(configFile)
-    if(cache):
+    if (cache):
         config.setOption("cache", cache)
     stage.fullscreen()
     stage.set_color(clutter.Color(0x2d, 0x2d, 0x2d, 0xff))
