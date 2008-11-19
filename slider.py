@@ -14,6 +14,7 @@ import xml.sax as sax
 from xml.sax.handler import ContentHandler
 from xml.sax.handler import ErrorHandler
 
+
 def create(canvas):
     """Public creator for the slider"""
 
@@ -116,6 +117,19 @@ class Slideshow():
     def __init__(self, stage):
 
         self.stage = stage
+        #defaultSlide = Slide(stage)
+        #defaultText = Label()
+        #defaultText.set_font_name(attrs.get("font", "sans 32"))
+        #defaultText.set_line_wrap(True)
+        #defaultText.set_color(clutter.color_parse(attrs.get("color", "white")))
+        #defaultText.label.set_text("No Slides.. Yet")
+        #defaultSlide.add(defaultText)
+        #defaultSlide.transition = "fade"
+        #defaultSlide.duration = 3
+        self.current = None
+        #self.setup_animation()
+        self.last = None
+        #self.paint()
         #self.init()
         #self.current = self.currentSlide()
         #self.setup_animation()
@@ -151,6 +165,8 @@ class Slideshow():
         slide.duration = duration
         slide.priority = priority
         self.slides.append(slide)
+        if not self.current:
+            self.current = self.currentSlide()
 
     def nextSlide(self):
         """Rotate the next slide to the front of the list"""

@@ -1,7 +1,10 @@
 from xmpp import *
 import xmlrpclib
 import os
+
 import config
+import urllib
+import urlparse
 import xml.sax as sax
 from xml.sax.handler import ContentHandler
 from xml.sax.handler import ErrorHandler
@@ -27,26 +30,31 @@ class Xmpper(Thread):
         self.setupXmpp()
 
     def addSlide(self, slide):
+        #print slide
         #slide[0] has a hash with the id, duration, and priority of the slide
         #slide[1] has a list of hashes, where each hash has the url and id of an asset
         info = slide[0]
         assets = slide[1]
-        directory = config.option("cache") + "/" + info["id"]
+        directory = config.option("cache") + "/" + str(info["id"])
         if not os.path.exists(directory):
             os.mkdir(directory)
         #for stuff in info.keys():
         for asset in assets:
             opener = urllib.URLopener()
-            opener.retrieve(asset["url"], directory)
+            path = urlparse.urlparse(asset["url"])[2]
+            name = os.path.basename(path)
+            place = directory + "/" + name
+            opener.retrieve(asset["url"], place)
         info["assets"] = assets
         info["directory"] = directory
-        slider.addSlide(**info)
-        slider.start()
+        self.slider.addSlide(**info)
+        self.slider.start()
 
     def removeSlide(self, slide):
         info = slide[0]
-        slider.removeSlide(info["id"])
-        if slider.isEmpty(): slider.stop()
+        self.slider.removeSlide(info["id"])
+        if self.slider.isEmpty():
+            slider.stop()
 
     def updateSlide(self, slide):
         print slide
@@ -74,12 +82,14 @@ class Xmpper(Thread):
                 self.logError(iq.getAttr("from"), "rpc error")
             else:
                 payload = xmlrpclib.loads(str(iq))
+                print payload
                 methodName = payload[1]
                 # payload[0] returns a tuple of arguments
                 # and the only argument we want is the first one
-                try:
-                    self.methods[methodName](payload[0][0])
-                except KeyError:
+                if methodName in self.methods:
+                    m = self.methods[methodName]
+                    m(payload[0])
+                else:
                     print "rpc function " + methodName + " is not defined"
 
     def checkXmpp(self, connection):
@@ -94,8 +104,8 @@ class Xmpper(Thread):
             pass
 
     def setupXmpp(self):
-        jid = config.option("xmpp-id")
-        password = config.option("xmpp-password")
+        jid = config.option("client-jid")
+        password = config.option("client-password")
 
         jid = protocol.JID(jid)
         client = Client(jid.getDomain(), debug=[])
@@ -109,6 +119,6 @@ class Xmpper(Thread):
         client.RegisterHandler("iq", self.handleIQ)
         client.RegisterHandler("presense", self.handlePresence)
         client.sendInitPresence()
-        client.sendPresence(jid="test@centipede.ccs.neu.edu/dds-server-init")
+        client.sendPresence(jid = config.option("server-jid"))
 
         self.proceed(client)
