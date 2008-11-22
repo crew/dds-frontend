@@ -80,6 +80,7 @@ class LayoutHandler(ContentHandler):
             labelY = (self.stage.get_height() / 9) * int(attrs.get("y",0))
             label.set_y(labelY)
             label.set_depth(int(attrs.get("z", 0)))
+            label.set_text("")
             self.label = label
 
         elif name == "image":
@@ -118,7 +119,7 @@ class LayoutHandler(ContentHandler):
 
         if not (self.label is None):
             logging.debug('setting text label: %s' % content)
-            self.label.set_text(content)
+            self.label.set_text(label.get_text() + content)
 
         elif not (self.image is None):
             file = self.directory + "/" + content
@@ -142,7 +143,6 @@ class Slideshow():
         self.stage = stage
         self.current = None
         self.last = None
-        self.paint()
 
     def isEmpty(self):
         return len(self.slides) == 0
@@ -287,7 +287,7 @@ class Slider(Slideshow):
 
         if self.active:
             self.timer = Timer(float(self.currentSlide().duration),
-                                self.next)
+                               self.next)
             self.timer.daemon = True
             self.timer.start()
 
