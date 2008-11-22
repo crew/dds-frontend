@@ -3,7 +3,6 @@ import xmlrpclib
 import os
 import os.path
 import logging
-
 import config
 import urllib
 import urlparse
@@ -16,7 +15,7 @@ def create(slider):
     return Xmpper(slider)
 
 
-class Xmpper():
+class Xmpper(Thread):
 
     def __init__(self, slider):
         self.slider = slider
@@ -27,7 +26,7 @@ class Xmpper():
                          "addAsset"    : self.addAsset,
                          "removeAsset" : self.removeAsset,
                          "updateAsset" : self.updateAsset }
-        #Thread.__init__(self)
+        Thread.__init__(self)
 
     def run(self):
         self.setupXmpp()
@@ -36,7 +35,7 @@ class Xmpper():
         logging.debug('adding slide to the pot')
         #slide[0] has a hash with the id, duration, and priority of the slide
         #slide[1] has a list of hashes, where each hash has the url and id of
-        # an asset
+        #an asset
         info = slide[0]
         assets = slide[1]
         configdirectory = config.option("cache") + "/" + str(info["id"])
@@ -44,11 +43,10 @@ class Xmpper():
         if not os.path.exists(directory):
             os.mkdir(directory)
         for asset in assets:
-            opener = urllib.URLopener()
             path = urlparse.urlparse(asset["url"])[2]
             name = os.path.basename(path)
-            place = directory + "/" + name
-            opener.retrieve(asset["url"], place)
+            fullPath = directory + "/" + name
+            urllib.urlretrieve(asset["url"], fullPath)
         info["assets"] = assets
         info["directory"] = directory
         flag = self.slider.isEmpty()
@@ -58,7 +56,7 @@ class Xmpper():
             self.slider.start()
 
     def removeSlide(self, slide):
-        logging.debug("REMOVE")
+        logging.debug("removing a slide")
         info = slide[0]
         self.slider.removeSlide(info["id"])
         if self.slider.isEmpty():
@@ -66,6 +64,8 @@ class Xmpper():
 
     def updateSlide(self, slide):
         logging.debug('Update slide: %s' % slide)
+        removeSlide(slide)
+        addSlide(slide)
 
     def addAsset(self, slide):
         logging.debug('Add Asset: %s' % slide)
@@ -107,8 +107,8 @@ class Xmpper():
             return False
 
     def proceed(self):
-        self.checkXmpp(self.client)
-        return True
+        while self.checkXmpp(self.client):
+            pass
 
     def setupXmpp(self):
         jid = config.option("client-jid")
