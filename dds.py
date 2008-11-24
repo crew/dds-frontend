@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG,
 class DDS:
   def __init__(self):
     self._home = os.environ["HOME"]
-    self._configFile = self._home + "/.dds/config.xml"
+    self._configFile = self._home + "/.dds/config.py"
     self._logFile = self._home + "/.dds/log"
     self._cache = None
     self._stage = clutter.stage_get_default()

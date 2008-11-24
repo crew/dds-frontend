@@ -265,7 +265,6 @@ class Slider(Slideshow):
 
   def start(self):
     """Starts the Slideshow"""
-    logging.debug('starting slider')
     self.active = True
     self.setup_animation()
     self.reset_timer()
