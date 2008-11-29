@@ -29,6 +29,7 @@ class Slide(Group):
     Group.__init__(self)
 
 class LayoutHandler(ContentHandler):
+  """Handler methods to parse a layout xml"""
 
   def __init__(self, stage, directory):
     self.stage = stage
@@ -102,6 +103,7 @@ class LayoutHandler(ContentHandler):
       pass
 
   def endElement(self, name):
+    """Handle the end of an xml element"""
 
     if name == "text":
       self.slide.add(self.label)
@@ -116,6 +118,7 @@ class LayoutHandler(ContentHandler):
       pass
 
   def characters(self, content):
+    """Parse character data"""
 
     if not (self.label is None):
       logging.debug('setting text label: %s' % content)
@@ -132,9 +135,7 @@ class LayoutHandler(ContentHandler):
 
 
 class Slideshow():
-  """Slideshow class
-
-  """
+  """Handles the painting and parsing of slides"""
 
   slides = []
 
@@ -149,6 +150,7 @@ class Slideshow():
 
   def parseLayout(self, file, directory):
     """Parses the given file into a slide"""
+
     logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
     handler = LayoutHandler(self.stage, directory)
     sax.parse(file, handler)
@@ -177,10 +179,15 @@ class Slideshow():
     return self.slides[0]
 
   def next(self):
-    self.load_next()
-    self.paint()
+    """Prepare and paint the next slide"""
+
+    if self.current && (len(self.slides) > 1):
+      self.load_next()
+      self.paint()
 
   def setup_animation(self):
+    """Setup the intro animation for the current slide"""
+
     logging.debug('Setting up animation')
     if(self.current.transition == "fade"):
       self.current.set_opacity(0)
@@ -194,6 +201,8 @@ class Slideshow():
       self.current.set_y(self.stage.get_height())
 
   def in_animation(self):
+    """Run the intro animation of the current slide"""
+
     logging.debug('in animation')
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
@@ -210,6 +219,8 @@ class Slideshow():
       effect.start()
 
   def out_animation(self):
+    """Run the exit animation of the current slide"""
+
     logging.debug('out animation')
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
@@ -234,26 +245,28 @@ class Slideshow():
 
   def load_next(self):
     """Prepare the next slide to be painted"""
+
     logging.debug('load_next')
 
-    if len(self.slides) > 1:
-      self.out_animation()
-      if self.last:
-        self.last.hide_all()
-        self.stage.remove(self.last)
-      self.last = self.current
-      self.nextSlide()
-      self.current = self.currentSlide()
-      self.setup_animation()
+    self.out_animation()
+    if self.last:
+      self.last.hide_all()
+      self.stage.remove(self.last)
+    self.last = self.current
+    self.nextSlide()
+    self.current = self.currentSlide()
+    self.setup_animation()
+
 
   def paint(self):
     """Paint the next slide to the screen"""
+
     logging.debug('paint method begin')
-    if self.current:
-      logging.debug('painting')
-      self.in_animation()
-      self.current.show_all()
-      self.stage.add(self.current)
+
+    logging.debug('painting')
+    self.in_animation()
+    self.current.show_all()
+    self.stage.add(self.current)
 
 class Slider(Slideshow):
   """Manages the order and timing of slide switching"""
@@ -264,7 +277,8 @@ class Slider(Slideshow):
     Slideshow.__init__(self, canvas)
 
   def start(self):
-    """Starts the Slideshow"""
+    """Starts the Slider, should only be called when there are slides"""
+
     self.active = True
     self.setup_animation()
     self.reset_timer()
@@ -272,6 +286,7 @@ class Slider(Slideshow):
 
   def stop(self):
     """Stops the Slideshow"""
+
     logging.debug('stopping slider')
 
     self.active = False
