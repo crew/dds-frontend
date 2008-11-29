@@ -168,6 +168,11 @@ class Slideshow():
     if not self.current:
       self.current = self.currentSlide()
 
+  def removeSlide(self, id):
+    """Remove the slide with the given id from the cache"""
+
+    pass
+
   def nextSlide(self):
     """Rotate the next slide to the front of the list"""
 
@@ -176,7 +181,10 @@ class Slideshow():
   def currentSlide(self):
     """Return the current slide"""
 
-    return self.slides[0]
+    if len(self.slides) > 0:
+      return self.slides[0]
+    else:
+      None
 
   def next(self):
     """Prepare and paint the next slide"""
