@@ -14,8 +14,8 @@ from threading import Thread
 def create(slider):
   return Xmpper(slider)
 
-
 class Xmpper(Thread):
+  """Thread to handle talking to the xmpp server, and xmlrpc calls"""
 
   def __init__(self, slider):
     self.slider = slider
@@ -33,9 +33,9 @@ class Xmpper(Thread):
 
   def addSlide(self, slide):
     logging.debug('adding slide to the pot')
-        #slide[0] has a hash with the id, duration, and priority of the slide
-        #slide[1] has a list of hashes, where each hash has the url and id of
-        #an asset
+    #slide[0] has a hash with the id, duration, and priority of the slide
+    #slide[1] has a list of hashes, where each hash has the url and id of
+    #an asset
     info = slide[0]
     assets = slide[1]
     configdirectory = config.option("cache") + "/" + str(info["id"])
