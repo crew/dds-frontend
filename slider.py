@@ -5,6 +5,7 @@ import time
 import clutter
 import os.path
 import logging
+import json
 from clutter import Label
 from clutter import Texture
 from clutter import Group
@@ -28,112 +29,6 @@ class Slide(Group):
     self.transition = transition
     Group.__init__(self)
 
-class LayoutHandler(ContentHandler):
-  """Handler methods to parse a layout xml"""
-
-  def __init__(self, stage, directory):
-    self.stage = stage
-    self.directory = os.path.expanduser(directory)
-    self.locator = None
-    self.slide = None
-    self.label = None
-    self.image = None
-    self.video = None
-
-    ContentHandler.__init__(self)
-
-  def setDocumentLocator(self, locator):
-    """Set the locator for this document"""
-
-    self.locator = locator
-
-  def startDocument(self):
-    """Handle the start of the xml document"""
-
-    pass
-
-  def startElement(self, name, attrs):
-    """Handle the start of an xml element"""
-
-    if (self.slide is None) and (name != "slide"):
-            #TODO: handle error
-      pass
-
-    elif name == "slide":
-      transition = attrs.get("transition")
-      if transition is None:
-        pass
-                #TODO: handle error
-      self.slide = Slide(transition)
-
-    elif name == "text":
-      logging.debug('Adding text element')
-      label = Label()
-      label.set_font_name(attrs.get("font", "sans 32"))
-      label.set_line_wrap(True)
-      label.set_color(clutter.color_parse(attrs.get("color", "white")))
-      labelWidth = (self.stage.get_width() / 16) * int(attrs.get("width", 16))
-      label.set_width(labelWidth)
-      labelHeight = (self.stage.get_height() / 9) * int(attrs.get("height", 9))
-      label.set_height(labelHeight)
-      labelX = (self.stage.get_width() / 16) * int(attrs.get("x", 0))
-      label.set_x(labelX)
-      labelY = (self.stage.get_height() / 9) * int(attrs.get("y",0))
-      label.set_y(labelY)
-      label.set_depth(int(attrs.get("z", 0)))
-      label.set_text("")
-      self.label = label
-
-    elif name == "image":
-      logging.debug('Adding image element')
-      image = Texture()
-      imageWidth = (self.stage.get_width() / 16) * int(attrs.get("width", 16))
-      image.set_width(imageWidth)
-      imageHeight = (self.stage.get_height() / 9) * int(attrs.get("height", 9))
-      image.set_height(imageHeight)
-      imageX = (self.stage.get_width() / 16) * int(attrs.get("x", 0))
-      image.set_x(imageX)
-      imageY = (self.stage.get_height() / 9) * int(attrs.get("y", 0))
-      image.set_y(imageY)
-      image.set_depth(int(attrs.get("z", 0)))
-      self.image = image
-
-    elif name == "video":
-            #TODO: implement this
-      pass
-
-  def endElement(self, name):
-    """Handle the end of an xml element"""
-
-    if name == "text":
-      self.slide.add(self.label)
-      self.label = None
-
-    if name == "image":
-      self.slide.add(self.image)
-      self.image = None
-
-    if name == "video":
-            #TODO: implement
-      pass
-
-  def characters(self, content):
-    """Parse character data"""
-
-    if not (self.label is None):
-      logging.debug('setting text label: %s' % content)
-      self.label.set_text(label.get_text() + content)
-
-    elif not (self.image is None):
-      file = self.directory + "/" + content
-      logging.debug('setting image src: %s' % file)
-      self.image.set_from_file(file)
-
-    elif not (self.video is None):
-            #TODO: implement
-      pass
-
-
 class Slideshow():
   """Handles the painting and parsing of slides"""
 
@@ -152,15 +47,54 @@ class Slideshow():
     """Parses the given file into a slide"""
 
     logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
-    handler = LayoutHandler(self.stage, directory)
-    sax.parse(file, handler)
-    return handler.slide
+    data = json.read(open(file).read())
+    slide = Slide(data['transition'])
+    for element in data['elements']:
+      type = element['type']
+      if type == 'text':
+        logging.debug('Adding text element')
+        label = Label()
+        label.set_font_name(element.get('font', 'sans 32'))
+        label.set_line_wrap(True)
+        label.set_color(clutter.color_parse(element.get('color', 'white')))
+        labelWidth = (self.stage.get_width() / 16) * int(element.get('width', 16))
+        label.set_width(labelWidth)
+        labelHeight = (self.stage.get_height() / 9) * int(element.get('height', 9))
+        label.set_height(labelHeight)
+        labelX = (self.stage.get_width() / 16) * int(element.get('x', 0))
+        label.set_x(labelX)
+        labelY = (self.stage.get_height() / 9) * int(element.get('y',0))
+        label.set_y(labelY)
+        label.set_depth(int(element.get('z', 0)))
+        label.set_text(element.get('content', ''))
+        slide.add(label)
+
+      elif type == "image":
+        logging.debug('Adding image element')
+        image = Texture()
+        imageWidth = (self.stage.get_width() / 16) * int(element.get('width', 16))
+        image.set_width(imageWidth)
+        imageHeight = (self.stage.get_height() / 9) * int(element.get('height', 9))
+        image.set_height(imageHeight)
+        imageX = (self.stage.get_width() / 16) * int(element.get('x', 0))
+        image.set_x(imageX)
+        imageY = (self.stage.get_height() / 9) * int(element.get('y', 0))
+        image.set_y(imageY)
+        image.set_depth(int(element.get('z', 0)))
+        image.set_from_file(directory + "/" + element.get('content'))
+        slide.add(image)
+
+      elif type == 'video':
+        #TODO: implement this
+        pass
+
+    return slide
 
   def addSlide(self, id, duration, priority, assets, directory):
     """Add a new slide to the interal cache"""
 
     logging.debug('Adding New Slide')
-    slide = self.parseLayout(directory + "/layout.xml", directory)
+    slide = self.parseLayout(directory + "/layout.js", directory)
     slide.___id = id
     slide.duration = duration
     slide.priority = priority
