@@ -95,12 +95,15 @@ class Slideshow():
 
     logging.debug('Adding New Slide')
     slide = self.parseLayout(directory + "/layout.js", directory)
-    slide.___id = id
+    slide.id = id
     slide.duration = duration
     slide.priority = priority
     self.slides.append(slide)
     if not self.current:
       self.current = self.currentSlide()
+      logging.debug('starting slider')
+      self.start()
+    return False
 
   def removeSlide(self, id):
     """Remove the slide with the given id from the cache"""
