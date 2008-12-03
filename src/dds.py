@@ -5,10 +5,11 @@ import config
 import threading
 import time
 import gobject
-import slider
-import xmpper
 import logging
 from optparse import OptionParser
+
+from slider import Slider
+from xmpper import Xmpper
 
 ## Setup stupid logging for the client
 logging.basicConfig(level=logging.DEBUG,
@@ -64,9 +65,9 @@ class DDS:
     self._stage.hide_cursor()
     self._stage.show_all()
     logging.debug('Creating slider')
-    self._show = slider.create(self._stage)
+    self._show = Slider(self._stage)
     logging.debug('Creating xmpper')
-    self._xmpp = xmpper.create(self._show)
+    self._xmpp = Xmpper(self._show)
     logging.debug('Starting xmpper')
     self._xmpp.start()
     logging.debug('Clutter Main invocation')
