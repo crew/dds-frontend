@@ -1,0 +1,18 @@
+Dependencies:
+
+* python-clutter >= 0.8
+
+* python-xmpp
+
+* python-json
+
+Getting Started:
+
+* copy examples/config.py to ~/.dds (or point it to a config file with the
+  -c command line option).
+
+* configure config.py with the location of your slide cache (by default it's ~/.dds/slides),
+  the jabber ID and password for the client, and the jabber ID for the server.
+
+* make sure that slides are registered to your client's jabber ID on the server, or
+  of course, it won't recieve any slides to display
