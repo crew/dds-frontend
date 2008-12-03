@@ -54,6 +54,7 @@ class DDS:
     logging.debug('Main method turn on!')
     gobject.threads_init()
     clutter.threads_init()
+    clutter.set_use_mipmapped_text(False)
     self.parse_args()
     config.init(self._configFile)
     if (self._cache):
