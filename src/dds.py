@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import clutter
 import sys
 import os
