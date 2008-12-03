@@ -6,6 +6,7 @@ import logging
 import config
 import urllib
 import urlparse
+import gobject
 import xml.sax as sax
 from xml.sax.handler import ContentHandler
 from xml.sax.handler import ErrorHandler
@@ -50,10 +51,9 @@ class Xmpper(Thread):
     info["assets"] = assets
     info["directory"] = directory
     flag = self.slider.isEmpty()
-    self.slider.addSlide(**info)
-    if flag:
-      logging.debug('starting slider')
-      self.slider.start()
+    def callback(info):
+      self.slider.addSlide(**info)
+    gobject.idle_add(callback, info)
 
   def removeSlide(self, slide):
     logging.debug("removing a slide")
