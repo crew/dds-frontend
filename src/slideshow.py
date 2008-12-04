@@ -61,6 +61,7 @@ class Slideshow():
       added = self._safeAddSlideToDeck(slide)
       if added:
         logging.debug('safely added slide id %s' % id)
+        self.logSlideOrder()
       if not self.current:
         self.current = self.currentSlide()
         logging.debug('starting slider')
@@ -91,20 +92,25 @@ class Slideshow():
 
   def removeSlide(self, id):
     """Remove the slide with the given id from the cache"""
-    logging.debug('I was told to remove slide id %s from the deck' % id)
+    logging.debug('I was told to remove slide id %s from the deck' % id['id'])
+    self.logSlideOrder()
     for slide in self.slides:
-      if slide.id == id:
-        logging.debug('Removing slide %s from the deck' % id)
+      if slide.id['id'] == id:
+        logging.debug('Removing slide %s from the deck' % id['id'])
         self.slides.remove(slide)
+        self.logSlideOrder()
 
   def nextSlide(self):
     """Rotate the next slide to the front of the list"""
     logging.debug('nextSlide updating self.slides')
     self.slides.append(self.slides.pop(0))
+    self.logSlideOrder()
+
+  def logSlideOrder(self): 
     il = []
     for i in self.slides:
       il.append(i.id)
-    logging.debug('new order: %s' % str(il))
+    logging.debug('current order: %s' % str(il))
 
   def currentSlide(self):
     """Return the current slide"""
