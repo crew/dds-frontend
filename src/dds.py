@@ -70,6 +70,11 @@ class DDS:
     config.init(self._configFile)
     if (self._cache):
       config.setOption("cache", cache)
+    cache = os.path.expanduser(config.option("cache"))
+    if (not os.path.exists(cache)):
+      os.makedirs(cache)
+    logging.debug(os.path.exists(config.option("cache")))
+    logging.debug(config.option("cache"))
     if self._fullscreen:
       logging.debug('Going Fullscreen')
       self._stage.fullscreen()
@@ -86,6 +91,7 @@ class DDS:
     self._xmpp.start()
     logging.debug('Clutter Main invocation')
     clutter.main()
+
 
 
 if __name__ == '__main__':
