@@ -214,10 +214,7 @@ class Slideshow():
 
   def paint(self):
     """Paint the next slide to the screen"""
-
-    logging.debug('paint method begin')
-
-    logging.debug('painting')
+    logging.debug('slideshow.paint method begin')
     self.in_animation()
     self.current.show_all()
     self.stage.add(self.current)
