@@ -70,7 +70,7 @@ class Xmpper(Thread):
       slider.stop()
 
   def updateSlide(self, slide):
-    logging.debug('Update slide: %s' % str(slide['id']))
+    logging.debug('Update slide: %s' % str(slide[0]['id']))
     self.removeSlide(slide)
     self.addSlide(slide)
 
