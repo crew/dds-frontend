@@ -3,7 +3,7 @@ import json
 import logging
 import clutter
 import os
-
+from clutter import Script
 from slide import Slide
 
 class Slideshow():
@@ -24,47 +24,14 @@ class Slideshow():
     """Parses the given file into a slide"""
 
     logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
-    data = json.read(open(file).read())
-    slide = Slide(data['transition'])
-    for element in data['elements']:
-      type = element['type']
-      if type == 'text':
-        logging.debug('Adding text element')
-        label = clutter.Label()
-        label.set_font_name(element.get('font', 'sans 32'))
-        label.set_line_wrap(True)
-        label.set_color(clutter.color_parse(element.get('color', 'white')))
-        labelWidth = (self.stage.get_width() / 16) * int(element.get('width', 16))
-        label.set_width(labelWidth)
-        labelHeight = (self.stage.get_height() / 9) * int(element.get('height', 9))
-        label.set_height(labelHeight)
-        labelX = (self.stage.get_width() / 16) * int(element.get('x', 0))
-        label.set_x(labelX)
-        labelY = (self.stage.get_height() / 9) * int(element.get('y',0))
-        label.set_y(labelY)
-        label.set_depth(int(element.get('z', 0)))
-        label.set_text(element.get('content', ''))
-        slide.add(label)
-
-      elif type == "image":
-        logging.debug('Adding image element')
-        image = clutter.Texture()
-        imageWidth = (self.stage.get_width() / 16) * int(element.get('width', 16))
-        image.set_width(imageWidth)
-        imageHeight = (self.stage.get_height() / 9) * int(element.get('height', 9))
-        image.set_height(imageHeight)
-        imageX = (self.stage.get_width() / 16) * int(element.get('x', 0))
-        image.set_x(imageX)
-        imageY = (self.stage.get_height() / 9) * int(element.get('y', 0))
-        image.set_y(imageY)
-        image.set_depth(int(element.get('z', 0)))
-        image.set_from_file(directory + "/" + element.get('content'))
-        slide.add(image)
-
-      elif type == 'video':
-        #TODO: implement this
-        pass
-
+    script = Script()
+    script.load_from_file(file)
+    slide = script.get_object('slide')
+    for child in slide.get_children():
+      child.set_x(child.get_x() * (self.stage.get_width() / 16))
+      child.set_y(child.get_y() * (self.stage.get_height() / 9))
+      child.set_width(child.get_width() * (self.stage.get_width() / 16))
+      child.set_height(child.get_height() * (self.stage.get_height() / 9))
     return slide
 
   def addSlide(self, id, duration, priority, assets, directory):
@@ -101,13 +68,13 @@ class Slideshow():
     addit = True
     for deckslide in self.slides:
       if deckslide.id == newslideid:
-        logging.debug('When trying to add slide id %s, we found it already' % 
+        logging.debug('When trying to add slide id %s, we found it already' %
                       newslideid)
         addit = False
         return False
     if addit:
-      logging.debug('When trying to add slide id %s, we did it!!!' % 
-                    newslideid) 
+      logging.debug('When trying to add slide id %s, we did it!!!' %
+                    newslideid)
       self.slides.append(slide)
       return True
 
