@@ -9,6 +9,7 @@ import config
 import urllib
 import urlparse
 import gobject
+import clutter
 import xml.sax as sax
 from xml.sax.handler import ContentHandler
 from xml.sax.handler import ErrorHandler
@@ -54,7 +55,10 @@ class Xmpper(Thread):
     info["directory"] = directory
     flag = self.slider.isEmpty()
     def callback(info):
-      return self.slider.addSlide(**info)
+      clutter.threads_enter()
+      flag = self.slider.addSlide(**info)
+      clutter.threads_leave()
+      return flag
     gobject.timeout_add(1000, callback, info)
 
   def removeSlide(self, slide):
