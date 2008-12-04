@@ -9,10 +9,10 @@ from slideshow import Slideshow
 class Slider(Slideshow):
   """Manages the order and timing of slide switching"""
 
-  def __init__(self, canvas):
+  def __init__(self, canvas, letterbox=False):
     self.timer = None
     self.active = False
-    Slideshow.__init__(self, canvas)
+    Slideshow.__init__(self, canvas, letterbox=letterbox)
 
   def start(self):
     """Starts the Slider, should only be called when there are slides"""

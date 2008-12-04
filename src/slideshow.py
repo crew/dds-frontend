@@ -6,17 +6,21 @@ import os
 from clutter import Script
 from slide import Slide
 
+L_HEIGHT = 12
+W_HEIGHT = 9
+
 class Slideshow():
   """Handles the painting and parsing of slides"""
 
   slides = []
 
-  def __init__(self, stage):
+  def __init__(self, stage, letterbox=False):
 
     self.stage = stage
     self.current = None
     self.last = None
     self._paintran = False
+    self._letterbox = letterbox
 
   def isEmpty(self):
     return len(self.slides) == 0
@@ -30,10 +34,16 @@ class Slideshow():
     script.load_from_file(file)
     slide = script.get_object('slide')
     for child in slide.get_children():
+      if (self._letterbox):
+        letterbox_y = self.stage.get_width() / L_HEIGHT
+        height_div = L_HEIGHT
+      else:
+        letterbox_y = 0
+        height_div = W_HEIGHT
       child.set_x(child.get_x() * (self.stage.get_width() / 16))
-      child.set_y(child.get_y() * (self.stage.get_height() / 9))
+      child.set_y(letterbox_y + child.get_y() * (self.stage.get_height() / height_div))
       child.set_width(child.get_width() * (self.stage.get_width() / 16))
-      child.set_height(child.get_height() * (self.stage.get_height() / 9))
+      child.set_height(child.get_height() * (self.stage.get_height() / height_div))
     return slide
 
   def addSlide(self, id, duration, priority, assets, directory):
