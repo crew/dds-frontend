@@ -42,6 +42,9 @@ class DDS:
                       action="store_false")
     parser.add_option("-b", "--letterbox", dest="letterbox", default=False,
                       action="store_true")
+    parser.add_option("-t", "--notimers", dest="timersenabled", default=True,
+                      help="No Timers [For Demos?]",
+                      action="store_false")
 
     (options, args) = parser.parse_args()
     if (options.config):
@@ -53,15 +56,17 @@ class DDS:
     
     self._letterbox = options.letterbox
     self._fullscreen = options.fullscreen
+    self._timersenabled = options.timersenabled
 
   def on_key_press_event(self,stage, event):
     logging.debug('Got keypress %s' % event.keyval)
     if (event.keyval == 113):
       clutter.main_quit()
-    elif (event.keyval == 65365):
+    elif (event.keyval == 65363):
       # In an ideal world, this would advance to the next slide
       # (right arrow key)
-      pass
+      logging.debug('Got arrow key, nexting?')
+      self._show.next()
 
   def main(self,args):
     logging.debug('Main method turn on!')
@@ -86,7 +91,8 @@ class DDS:
     self._stage.hide_cursor()
     self._stage.show_all()
     logging.debug('Creating slider')
-    self._show = Slider(self._stage, letterbox=self._letterbox)
+    self._show = Slider(self._stage, letterbox=self._letterbox,
+                        timersenabled=self._timersenabled)
     logging.debug('Creating xmpper')
     self._xmpp = Xmpper(self._show)
     logging.debug('Starting xmpper')
