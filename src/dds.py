@@ -40,6 +40,8 @@ class DDS:
     parser.add_option("-n", "--nofull", dest="fullscreen", default=True,
                       help="No Fullscreen [For Debugging]",
                       action="store_false")
+    parser.add_option("-b", "--letterbox", dest="letterbox", default=False,
+                      action="store_true")
 
     (options, args) = parser.parse_args()
     if (options.config):
@@ -48,6 +50,8 @@ class DDS:
       self._logFile = options.log
     if (options.slides):
       self._cache = options.slides
+    
+    self._letterbox = options.letterbox
     self._fullscreen = options.fullscreen
 
   def on_key_press_event(self,stage, event):
@@ -82,7 +86,7 @@ class DDS:
     self._stage.hide_cursor()
     self._stage.show_all()
     logging.debug('Creating slider')
-    self._show = Slider(self._stage)
+    self._show = Slider(self._stage, letterbox=self._letterbox)
     logging.debug('Creating xmpper')
     self._xmpp = Xmpper(self._show)
     logging.debug('Starting xmpper')
