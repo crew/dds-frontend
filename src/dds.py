@@ -29,7 +29,6 @@ class DDS:
     self._xmpp = None
 
   def parse_args(self):
-    logging.debug('Parsing Args')
     parser = OptionParser(usage="usage: %prog [options]")
     parser.add_option("-c", "--config", dest="config",
                       help="location of the config file")
