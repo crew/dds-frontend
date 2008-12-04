@@ -36,6 +36,9 @@ class Slider(Slideshow):
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
     logging.debug('slider next')
+    if self.isEmpty():
+      # We don't have any slides, there is nothing to do!
+      return False
     Slideshow.next(self)
     self.reset_timer()
     return False
