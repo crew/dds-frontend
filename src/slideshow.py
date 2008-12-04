@@ -35,7 +35,7 @@ class Slideshow():
     slide = script.get_object('slide')
     for child in slide.get_children():
       if (self._letterbox):
-        letterbox_y = self.stage.get_width() / L_HEIGHT
+        letterbox_y = (self.stage.get_height() / L_HEIGHT) * 1.5
         height_div = L_HEIGHT
       else:
         letterbox_y = 0
