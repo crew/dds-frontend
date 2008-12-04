@@ -59,7 +59,10 @@ class Xmpper(Thread):
   def removeSlide(self, slide):
     logging.debug("removing a slide")
     info = slide[0]
-    self.slider.removeSlide(info["id"])
+    try:
+      self.slider.removeSlide(info["id"])
+    except:
+      logging.debug('Removeslide died again. FIXME!!!!!!!!!!!!!!!!!!')
     if self.slider.isEmpty():
       slider.stop()
 
