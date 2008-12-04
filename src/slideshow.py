@@ -79,14 +79,30 @@ class Slideshow():
       slide.duration = duration
       slide.priority = priority
       self.slides.append(slide)
-      if not self.current:
-        self.current = self.currentSlide()
-        logging.debug('starting slider')
-        self.start()
+      added = self._safeAddSlideToDeck(slide)
+      if added:
+        if not self.current:
+          self.current = self.currentSlide()
+          logging.debug('starting slider')
+          self.start()
       logging.debug('Telling gobject to stop calling us')
       return False
     else:
       logging.debug('Telling gobject to keep calling us')
+      return True
+
+  def _safeAddSlideToDeck(self, slide):
+    ''' Check to see if the given slide, (its id really)
+    already exists in the slide deck. If it does, do not re-add it
+    '''
+    newslideid = slide.id
+    addit = True
+    for deckslide in self.slides:
+      if deckslide.id == newslideid:
+        addit = False
+        return False
+    if addit:
+      self.slides.append(slide)
       return True
 
   def removeSlide(self, id):
