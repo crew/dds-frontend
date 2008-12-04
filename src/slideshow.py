@@ -95,11 +95,11 @@ class Slideshow():
     logging.debug('I was told to remove slide id %s from the deck' % id['id'])
     self.logSlideOrder()
     for slide in self.slides:
-      if type(slide.id) == type(4):
-        slideid = slide.id
+      if type(id) == type(4):
+        givenid = id
       else:
-        slideid = slide.id['id']
-      if slideid == id:
+        givenid = id['id']
+      if int(slide.id) == int(givenid):
         logging.debug('Removing slide %s from the deck' % id['id'])
         self.slides.remove(slide)
         self.logSlideOrder()
