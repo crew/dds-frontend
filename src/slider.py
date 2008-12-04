@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import config
 import glob
 import urllib
