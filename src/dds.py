@@ -58,25 +58,22 @@ class DDS:
     self._fullscreen = options.fullscreen
     self._timersenabled = options.timersenabled
 
-  def on_key_press_event(self,stage, event):
+  def on_key_press_event(self, stage, event):
     logging.debug('Got keypress %s' % event.keyval)
     if (event.keyval == 113):
       clutter.main_quit()
     elif (event.keyval == 65363):
-      # In an ideal world, this would advance to the next slide
-      # (right arrow key)
       if not self._timersenabled:
         logging.debug('Got arrow key, nexting?')
         self._show.next()
       else:
         logging.debug('Got arrow key, Will not advance without -t option')
 
-
-  def main(self,args):
+  def main(self, args):
     logging.debug('Main method turn on!')
     gobject.threads_init()
     clutter.threads_init()
-    clutter.set_use_mipmapped_text(False)
+    clutter.set_use_mipmapped_text(False) # This fixes the blocky text issue
     self.parse_args()
     config.init(self._configFile)
     if (self._cache):
@@ -84,8 +81,6 @@ class DDS:
     cache = os.path.expanduser(config.option("cache"))
     if (not os.path.exists(cache)):
       os.makedirs(cache)
-    logging.debug(os.path.exists(config.option("cache")))
-    logging.debug(config.option("cache"))
     if self._fullscreen:
       logging.debug('Going Fullscreen')
       self._stage.fullscreen()
@@ -109,5 +104,4 @@ class DDS:
 if __name__ == '__main__':
   d = DDS()
   retcode = d.main(sys.argv)
-  print retcode
   sys.exit(retcode)
