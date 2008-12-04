@@ -134,7 +134,7 @@ class Slideshow():
 
   def next(self):
     """Prepare and paint the next slide"""
-
+    logging.debug('slideshow next')
     if self.current and (len(self.slides) > 1):
       self.load_next()
       self.paint()
