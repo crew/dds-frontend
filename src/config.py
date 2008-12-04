@@ -1,11 +1,19 @@
+#!/usr/bin/python
 import xml.etree.ElementTree as etree
+import os
+import sys
 
 options = {}
 
 def init(file):
-  execfile(file, globals())
-  for key in config.keys():
-    options[key] = config[key]
+  if not os.path.exists(file):
+    sys.stderr.write('Could not open config file %s. Please make sure it'
+                     ' exists and is readable and try again.\n' % file)
+    sys.exit(1)
+  else:
+    execfile(file, globals())
+    for key in config.keys():
+      options[key] = config[key]
 
 
 def option(name):
