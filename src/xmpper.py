@@ -58,7 +58,6 @@ class Xmpper(Thread):
         return False
     info["assets"] = assets
     info["directory"] = directory
-    flag = self.slider.isEmpty()
     def callback(info):
       clutter.threads_enter()
       flag = self.slider.addSlide(**info)
