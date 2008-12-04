@@ -67,7 +67,6 @@ class Xmpper(Thread):
       flag = self.slider.addSlide(**info)
       ### TODO: I'm not sure if this should be done only when we add a slide
       ### and no others exist
-      self.slider.next()
       clutter.threads_leave()
       return flag
     gobject.timeout_add(1000, callback, info)

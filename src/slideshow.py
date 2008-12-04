@@ -4,7 +4,6 @@ import logging
 import clutter
 import os
 from clutter import Script
-from slide import Slide
 
 L_HEIGHT = 12
 W_HEIGHT = 9
@@ -64,7 +63,7 @@ class Slideshow():
         self.logSlideOrder()
       if not self.current:
         self.current = self.currentSlide()
-        logging.debug('starting slider')
+        logging.debug('starting slideshow')
         self.start()
       logging.debug('Telling gobject to stop calling us')
       return False
