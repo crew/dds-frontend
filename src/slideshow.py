@@ -90,6 +90,10 @@ class Slideshow():
     """Rotate the next slide to the front of the list"""
     logging.debug('nextSlide updating self.slides')
     self.slides.append(self.slides.pop(0))
+    il = []
+    for i in self.slides:
+      il.append(i.id)
+    logging.debug('new order: %s' % str(il))
 
   def currentSlide(self):
     """Return the current slide"""
