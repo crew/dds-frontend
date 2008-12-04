@@ -9,9 +9,10 @@ from slideshow import Slideshow
 class Slider(Slideshow):
   """Manages the order and timing of slide switching"""
 
-  def __init__(self, canvas, letterbox=False):
+  def __init__(self, canvas, letterbox=False, timersenabled=True):
     self.active = False
     self.scheduled_timer = False
+    self._timersenabled = timersenabled
     Slideshow.__init__(self, canvas, letterbox=letterbox)
 
   def start(self):
@@ -30,7 +31,8 @@ class Slider(Slideshow):
   def reset_timer(self):
     """Runs the next timer thread to change slides"""
     logging.debug('slider reset_timer')
-    
+    if not self._timersenabled:
+      return False
     if self.currentSlide() is not None and not self.scheduled_timer:
       self.scheduled_timer = True
       gobject.timeout_add(1000*self.currentSlide().duration, self.next)
