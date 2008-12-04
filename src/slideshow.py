@@ -2,6 +2,7 @@
 import json
 import logging
 import clutter
+import os
 
 from slide import Slide
 
@@ -70,16 +71,23 @@ class Slideshow():
     """Add a new slide to the interal cache"""
 
     logging.debug('Adding New Slide')
-    slide = self.parseLayout(directory + "/layout.js", directory)
-    slide.id = id
-    slide.duration = duration
-    slide.priority = priority
-    self.slides.append(slide)
-    if not self.current:
-      self.current = self.currentSlide()
-      logging.debug('starting slider')
-      self.start()
-    return False
+    layoutfile = directory + "/layout.js"
+    if os.path.exists(layoutfile):
+      logging.debug('calling parseLayout for %s' % layoutfile)
+      slide = self.parseLayout(directory + "/layout.js", directory)
+      slide.id = id
+      slide.duration = duration
+      slide.priority = priority
+      self.slides.append(slide)
+      if not self.current:
+        self.current = self.currentSlide()
+        logging.debug('starting slider')
+        self.start()
+      logging.debug('Telling gobject to stop calling us')
+      return False
+    else:
+      logging.debug('Telling gobject to keep calling us')
+      return True
 
   def removeSlide(self, id):
     """Remove the slide with the given id from the cache"""

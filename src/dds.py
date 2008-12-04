@@ -52,7 +52,9 @@ class DDS:
     if (event.keyval == 113):
       clutter.main_quit()
     elif (event.keyval == 65365):
-      self._show.next()
+      # In an ideal world, this would advance to the next slide
+      # (right arrow key)
+      pass
 
   def main(self,args):
     logging.debug('Main method turn on!')
