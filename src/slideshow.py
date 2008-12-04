@@ -84,7 +84,7 @@ class Slideshow():
         addit = False
         return False
     if addit:
-      logging.debug('When trying to add slide id %s, we did it!!!' %
+      logging.info('When trying to add slide id %s, we did it!!!' %
                     newslideid)
       self.slides.append(slide)
       return True
@@ -102,7 +102,7 @@ class Slideshow():
     self.logSlideOrder()
     for slide in self.slides:
       if self._intFromDictOrInt(slide.id) == removalid:
-        logging.debug('Removing slide %s from the deck' % removalid)
+        logging.info('Removing slide %s from the deck' % removalid)
         self.slides.remove(slide)
         self.logSlideOrder()
 
@@ -116,7 +116,7 @@ class Slideshow():
     il = []
     for i in self.slides:
       il.append(i.id)
-    logging.debug('current order: %s' % str(il))
+    logging.info('current order: %s' % str(il))
 
   def currentSlide(self):
     """Return the current slide"""
@@ -129,7 +129,7 @@ class Slideshow():
     """Prepare and paint the next slide"""
     logging.debug('slideshow next')
     if self.current and (len(self.slides) >= 1):
-      logging.debug('slideshow next -- executing code')
+      logging.info('Slideshow.next(): Advancing the slides')
       self.load_next()
       self.paint()
 

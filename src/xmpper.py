@@ -32,7 +32,7 @@ class Xmpper(Thread):
     self.setupXmpp()
 
   def addSlide(self, slide):
-    logging.debug('XMPP addSlide request')
+    logging.info('XMPP addSlide request')
     #slide[0] has a hash with the id, duration, and priority of the slide
     #slide[1] has a list of hashes, where each hash has the url and id of
     #an asset
@@ -71,7 +71,7 @@ class Xmpper(Thread):
     gobject.timeout_add(1000, callback, info)
 
   def removeSlide(self, slide):
-    logging.debug("removing a slide")
+    logging.info("XMPP removeSlide request")
     info = slide[0]
     logging.debug('removeslide got info = %s' % str(info))
     try:
@@ -87,17 +87,21 @@ class Xmpper(Thread):
       pass
 
   def updateSlide(self, slide):
+    logging.info('XMPP updateSlide request')
     logging.debug('Update slide: %s' % str(slide[0]['id']))
     self.removeSlide(slide)
     self.addSlide(slide)
 
   def addAsset(self, slide):
+    logging.info("XMPP addAsset request")
     logging.debug('Add Asset: %s' % str(slide))
 
   def removeAsset(self, slide):
+    logging.info("XMPP removeAsset request")
     logging.debug('Remove Asset: %s' % str(slide))
 
   def updateAsset(self, slide):
+    logging.info("XMPP updateAsset request")
     logging.debug('Update Asset: %s' % str(slide))
 
   def handlePresence(self, dispatch, pr):
