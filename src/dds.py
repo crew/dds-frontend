@@ -1,4 +1,8 @@
 #!/usr/bin/python
+
+## This module tries importing everything, and bails if it didnt work. 
+import projectreqs
+######################################################################
 import clutter
 import sys
 import os
