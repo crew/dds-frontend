@@ -40,6 +40,9 @@ class Xmpper(Thread):
     #slide[0] has a hash with the id, duration, and priority of the slide
     #slide[1] has a list of hashes, where each hash has the url and id of
     #an asset
+    def rescheduleAddSlide(slide):
+      self.addSlide(slide)
+      return False
     info = slide[0]
     assets = slide[1]
     configdirectory = config.option("cache") + "/" + str(info["id"])
@@ -51,6 +54,12 @@ class Xmpper(Thread):
       name = os.path.basename(path)
       fullPath = directory + "/" + name
       urllib.urlretrieve(asset["url"], fullPath)
+      # If we don't have an asset, reschedule the add slide for a later date
+      # If this addSlide is being called as part of a callback, and the asset
+      # still is not here, hang up, and try our call again (reschedule again)
+      if not os.path.exists(fullPath):
+        gobject.timeout_add(500, rescheduleAddSlide, slide)
+        return False
     info["assets"] = assets
     info["directory"] = directory
     flag = self.slider.isEmpty()
