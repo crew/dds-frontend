@@ -90,17 +90,20 @@ class Slideshow():
       self.slides.append(slide)
       return True
 
+  def _intFromDictOrInt(self, input):
+    if type({}) == type(input):
+      return int(input['id'])
+    else:
+      return int(input)
+
   def removeSlide(self, id):
     """Remove the slide with the given id from the cache"""
-    logging.debug('I was told to remove slide id %s from the deck' % id['id'])
+    removalid = self._intFromDictOrInt(id)
+    logging.debug('I was told to remove slide id %s from the deck' % removalid)
     self.logSlideOrder()
     for slide in self.slides:
-      if type(id) == type(4):
-        givenid = id
-      else:
-        givenid = id['id']
-      if int(slide.id) == int(givenid):
-        logging.debug('Removing slide %s from the deck' % id['id'])
+      if self._intFromDictOrInt(slide.id) == removalid:
+        logging.debug('Removing slide %s from the deck' % removalid)
         self.slides.remove(slide)
         self.logSlideOrder()
 
