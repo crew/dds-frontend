@@ -79,12 +79,14 @@ class Slideshow():
       slide.duration = duration
       slide.priority = priority
       self.slides.append(slide)
+      logging.debug('Trying to safely add slide id %s' % id)
       added = self._safeAddSlideToDeck(slide)
       if added:
-        if not self.current:
-          self.current = self.currentSlide()
-          logging.debug('starting slider')
-          self.start()
+        logging.debug('safely added slide id %s' % id)
+      if not self.current:
+        self.current = self.currentSlide()
+        logging.debug('starting slider')
+        self.start()
       logging.debug('Telling gobject to stop calling us')
       return False
     else:
@@ -99,9 +101,13 @@ class Slideshow():
     addit = True
     for deckslide in self.slides:
       if deckslide.id == newslideid:
+        logging.debug('When trying to add slide id %s, we found it already' % 
+                      newslideid)
         addit = False
         return False
     if addit:
+      logging.debug('When trying to add slide id %s, we did it!!!' % 
+                    newslideid) 
       self.slides.append(slide)
       return True
 
