@@ -175,15 +175,16 @@ class Slideshow():
     """Prepare the next slide to be painted"""
 
     logging.debug('slideshow load_next')
-
-    self.out_animation()
-    if self.last:
+    if len(self.slides) > 1:
+      self.out_animation()
+    if self.last and (len(self.slides) > 1):
       self.last.hide_all()
       self.stage.remove(self.last)
     self.last = self.current
     self.nextSlide()
     self.current = self.currentSlide()
-    self.setup_animation()
+    if len(self.slides) > 1:
+      self.setup_animation()
 
 
   def paint(self):
