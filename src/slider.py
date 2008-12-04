@@ -1,16 +1,9 @@
 #!/usr/bin/python
 import config
-import glob
 import urllib
-import time
-import os.path
+import os
 import logging
-
 from threading import Timer
-import xml.sax as sax
-from xml.sax.handler import ContentHandler
-from xml.sax.handler import ErrorHandler
-
 from slideshow import Slideshow
 
 class Slider(Slideshow):

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-## This module tries importing everything, and bails if it didnt work. 
+## This module tries importing everything, and bails if it didnt work.
 import projectreqs
 ######################################################################
 import clutter
@@ -12,7 +12,6 @@ import time
 import gobject
 import logging
 from optparse import OptionParser
-
 from slider import Slider
 from xmpper import Xmpper
 
@@ -40,7 +39,7 @@ class DDS:
                       help=("location of the slide cache directory "
                             "(overides config file)"))
     parser.add_option("-n", "--nofull", dest="fullscreen", default=True,
-                      help="No Fullscreen [For Debugging]", 
+                      help="No Fullscreen [For Debugging]",
                       action="store_false")
 
     (options, args) = parser.parse_args()
