@@ -49,7 +49,11 @@ class Xmpper(Thread):
       path = urlparse.urlparse(asset["url"])[2]
       name = os.path.basename(path)
       fullPath = directory + "/" + name
-      urllib.urlretrieve(asset["url"], fullPath)
+      try:
+        urllib.urlretrieve(asset["url"], fullPath)
+      except:
+        gobject.timeout_add(500, rescheduleAddSlide, slide)
+        return False
       # If we don't have an asset, reschedule the add slide for a later date
       # If this addSlide is being called as part of a callback, and the asset
       # still is not here, hang up, and try our call again (reschedule again)
