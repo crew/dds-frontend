@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import xml.etree.ElementTree as etree
 import os
 import sys
 

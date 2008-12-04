@@ -2,7 +2,6 @@
 from xmpp import *
 import xmlrpclib
 import os
-import os.path
 import sys
 import logging
 import config
@@ -10,9 +9,6 @@ import urllib
 import urlparse
 import gobject
 import clutter
-import xml.sax as sax
-from xml.sax.handler import ContentHandler
-from xml.sax.handler import ErrorHandler
 from threading import Thread
 
 def create(slider):
