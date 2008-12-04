@@ -78,8 +78,12 @@ class Xmpper(Thread):
     except:
       logging.debug('Removeslide died again. FIXME!!!!!!!!!!!!!!!!!!')
       logging.debug(str(sys.exc_info()))
-    if self.slider.isEmpty():
-      slider.stop()
+    ## FIXME
+    try:
+      if self.slider.isEmpty():
+        slider.stop()
+    except:
+      pass
 
   def updateSlide(self, slide):
     logging.debug('Update slide: %s' % str(slide[0]['id']))
