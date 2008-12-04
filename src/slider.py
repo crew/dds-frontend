@@ -35,7 +35,7 @@ class Slider(Slideshow):
       self.scheduled_timer = True
       gobject.timeout_add(1000*self.currentSlide().duration, self.next)
     elif self.scheduled_timer:
-      print 'Cannot schedule, already scheduled'
+      logging.debug('Cannot schedule, already scheduled')
 
   def next(self):
     """Runs the timer thread for, and shows the next slide"""

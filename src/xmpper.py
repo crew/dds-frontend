@@ -65,8 +65,7 @@ class Xmpper(Thread):
     def callback(info):
       clutter.threads_enter()
       flag = self.slider.addSlide(**info)
-      ### TODO: I'm not sure if this should be done only when we add a slide
-      ### and no others exist
+      self.slider.reset_timer()
       clutter.threads_leave()
       return flag
     gobject.timeout_add(1000, callback, info)
