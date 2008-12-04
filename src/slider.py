@@ -31,10 +31,10 @@ class Slider(Slideshow):
     logging.debug('slider reset_timer')
 
     gobject.timeout_add(1000*self.currentSlide().duration, self.next)
-    logging.debug('slider reset_timer new timer start')
 
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
     logging.debug('slider next')
     Slideshow.next(self)
     self.reset_timer()
+    return False
