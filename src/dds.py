@@ -39,6 +39,10 @@ class DDS:
     parser.add_option("-s", "--slides", dest="slides",
                       help=("location of the slide cache directory "
                             "(overides config file)"))
+    parser.add_option("-n", "--nofull", dest="fullscreen", default=True,
+                      help="No Fullscreen [For Debugging]", 
+                      action="store_false")
+
     (options, args) = parser.parse_args()
     if (options.config):
       self._configFile = options.config
@@ -46,6 +50,7 @@ class DDS:
       self._logFile = options.log
     if (options.slides):
       self._cache = options.slides
+    self._fullscreen = options.fullscreen
 
   def on_key_press_event(self,stage, event):
     logging.debug('Got keypress %s' % event.keyval)
@@ -65,8 +70,9 @@ class DDS:
     config.init(self._configFile)
     if (self._cache):
       config.setOption("cache", cache)
-    logging.debug('Going Fullscreen')
-    self._stage.fullscreen()
+    if self._fullscreen:
+      logging.debug('Going Fullscreen')
+      self._stage.fullscreen()
     self._stage.set_color(clutter.Color(0x00, 0x00, 0x00, 0x00))
     self._stage.connect('destroy', clutter.main_quit)
     self._stage.connect('key-press-event', self.on_key_press_event)
