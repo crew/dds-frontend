@@ -29,8 +29,9 @@ class Slider(Slideshow):
   def reset_timer(self):
     """Runs the next timer thread to change slides"""
     logging.debug('slider reset_timer')
-
-    gobject.timeout_add(1000*self.currentSlide().duration, self.next)
+    
+    if self.currentSlide() is not None:
+      gobject.timeout_add(1000*self.currentSlide().duration, self.next)
 
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
