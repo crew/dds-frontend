@@ -46,7 +46,6 @@ class Slideshow():
       slide.id = id
       slide.duration = duration
       slide.priority = priority
-      self.slides.append(slide)
       logging.debug('Trying to safely add slide id %s' % id)
       added = self._safeAddSlideToDeck(slide)
       if added:
