@@ -91,8 +91,11 @@ class Slideshow():
 
   def removeSlide(self, id):
     """Remove the slide with the given id from the cache"""
-
-    pass
+    logging.debug('I was told to remove slide id %s from the deck' % id)
+    for slide in self.slides:
+      if slide.id == id:
+        logging.debug('Removing slide %s from the deck' % id)
+        self.slides.remove(slide)
 
   def nextSlide(self):
     """Rotate the next slide to the front of the list"""

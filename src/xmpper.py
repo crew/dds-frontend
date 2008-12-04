@@ -3,6 +3,7 @@ from xmpp import *
 import xmlrpclib
 import os
 import os.path
+import sys
 import logging
 import config
 import urllib
@@ -53,32 +54,34 @@ class Xmpper(Thread):
     info["directory"] = directory
     flag = self.slider.isEmpty()
     def callback(info):
-      self.slider.addSlide(**info)
-    gobject.idle_add(callback, info)
+      return self.slider.addSlide(**info)
+    gobject.timeout_add(1000, callback, info)
 
   def removeSlide(self, slide):
     logging.debug("removing a slide")
     info = slide[0]
+    logging.debug('removeslide got info = %s' % str(info))
     try:
-      self.slider.removeSlide(info["id"])
+      self.slider.removeSlide(info)
     except:
       logging.debug('Removeslide died again. FIXME!!!!!!!!!!!!!!!!!!')
+      logging.debug(str(sys.exc_info()))
     if self.slider.isEmpty():
       slider.stop()
 
   def updateSlide(self, slide):
-    logging.debug('Update slide: %s' % slide)
-    removeSlide(slide)
-    addSlide(slide)
+    logging.debug('Update slide: %s' % str(slide))
+    self.removeSlide(slide)
+    self.addSlide(slide)
 
   def addAsset(self, slide):
-    logging.debug('Add Asset: %s' % slide)
+    logging.debug('Add Asset: %s' % str(slide))
 
   def removeAsset(self, slide):
-    logging.debug('Remove Asset: %s' % slide)
+    logging.debug('Remove Asset: %s' % str(slide))
 
   def updateAsset(self, slide):
-    logging.debug('Update Asset: %s' % slide)
+    logging.debug('Update Asset: %s' % str(slide))
 
   def handlePresence(self, dispatch, pr):
     jid = pr.getAttr('from')
