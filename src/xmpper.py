@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from xmpp import *
 import xmlrpclib
 import os

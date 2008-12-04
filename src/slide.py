@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from clutter import Group
 
 class Slide(Group):
