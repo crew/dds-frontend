@@ -16,7 +16,7 @@ from slider import Slider
 from xmpper import Xmpper
 
 ## Setup stupid logging for the client
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s', )
 
 class DDS:
