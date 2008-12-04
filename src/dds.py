@@ -65,8 +65,12 @@ class DDS:
     elif (event.keyval == 65363):
       # In an ideal world, this would advance to the next slide
       # (right arrow key)
-      logging.debug('Got arrow key, nexting?')
-      self._show.next()
+      if not self._timersenabled:
+        logging.debug('Got arrow key, nexting?')
+        self._show.next()
+      else:
+        logging.debug('Got arrow key, Will not advance without -t option')
+
 
   def main(self,args):
     logging.debug('Main method turn on!')
