@@ -1,4 +1,4 @@
 config = { "cache" : "~/.dds/slides",
-           "client-jid" : "rms@centipede.ccs.neu.edu/dds-client",
+           "client-jid" : "rms@dds-master.ccs.neu.edu/dds-client",
            "client-password" : "foo",
-           "server-jid" : "test@centipede.ccs.neu.edu/dds-server-init" }
+           "server-jid" : "test@dds-master.ccs.neu.edu/dds-server-init" }
