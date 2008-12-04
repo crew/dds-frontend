@@ -116,7 +116,8 @@ class Slideshow():
     """Setup the intro animation for the current slide"""
 
     logging.debug('Setting up animation')
-    if(self.current.transition == "fade"):
+    if True:
+      #(self.current.transition == "fade"):
       self.current.set_opacity(0)
     elif(self.current.transition == "slide-right-left"):
       self.current.set_x(0 - self.stage.get_width())
@@ -134,7 +135,8 @@ class Slideshow():
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
     effect = None
-    if(self.current.transition == "fade"):
+    if True:
+      #(self.current.transition == "fade"):
       effect = clutter.effect_fade(template, self.current, 255)
     elif((self.current.transition == "slide-right-left") or
          (self.current.transition == "slide-left-right") or
@@ -152,7 +154,8 @@ class Slideshow():
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
     effect = None
-    if(self.current.transition == "fade"):
+    if True:
+      #(self.current.transition == "fade"):
       effect = clutter.effect_fade(template, self.current, 0)
     elif(self.current.transition == "slide-right-left"):
       effect = clutter.effect_move(template, self.current,
@@ -167,7 +170,7 @@ class Slideshow():
       effect = clutter.effect_move(template, self.current,
                                    0, 0 - self.stage.get_height())
 
-    if(effect):
+    if (effect):
       effect.start()
 
   def load_next(self):
