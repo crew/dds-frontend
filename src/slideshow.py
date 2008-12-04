@@ -135,6 +135,7 @@ class Slideshow():
 
   def setup_animation(self):
     """Setup the intro animation for the current slide"""
+    # TODO: Update this for the new layout format
 
     logging.debug('Setting up animation')
     if True:
@@ -151,6 +152,7 @@ class Slideshow():
 
   def in_animation(self):
     """Run the intro animation of the current slide"""
+    # TODO: Update this for the new layout format
 
     logging.debug('in animation')
     timeline = clutter.Timeline(fps=60, duration=500)
@@ -170,7 +172,7 @@ class Slideshow():
 
   def out_animation(self):
     """Run the exit animation of the current slide"""
-
+    # TODO: Update this for the new layout format
     logging.debug('out animation')
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)

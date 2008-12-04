@@ -30,6 +30,8 @@ class Slider(Slideshow):
 
   def reset_timer(self):
     """Runs the next timer thread to change slides"""
+    # TODO: Make sure that self.scheduled_timer is not set for too long 
+    # (ie, stale lock)
     logging.debug('slider reset_timer')
     if not self._timersenabled:
       return False
