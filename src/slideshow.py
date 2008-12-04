@@ -101,13 +101,11 @@ class Slideshow():
 
     if len(self.slides) > 0:
       return self.slides[0]
-    else:
-      None
 
   def next(self):
     """Prepare and paint the next slide"""
     logging.debug('slideshow next')
-    if self.current and (len(self.slides) > 1):
+    if self.current and (len(self.slides) >= 1):
       logging.debug('slideshow next -- executing code')
       self.load_next()
       self.paint()
