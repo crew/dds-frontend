@@ -16,6 +16,7 @@ class Slideshow():
     self.stage = stage
     self.current = None
     self.last = None
+    self._paintran = False
 
   def isEmpty(self):
     return len(self.slides) == 0
@@ -190,7 +191,8 @@ class Slideshow():
   def paint(self):
     """Paint the next slide to the screen"""
     logging.debug('slideshow.paint method begin')
-    if len(self.slides) > 1:
+    if len(self.slides) >1 or not self._paintran:
+      self._paintran = True
       self.in_animation()
-    self.current.show_all()
-    self.stage.add(self.current)
+      self.current.show_all()
+      self.stage.add(self.current)
