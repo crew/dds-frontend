@@ -109,7 +109,8 @@ class Xmpper(Thread):
   def checkXmpp(self, connection):
     try:
       connection.Process(1)
-      logging.debug("checkXmpp: Connection Processed")
+      # This is kind of stupid debugging
+      #logging.debug("checkXmpp: Connection Processed")
       return True
     except KeyboardInterrupt:
       return False
