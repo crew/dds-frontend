@@ -192,5 +192,5 @@ class Slideshow():
     logging.debug('slideshow.paint method begin')
     if len(self.slides) > 1:
       self.in_animation()
-      self.current.show_all()
-      self.stage.add(self.current)
+    self.current.show_all()
+    self.stage.add(self.current)
