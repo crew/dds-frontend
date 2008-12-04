@@ -23,7 +23,7 @@ class Slider(Slideshow):
 
   def start(self):
     """Starts the Slider, should only be called when there are slides"""
-
+    logging.debug('slider start')
     self.active = True
     self.setup_animation()
     self.reset_timer()
@@ -31,15 +31,14 @@ class Slider(Slideshow):
 
   def stop(self):
     """Stops the Slideshow"""
-
-    logging.debug('stopping slider')
-
+    logging.debug('slider stop')
     self.active = False
     if self.timer:
       self.timer = None
 
   def reset_timer(self):
     """Runs the next timer thread to change slides"""
+    logging.debug('slider reset_timer')
 
     if self.timer:
       self.timer = None
@@ -49,9 +48,10 @@ class Slider(Slideshow):
                          self.next)
       self.timer.daemon = True
       self.timer.start()
+      logging.debug('slider reset_timer new timer start')
 
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
-
+    logging.debug('slider next')
     Slideshow.next(self)
     self.reset_timer()
