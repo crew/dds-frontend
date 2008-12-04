@@ -11,6 +11,7 @@ class Slider(Slideshow):
 
   def __init__(self, canvas, letterbox=False):
     self.active = False
+    self.scheduled_timer = False
     Slideshow.__init__(self, canvas, letterbox=letterbox)
 
   def start(self):
@@ -30,15 +31,19 @@ class Slider(Slideshow):
     """Runs the next timer thread to change slides"""
     logging.debug('slider reset_timer')
     
-    if self.currentSlide() is not None:
+    if self.currentSlide() is not None and not self.scheduled_timer:
+      self.scheduled_timer = True
       gobject.timeout_add(1000*self.currentSlide().duration, self.next)
+    elif self.scheduled_timer:
+      print 'Cannot schedule, already scheduled'
 
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
     logging.debug('slider next')
-    if self.isEmpty():
+    if self.isEmpty() or not self.active:
       # We don't have any slides, there is nothing to do!
       return False
+    self.scheduled_timer = False
     Slideshow.next(self)
     self.reset_timer()
     return False
