@@ -25,6 +25,7 @@ class Slideshow():
 
     logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
     script = Script()
+    script.add_search_paths(directory)
     script.load_from_file(file)
     slide = script.get_object('slide')
     for child in slide.get_children():
