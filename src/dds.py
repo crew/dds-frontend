@@ -70,12 +70,17 @@ class DDS:
       else:
         logging.debug('Got arrow key, Will not advance without -t option')
 
-  def startupimage(self):
-    a = clutter.Texture('../examples/rainbow/spectrum.png')
+  def setupStartupImage(self):
+    ''' Create a black rectangle as a startup image. this should prevent the 
+        ugly startup corruption we all know and love
+    '''
+    a = clutter.Rectangle()
     a.set_width(self._stage.get_width())
     a.set_height(self._stage.get_height())
+    a.set_color(clutter.color_parse('black'))
     a.set_position(0,0)
-    return a
+    self._stage.add(a)
+
   def main(self, args):
     logging.debug('Main method turn on!')
     gobject.threads_init()
@@ -92,7 +97,7 @@ class DDS:
       logging.debug('Going Fullscreen')
       self._stage.fullscreen()
     self._stage.set_color(clutter.color_parse('black'))
-    self._stage.add(self.startupimage())
+    self.setupStartupImage()
     self._stage.connect('destroy', clutter.main_quit)
     self._stage.connect('key-press-event', self.on_key_press_event)
     self._stage.hide_cursor()
