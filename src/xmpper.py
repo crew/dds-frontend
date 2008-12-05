@@ -11,9 +11,6 @@ import gobject
 import clutter
 from threading import Thread
 
-def create(slider):
-  return Xmpper(slider)
-
 class Xmpper(Thread):
   """Thread to handle talking to the xmpp server, and xmlrpc calls"""
 

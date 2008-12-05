@@ -153,10 +153,12 @@ class Slider():
         self.slides.remove(slide)
         self.logSlideOrder()
 
-  def nextSlide(self):
+  def changeSlideOrder(self, direction='forward'):
     """Rotate the next slide to the front of the list"""
-    logging.debug('nextSlide updating self.slides')
-    self.slides.append(self.slides.pop(0))
+    if direction == 'forward':
+      self.slides.append(self.slides.pop(0))
+    else:
+      self.slides.insert(0, self.slides.pop())
     self.logSlideOrder()
 
   def logSlideOrder(self): 
@@ -251,7 +253,7 @@ class Slider():
       self.last.hide_all()
       self.stage.remove(self.last)
     self.last = self.current
-    self.nextSlide()
+    self.changeSlideOrder(direction='forward')
     self.current = self.currentSlide()
     if len(self.slides) > 1:
       self.setup_animation()
