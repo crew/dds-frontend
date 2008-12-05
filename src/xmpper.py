@@ -67,6 +67,7 @@ class Xmpper(Thread):
       if not gotasset:
         # The asset download failed. What do we do?
         # TODO: reschedule here
+        pass
     info["assets"] = assets
     info["directory"] = directory
     def callback(info):
