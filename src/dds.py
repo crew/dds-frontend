@@ -21,9 +21,8 @@ logging.basicConfig(level=logging.INFO,
 
 class DDS:
   def __init__(self):
-    self._home = os.environ["HOME"]
-    self._configFile = self._home + "/.dds/config.py"
-    self._logFile = self._home + "/.dds/log"
+    self._configFile = os.path.expanduser("~/.dds/config.py")
+    self._logFile = os.path.expanduser("~/.dds/log")
     self._cache = None
     self._stage = clutter.stage_get_default()
     self._xmpp = None
@@ -81,38 +80,46 @@ class DDS:
     a.set_position(0,0)
     self._stage.add(a)
 
-  def main(self, args):
-    logging.debug('Main method turn on!')
+  def initializeLibraries(self):
+    ''' Initialize the external libraries used '''
     gobject.threads_init()
     clutter.threads_init()
-    clutter.set_use_mipmapped_text(False) # This fixes the blocky text issue
-    self.parse_args()
-    config.init(self._configFile)
+    # Fix a blocky text issue
+    clutter.set_use_mipmapped_text(False)
+
+  def setupCache(self):
     if (self._cache):
       config.setOption("cache", cache)
     cache = os.path.expanduser(config.option("cache"))
-    if (not os.path.exists(cache)):
+    if not os.path.exists(cache):
       os.makedirs(cache)
+
+  def handleFullscreen(self):
     if self._fullscreen:
       logging.debug('Going Fullscreen')
       self._stage.fullscreen()
+
+  def setupStage(self):
     self._stage.set_color(clutter.color_parse('black'))
     self.setupStartupImage()
     self._stage.connect('destroy', clutter.main_quit)
     self._stage.connect('key-press-event', self.on_key_press_event)
     self._stage.hide_cursor()
+    self._stage.set_title('CCIS Digital Display')
     self._stage.show_all()
-    logging.debug('Creating slider')
+
+  def main(self, args):
+    self.initializeLibraries()
+    self.parse_args()
+    config.init(self._configFile)
+    self.setupCache()
+    self.handleFullscreen()
+    self.setupStage()
     self._show = Slider(self._stage, letterbox=self._letterbox,
                         timersenabled=self._timersenabled)
-    logging.debug('Creating xmpper')
     self._xmpp = Xmpper(self._show)
-    logging.debug('Starting xmpper')
     self._xmpp.start()
-    logging.debug('Clutter Main invocation')
     clutter.main()
-
-
 
 if __name__ == '__main__':
   d = DDS()
