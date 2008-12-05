@@ -61,7 +61,7 @@ class Xmpper(Thread):
     info = slide[0]
     assets = slide[1]
     slideid = info['id']
-    configdirectory = self._createSlideDir(slideid)
+    directory = self._createSlideDir(slideid)
     for asset in assets:
       gotasset = self._downloadAsset(asset, slideid)
       if not gotasset:
