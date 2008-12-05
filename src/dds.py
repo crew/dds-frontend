@@ -92,7 +92,7 @@ class DDS:
       logging.debug('Going Fullscreen')
       self._stage.fullscreen()
     self._stage.set_color(clutter.color_parse('black'))
-    #self._stage.add(self.startupimage())
+    self._stage.add(self.startupimage())
     self._stage.connect('destroy', clutter.main_quit)
     self._stage.connect('key-press-event', self.on_key_press_event)
     self._stage.hide_cursor()
