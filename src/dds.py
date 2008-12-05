@@ -25,7 +25,7 @@ class DDS:
     self._configFile = self._home + "/.dds/config.py"
     self._logFile = self._home + "/.dds/log"
     self._cache = None
-    self._stage = clutter.Stage()
+    self._stage = clutter.stage_get_default()
     self._xmpp = None
 
   def parse_args(self):
@@ -62,6 +62,7 @@ class DDS:
     logging.debug('Got keypress %s' % event.keyval)
     if (event.keyval == 113):
       clutter.main_quit()
+      sys.exit(0)
     elif (event.keyval == 65363):
       if not self._timersenabled:
         logging.debug('Got arrow key, nexting?')
@@ -75,7 +76,6 @@ class DDS:
     a.set_height(self._stage.get_height())
     a.set_position(0,0)
     return a
-
   def main(self, args):
     logging.debug('Main method turn on!')
     gobject.threads_init()
