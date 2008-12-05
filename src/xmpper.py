@@ -67,13 +67,13 @@ class Xmpper(Thread):
         pass
     info["assets"] = assets
     info["directory"] = directory
-    def callback(info):
+    def trySlideAdd(info):
       clutter.threads_enter()
       flag = self.slider.addSlide(**info)
       self.slider.reset_timer()
       clutter.threads_leave()
       return flag
-    gobject.timeout_add(1000, callback, info)
+    gobject.timeout_add(1000, trySlideAdd, info)
 
   def removeSlide(self, slide):
     logging.info("XMPP removeSlide request")
