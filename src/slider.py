@@ -144,15 +144,13 @@ class Slider():
 
   def removeSlide(self, id):
     """Remove the slide with the given id from the cache"""
-    removalid = self._intFromDictOrInt(id)
+    removalid = id
     logging.debug('I was told to remove slide id %s from the deck' % removalid)
     self.logSlideOrder()
     for slide in self.slides:
       if self._intFromDictOrInt(slide.id) == removalid:
         logging.info('Removing slide %s from the deck' % removalid)
         self.slides.remove(slide)
-        #if self.isEmpty():
-        #  self.stage.remove_all()
         self.logSlideOrder()
 
   def nextSlide(self):
