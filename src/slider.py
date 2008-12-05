@@ -3,12 +3,13 @@ import json
 import logging
 import clutter
 import os
+import gobject
 from clutter import Script
 
 L_HEIGHT = 12
 W_HEIGHT = 9
 
-class Slideshow():
+class Slider():
   '''Handles the painting and parsing of slides'''
 
   def __init__(self, stage, letterbox=False, timersenabled=True):
@@ -18,6 +19,7 @@ class Slideshow():
     self._paintran = False
     self._letterbox = letterbox
     self._timersenabled = timersenabled
+    self._scheduled_timer = False
     self.slides = []
 
   def start(self):
@@ -40,10 +42,10 @@ class Slideshow():
     logging.debug('slider reset_timer')
     if not self._timersenabled:
       return False
-    if self.currentSlide() is not None and not self.scheduled_timer:
-      self.scheduled_timer = True
+    if (self.currentSlide() is not None) and (not self._scheduled_timer):
+      self._scheduled_timer = True
       gobject.timeout_add(1000*self.currentSlide().duration, self.next)
-    elif self.scheduled_timer:
+    elif self._scheduled_timer:
       logging.debug('Cannot schedule, already scheduled')
 
   def next(self):
@@ -52,7 +54,7 @@ class Slideshow():
     if self.isEmpty() or not self.active:
       # We don't have any slides, there is nothing to do!
       return False
-    self.scheduled_timer = False
+    self._scheduled_timer = False
     self.loadNextAndPaint()
     self.reset_timer()
     return False
