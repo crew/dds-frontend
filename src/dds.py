@@ -44,15 +44,18 @@ class DDS:
     parser.add_option("-t", "--notimers", dest="timersenabled", default=True,
                       help="No Timers [For Demos?]",
                       action="store_false")
+    parser.add_option("-o", "--oneslide", dest="oneslide", default=None,
+                      help="Display only one cached slideid")
 
     (options, args) = parser.parse_args()
-    if (options.config):
+    if options.config:
       self._configFile = options.config
-    if (options.log):
+    if options.log:
       self._logFile = options.log
-    if (options.slides):
+    if options.slides:
       self._cache = options.slides
-    
+
+    self._oneslide = options.oneslide
     self._letterbox = options.letterbox
     self._fullscreen = options.fullscreen
     self._timersenabled = options.timersenabled
@@ -108,7 +111,26 @@ class DDS:
     self._stage.set_title('CCIS Digital Display')
     self._stage.show_all()
 
-  def main(self, args):
+  def pickRuntimeMode(self):
+    ''' Decide to either: start XMPP or Display a single slide '''
+    if not self._oneslide:
+      self._xmpp = Xmpper(self._show)
+      self._xmpp.start()
+    else:
+      try:
+        slideid = int(self._oneslide)
+      except:
+        logging.error('Invalid integer passed for oneslide ID')
+        sys.exit(1)
+      slidedirectory = os.path.expanduser('%s/%s' % (config.option('cache'), 
+                                                     slideid))
+      if not os.path.exists(slidedirectory):
+        logging.error('Could not display single slide id %s. Does %s exist?' %
+                      (slideid, slidedirectory)) 
+        sys.exit(1)
+      self._show.addSlide(slideid, 100, 1, [], slidedirectory)
+
+  def main(self):
     self.initializeLibraries()
     self.parse_args()
     config.init(self._configFile)
@@ -117,10 +139,9 @@ class DDS:
     self.setupStage()
     self._show = Slider(self._stage, letterbox=self._letterbox,
                         timersenabled=self._timersenabled)
-    self._xmpp = Xmpper(self._show)
-    self._xmpp.start()
+    self.pickRuntimeMode()
     clutter.main()
 
 if __name__ == '__main__':
   d = DDS()
-  retcode = d.main(sys.argv)
+  d.main()
