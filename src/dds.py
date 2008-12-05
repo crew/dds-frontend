@@ -25,7 +25,7 @@ class DDS:
     self._configFile = self._home + "/.dds/config.py"
     self._logFile = self._home + "/.dds/log"
     self._cache = None
-    self._stage = clutter.stage_get_default()
+    self._stage = clutter.Stage()
     self._xmpp = None
 
   def parse_args(self):
@@ -75,6 +75,7 @@ class DDS:
     a.set_height(self._stage.get_height())
     a.set_position(0,0)
     return a
+
   def main(self, args):
     logging.debug('Main method turn on!')
     gobject.threads_init()
@@ -91,7 +92,7 @@ class DDS:
       logging.debug('Going Fullscreen')
       self._stage.fullscreen()
     self._stage.set_color(clutter.color_parse('black'))
-    self._stage.add(self.startupimage())
+    #self._stage.add(self.startupimage())
     self._stage.connect('destroy', clutter.main_quit)
     self._stage.connect('key-press-event', self.on_key_press_event)
     self._stage.hide_cursor()
