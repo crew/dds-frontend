@@ -31,6 +31,25 @@ class Xmpper(Thread):
   def run(self):
     self.setupXmpp()
 
+  def _createSlideDir(self, id):
+    directory = '%s/%s' % (config.option('cache'), str(id))
+    fulldirectory = os.path.expanduser(directory)
+    if not os.path.exists(fulldirectory):
+      os.mkdir(fulldirectory)
+    return fulldirectory
+
+  def _downloadAsset(self, asset, slideid, retry=False):
+    rootdest = self._createSlideDir(slideid)
+    asseturl = asset['url']
+    asseturlpath = urlparse.urlparse(asseturl)[2]
+    filename = os.path.basename(asseturlpath)
+    destpath = '%s/%s' % (rootdest, filename)
+    try:
+      urllib.urlretrieve(asseturl, destpath)
+      return os.path.exists(destpath)
+    except:
+      return False
+
   def addSlide(self, slide):
     logging.info('XMPP addSlide request')
     #slide[0] has a hash with the id, duration, and priority of the slide
@@ -41,25 +60,13 @@ class Xmpper(Thread):
       return False
     info = slide[0]
     assets = slide[1]
-    configdirectory = config.option("cache") + "/" + str(info["id"])
-    directory = os.path.expanduser(configdirectory)
-    if not os.path.exists(directory):
-      os.mkdir(directory)
+    slideid = info['id']
+    configdirectory = self._createSlideDir(slideid)
     for asset in assets:
-      path = urlparse.urlparse(asset["url"])[2]
-      name = os.path.basename(path)
-      fullPath = directory + "/" + name
-      try:
-        urllib.urlretrieve(asset["url"], fullPath)
-      except:
-        gobject.timeout_add(500, rescheduleAddSlide, slide)
-        return False
-      # If we don't have an asset, reschedule the add slide for a later date
-      # If this addSlide is being called as part of a callback, and the asset
-      # still is not here, hang up, and try our call again (reschedule again)
-      if not os.path.exists(fullPath):
-        gobject.timeout_add(500, rescheduleAddSlide, slide)
-        return False
+      gotasset = self._downloadAsset(asset, slideid)
+      if not gotasset:
+        # The asset download failed. What do we do?
+        # TODO: reschedule here
     info["assets"] = assets
     info["directory"] = directory
     def callback(info):
@@ -74,11 +81,7 @@ class Xmpper(Thread):
     logging.info("XMPP removeSlide request")
     info = slide[0]
     logging.debug('removeslide got info = %s' % str(info))
-    try:
-      self.slider.removeSlide(info)
-    except:
-      logging.debug('Removeslide died again. FIXME!!!!!!!!!!!!!!!!!!')
-      logging.debug(str(sys.exc_info()))
+    self.slider.removeSlide(info)
     ## FIXME
     try:
       if self.slider.isEmpty():
@@ -130,8 +133,6 @@ class Xmpper(Thread):
   def checkXmpp(self, connection):
     try:
       connection.Process(1)
-      # This is kind of stupid debugging
-      #logging.debug("checkXmpp: Connection Processed")
       return True
     except KeyboardInterrupt:
       return False
