@@ -35,6 +35,16 @@ class Slider():
     logging.debug('slider stop')
     self.active = False
 
+  def _createNextTimer(self, time_in_seconds):
+    if not self._scheduled_timer:
+      self._scheduled_timer = True
+    else:
+      return False
+    # Time in milliseconds
+    timertimetolive = 1000 * time_in_seconds
+    gobject.timeout_add(timertimetolive, self.next)
+    return True
+
   def reset_timer(self):
     """Runs the next timer thread to change slides"""
     # TODO: Make sure that self.scheduled_timer is not set for too long 
@@ -42,11 +52,10 @@ class Slider():
     logging.debug('slider reset_timer')
     if not self._timersenabled:
       return False
-    if (self.currentSlide() is not None) and (not self._scheduled_timer):
-      self._scheduled_timer = True
-      gobject.timeout_add(1000*self.currentSlide().duration, self.next)
-    elif self._scheduled_timer:
-      logging.debug('Cannot schedule, already scheduled')
+    if (self.currentSlide() is not None):
+      slideduration = self.currentSlide().duration
+      if not self._createNextTimer(slideduration):
+        logging.debug('Cannot schedule, already scheduled')
 
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
@@ -237,7 +246,7 @@ class Slider():
   def load_next(self):
     """Prepare the next slide to be painted"""
 
-    logging.debug('slideshow load_next')
+    logging.debug('load_next')
     if len(self.slides) > 1:
       self.out_animation()
     if self.last and (len(self.slides) > 1):
@@ -252,7 +261,7 @@ class Slider():
 
   def paint(self):
     """Paint the next slide to the screen"""
-    logging.debug('slideshow.paint method begin')
+    logging.debug('paint method begin')
     if len(self.slides) >1 or not self._paintran:
       self._paintran = True
       self.in_animation()
