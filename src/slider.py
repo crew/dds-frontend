@@ -23,7 +23,7 @@ class Slider():
     self.slides = []
 
   def start(self):
-    """Starts the Slider, should only be called when there are slides"""
+    '''Starts the Slider, should only be called when there are slides'''
     logging.debug('slider start')
     self.active = True
     self.setup_animation()
@@ -31,7 +31,7 @@ class Slider():
     self.paint()
 
   def stop(self):
-    """Stops the Slideshow"""
+    '''Stops the Slideshow'''
     logging.debug('slider stop')
     self.active = False
 
@@ -46,8 +46,8 @@ class Slider():
     return True
 
   def reset_timer(self):
-    """Runs the next timer thread to change slides"""
-    # TODO: Make sure that self.scheduled_timer is not set for too long 
+    '''Runs the next timer thread to change slides'''
+    # TODO: Make sure that self.scheduled_timer is not set for too long
     # (ie, stale lock)
     logging.debug('slider reset_timer')
     if not self._timersenabled:
@@ -58,7 +58,7 @@ class Slider():
         logging.debug('Cannot schedule, already scheduled')
 
   def next(self):
-    """Runs the timer thread for, and shows the next slide"""
+    '''Runs the timer thread for, and shows the next slide'''
     logging.debug('slider next')
     if self.isEmpty() or not self.active:
       # We don't have any slides, there is nothing to do!
@@ -72,7 +72,7 @@ class Slider():
     return not self.slides
 
   def parseLayout(self, file, directory):
-    """Parses the given file into a slide"""
+    '''Parses the given file into a slide'''
 
     logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
     script = Script()
@@ -93,95 +93,78 @@ class Slider():
     return slide
 
   def addSlide(self, id, duration, priority, assets, directory):
-    """Add a new slide to the interal cache"""
-
-    logging.debug('Adding New Slide')
-    layoutfile = directory + "/layout.js"
+    '''Add a new slide to the internal cache'''
+    layoutfile = '%s/%s' % (directory, 'layout.js')
     if os.path.exists(layoutfile):
-      logging.debug('calling parseLayout for %s' % layoutfile)
-      slide = self.parseLayout(directory + "/layout.js", directory)
+      slide = self.parseLayout(layoutfile, directory)
       slide.id = id
       slide.duration = duration
       slide.priority = priority
-      logging.debug('Trying to safely add slide id %s' % id)
       added = self._safeAddSlideToDeck(slide)
-      if added:
-        logging.debug('safely added slide id %s' % id)
-        self.logSlideOrder()
       if not self.current:
         self.current = self.currentSlide()
-        logging.debug('starting slideshow')
         self.start()
-      logging.debug('Telling gobject to stop calling us')
       return False
     else:
-      logging.debug('Telling gobject to keep calling us')
       return True
 
   def _safeAddSlideToDeck(self, slide):
-    ''' Check to see if the given slide, (its id really)
+    '''
+    Check to see if the given slide, (its id really)
     already exists in the slide deck. If it does, do not re-add it
     '''
     newslideid = slide.id
     addit = True
     for deckslide in self.slides:
       if deckslide.id == newslideid:
-        logging.debug('When trying to add slide id %s, we found it already' %
-                      newslideid)
         addit = False
         return False
     if addit:
-      logging.info('When trying to add slide id %s, we did it!!!' %
-                    newslideid)
+      logging.info('Added slide id %s to slide list' % newslideid)
       self.slides.append(slide)
       return True
 
-  def _intFromDictOrInt(self, input):
-    if type({}) == type(input):
-      return int(input['id'])
-    else:
-      return int(input)
-
   def removeSlide(self, id):
-    """Remove the slide with the given id from the cache"""
+    '''Remove the slide with the given id from the cache'''
     removalid = id
     logging.debug('I was told to remove slide id %s from the deck' % removalid)
     self.logSlideOrder()
     for slide in self.slides:
-      if self._intFromDictOrInt(slide.id) == removalid:
+      if slide.id == removalid:
         logging.info('Removing slide %s from the deck' % removalid)
         self.slides.remove(slide)
         self.logSlideOrder()
 
   def changeSlideOrder(self, direction='forward'):
-    """Rotate the next slide to the front of the list"""
+    '''
+    Rotate to the next slide in the given direction
+    '''
     if direction == 'forward':
       self.slides.append(self.slides.pop(0))
     else:
       self.slides.insert(0, self.slides.pop())
     self.logSlideOrder()
 
-  def logSlideOrder(self): 
+  def logSlideOrder(self):
     il = []
     for i in self.slides:
       il.append(i.id)
     logging.info('current order: %s' % str(il))
 
   def currentSlide(self):
-    """Return the current slide"""
-    logging.debug('querying current slide')
+    '''Return the current slide'''
 
     if len(self.slides) > 0:
       return self.slides[0]
 
   def loadNextAndPaint(self):
-    """Prepare and paint the next slide"""
+    '''Prepare and paint the next slide'''
     if self.current and (len(self.slides) >= 1):
       self.load_next()
       self.paint()
 
   def setup_animation(self):
-    """Setup the intro animation for the current slide"""
+    '''Setup the intro animation for the current slide'''
     # TODO: Update this for the new layout format
 
     logging.debug('Setting up animation')
@@ -198,7 +181,7 @@ class Slider():
       self.current.set_y(self.stage.get_height())
 
   def in_animation(self):
-    """Run the intro animation of the current slide"""
+    '''Run the intro animation of the current slide'''
     # TODO: Update this for the new layout format
 
     logging.debug('in animation')
@@ -218,7 +201,7 @@ class Slider():
       effect.start()
 
   def out_animation(self):
-    """Run the exit animation of the current slide"""
+    '''Run the exit animation of the current slide'''
     # TODO: Update this for the new layout format
     logging.debug('out animation')
     timeline = clutter.Timeline(fps=60, duration=500)
@@ -244,14 +227,12 @@ class Slider():
       effect.start()
 
   def load_next(self):
-    """Prepare the next slide to be painted"""
-
-    logging.debug('load_next')
+    '''Prepare the next slide to be painted'''
     if len(self.slides) > 1:
       self.out_animation()
-    if self.last and (len(self.slides) > 1):
-      self.last.hide_all()
-      self.stage.remove(self.last)
+      if self.last:
+        self.last.hide_all()
+        self.stage.remove(self.last)
     self.last = self.current
     self.changeSlideOrder(direction='forward')
     self.current = self.currentSlide()
@@ -260,8 +241,7 @@ class Slider():
 
 
   def paint(self):
-    """Paint the next slide to the screen"""
-    logging.debug('paint method begin')
+    '''Paint the next slide to the screen'''
     if len(self.slides) >1 or not self._paintran:
       self._paintran = True
       self.in_animation()
