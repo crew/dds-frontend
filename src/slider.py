@@ -47,7 +47,7 @@ class Slider():
 
   def reset_timer(self):
     '''Runs the next timer thread to change slides'''
-    # TODO: Make sure that self.scheduled_timer is not set for too long 
+    # TODO: Make sure that self.scheduled_timer is not set for too long
     # (ie, stale lock)
     logging.debug('slider reset_timer')
     if not self._timersenabled:
@@ -109,7 +109,8 @@ class Slider():
       return True
 
   def _safeAddSlideToDeck(self, slide):
-    ''' Check to see if the given slide, (its id really)
+    '''
+    Check to see if the given slide, (its id really)
     already exists in the slide deck. If it does, do not re-add it
     '''
     newslideid = slide.id
@@ -135,14 +136,16 @@ class Slider():
         self.logSlideOrder()
 
   def changeSlideOrder(self, direction='forward'):
-    '''Rotate the next slide to the front of the list'''
+    '''
+    Rotate to the next slide in the given direction
+    '''
     if direction == 'forward':
       self.slides.append(self.slides.pop(0))
     else:
       self.slides.insert(0, self.slides.pop())
     self.logSlideOrder()
 
-  def logSlideOrder(self): 
+  def logSlideOrder(self):
     il = []
     for i in self.slides:
       il.append(i.id)
@@ -227,9 +230,9 @@ class Slider():
     '''Prepare the next slide to be painted'''
     if len(self.slides) > 1:
       self.out_animation()
-    if self.last and (len(self.slides) > 1):
-      self.last.hide_all()
-      self.stage.remove(self.last)
+      if self.last:
+        self.last.hide_all()
+        self.stage.remove(self.last)
     self.last = self.current
     self.changeSlideOrder(direction='forward')
     self.current = self.currentSlide()
