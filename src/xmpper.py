@@ -30,10 +30,9 @@ class Xmpper(Thread):
 
   def _createSlideDir(self, id):
     directory = '%s/%s' % (config.option('cache'), str(id))
-    fulldirectory = os.path.expanduser(directory)
-    if not os.path.exists(fulldirectory):
-      os.mkdir(fulldirectory)
-    return fulldirectory
+    if not os.path.exists(directory):
+      os.mkdir(directory)
+    return directory
 
   def _downloadAsset(self, asset, slideid, retry=False):
     rootdest = self._createSlideDir(slideid)
@@ -65,12 +64,9 @@ class Xmpper(Thread):
         # The asset download failed. What do we do?
         # TODO: reschedule here
         pass
-    info["assets"] = assets
-    info["directory"] = directory
     def trySlideAdd(info):
       clutter.threads_enter()
       flag = self.slider.addSlide(**info)
-      self.slider.resetTimer()
       clutter.threads_leave()
       return flag
     gobject.timeout_add(1000, trySlideAdd, info)

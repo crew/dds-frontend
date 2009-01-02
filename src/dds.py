@@ -85,7 +85,7 @@ class DDS:
     clutter.set_use_mipmapped_text(False)
 
   def setupCache(self):
-    cache = os.path.expanduser(config.option("cache"))
+    cache = config.option("cache")
     if not os.path.exists(cache):
       os.makedirs(cache)
 
@@ -114,8 +114,7 @@ class DDS:
       except:
         logging.error('Invalid integer passed for oneslide ID')
         sys.exit(1)
-      slidedirectory = os.path.expanduser('%s/%s' % (config.option('cache'),
-                                                     slideid))
+      slidedirectory = '%s/%s' % (config.option('cache'), slideid)
       if not os.path.exists(slidedirectory):
         logging.error('Could not display single slide id %s. Does %s exist?' %
                       (slideid, slidedirectory))
