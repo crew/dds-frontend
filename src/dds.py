@@ -15,27 +15,24 @@ from optparse import OptionParser
 from slider import Slider
 from xmpper import Xmpper
 
+DEFAULTCONFIG = "~/.dds/config.py"
+DEFAULTLOG = "~/.dds/log"
+
 ## Setup stupid logging for the client
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s', )
 
 class DDS:
   def __init__(self):
-    self._configFile = os.path.expanduser("~/.dds/config.py")
-    self._logFile = os.path.expanduser("~/.dds/log")
-    self._cache = None
     self._stage = clutter.stage_get_default()
     self._xmpp = None
 
   def parse_args(self):
     parser = OptionParser(usage="usage: %prog [options]")
-    parser.add_option("-c", "--config", dest="config",
-                      help="location of the config file")
-    parser.add_option("-l", "--log", dest="log",
-                      help="location of the log file")
-    parser.add_option("-s", "--slides", dest="slides",
-                      help=("location of the slide cache directory "
-                            "(overides config file)"))
+    parser.add_option("-c", "--config", dest="config", default=DEFAULTCONFIG,
+                      metavar="FILE", help="set the config file to FILE")
+    parser.add_option("-l", "--log", dest="log", default=DEFAULTLOG,
+                      metavar="FILE", help="set the log file to FILE")
     parser.add_option("-n", "--nofull", dest="fullscreen", default=True,
                       help="No Fullscreen [For Debugging]",
                       action="store_false")
@@ -45,16 +42,13 @@ class DDS:
                       help="No Timers [For Demos?]",
                       action="store_false")
     parser.add_option("-o", "--oneslide", dest="oneslide", default=None,
+                      metavar="ID", type="int",
                       help="Display only one cached slideid")
 
     (options, args) = parser.parse_args()
-    if options.config:
-      self._configFile = options.config
-    if options.log:
-      self._logFile = options.log
-    if options.slides:
-      self._cache = options.slides
 
+    self._configFile = os.path.expanduser(options.config)
+    self._logFile = os.path.expanduser(options.log)
     self._oneslide = options.oneslide
     self._letterbox = options.letterbox
     self._fullscreen = options.fullscreen
@@ -73,7 +67,7 @@ class DDS:
         logging.debug('Got arrow key, Will not advance without -t option')
 
   def setupStartupImage(self):
-    ''' Create a black rectangle as a startup image. this should prevent the 
+    ''' Create a black rectangle as a startup image. this should prevent the
         ugly startup corruption we all know and love
     '''
     a = clutter.Rectangle()
@@ -91,8 +85,6 @@ class DDS:
     clutter.set_use_mipmapped_text(False)
 
   def setupCache(self):
-    if (self._cache):
-      config.setOption("cache", cache)
     cache = os.path.expanduser(config.option("cache"))
     if not os.path.exists(cache):
       os.makedirs(cache)
@@ -122,11 +114,11 @@ class DDS:
       except:
         logging.error('Invalid integer passed for oneslide ID')
         sys.exit(1)
-      slidedirectory = os.path.expanduser('%s/%s' % (config.option('cache'), 
+      slidedirectory = os.path.expanduser('%s/%s' % (config.option('cache'),
                                                      slideid))
       if not os.path.exists(slidedirectory):
         logging.error('Could not display single slide id %s. Does %s exist?' %
-                      (slideid, slidedirectory)) 
+                      (slideid, slidedirectory))
         sys.exit(1)
       self._show.addSlide(slideid, 100, 1, [], slidedirectory)
 
