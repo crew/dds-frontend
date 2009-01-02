@@ -4,6 +4,7 @@ import logging
 import clutter
 import os
 import gobject
+import config
 from clutter import Script
 
 L_HEIGHT = 12
@@ -13,29 +14,107 @@ class Slider():
   '''Handles the painting and parsing of slides'''
 
   def __init__(self, stage, letterbox=False, timersenabled=True):
-    self.stage = stage
-    self.current = None
-    self.last = None
+    self._stage = stage
+    self._current = None
+    self._last = None
     self._paintran = False
     self._letterbox = letterbox
     self._timersenabled = timersenabled
     self._scheduled_timer = False
-    self.slides = []
+    self._active = False
+    self._slides = []
 
   def start(self):
     '''Starts the Slider, should only be called when there are slides'''
     logging.debug('slider start')
-    self.active = True
-    self.setupAnimation()
-    self.resetTimer()
-    self.paint()
+    self._active = True
+    self._setupAnimation()
+    self._resetTimer()
+    self._paint()
 
   def stop(self):
     '''Stops the Slideshow'''
     logging.debug('slider stop')
-    self.active = False
+    self._active = False
+
+  def currentSlide(self):
+    '''Return the current slide'''
+
+    if len(self._slides) > 0:
+      return self._slides[0]
+
+  def isEmpty(self):
+    """Determines if this slider's empty"""
+    return not self._slides
+
+  def isActive(self):
+    """Determines if this slider's active"""
+    return self._active
+
+  def addSlide(self, id, duration, priority):
+    '''Add a new slide to the internal cache'''
+    directory = "%s/%s" % (config.option("cache"), str(id))
+    layoutfile = '%s/%s' % (directory, 'layout.js')
+    if os.path.exists(layoutfile):
+      slide = self._parseLayout(layoutfile, directory)
+      slide.id = id
+      slide.duration = duration
+      slide.priority = priority
+      added = self._safeAddSlideToDeck(slide)
+      if not self._current:
+        self._current = self.currentSlide()
+        self.start()
+      else:
+        self._resetTimer()
+      return False
+    else:
+      return True
+
+  def removeSlide(self, id):
+    '''Remove the slide with the given id from the cache'''
+    removalid = id
+    logging.debug('I was told to remove slide id %s from the deck' % removalid)
+    self._logSlideOrder()
+    for slide in self._slides:
+      if slide.id == removalid:
+        logging.info('Removing slide %s from the deck' % removalid)
+        self._slides.remove(slide)
+        self._logSlideOrder()
+
+  def next(self):
+    '''Runs the timer thread for, and shows the next slide'''
+    logging.debug('slider next')
+    if self.isEmpty() or not self.isActive():
+      # We don't have any slides, there is nothing to do!
+      return False
+    self._scheduled_timer = False
+    self._loadNextAndPaint()
+    self._resetTimer()
+    return False
+
+  def _parseLayout(self, file, directory):
+    '''Parses the given file into a slide'''
+
+    logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
+    script = Script()
+    script.add_search_paths(directory)
+    script.load_from_file(file)
+    slide = script.get_object('slide')
+    for child in slide.get_children():
+      if (self._letterbox):
+        letterbox_y = (self._stage.get_height() / L_HEIGHT) * 1.5
+        height_div = L_HEIGHT
+      else:
+        letterbox_y = 0
+        height_div = W_HEIGHT
+      child.set_x(child.get_x() * (self._stage.get_width() / 16))
+      child.set_y(letterbox_y + child.get_y() * (self._stage.get_height() / height_div))
+      child.set_width(child.get_width() * (self._stage.get_width() / 16))
+      child.set_height(child.get_height() * (self._stage.get_height() / height_div))
+    return slide
 
   def _createNextTimer(self, time_in_seconds):
+    """Creates a new timer if there isn't already a scheduled timer"""
     if not self._scheduled_timer:
       self._scheduled_timer = True
     else:
@@ -45,7 +124,7 @@ class Slider():
     gobject.timeout_add(timertimetolive, self.next)
     return True
 
-  def resetTimer(self):
+  def _resetTimer(self):
     '''Runs the next timer thread to change slides'''
     # TODO: Make sure that self.scheduled_timer is not set for too long
     # (ie, stale lock)
@@ -57,57 +136,6 @@ class Slider():
       if not self._createNextTimer(slideduration):
         logging.debug('Cannot schedule, already scheduled')
 
-  def next(self):
-    '''Runs the timer thread for, and shows the next slide'''
-    logging.debug('slider next')
-    if self.isEmpty() or not self.active:
-      # We don't have any slides, there is nothing to do!
-      return False
-    self._scheduled_timer = False
-    self.loadNextAndPaint()
-    self.resetTimer()
-    return False
-
-  def isEmpty(self):
-    return not self.slides
-
-  def parseLayout(self, file, directory):
-    '''Parses the given file into a slide'''
-
-    logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
-    script = Script()
-    script.add_search_paths(directory)
-    script.load_from_file(file)
-    slide = script.get_object('slide')
-    for child in slide.get_children():
-      if (self._letterbox):
-        letterbox_y = (self.stage.get_height() / L_HEIGHT) * 1.5
-        height_div = L_HEIGHT
-      else:
-        letterbox_y = 0
-        height_div = W_HEIGHT
-      child.set_x(child.get_x() * (self.stage.get_width() / 16))
-      child.set_y(letterbox_y + child.get_y() * (self.stage.get_height() / height_div))
-      child.set_width(child.get_width() * (self.stage.get_width() / 16))
-      child.set_height(child.get_height() * (self.stage.get_height() / height_div))
-    return slide
-
-  def addSlide(self, id, duration, priority, assets, directory):
-    '''Add a new slide to the internal cache'''
-    layoutfile = '%s/%s' % (directory, 'layout.js')
-    if os.path.exists(layoutfile):
-      slide = self.parseLayout(layoutfile, directory)
-      slide.id = id
-      slide.duration = duration
-      slide.priority = priority
-      added = self._safeAddSlideToDeck(slide)
-      if not self.current:
-        self.current = self.currentSlide()
-        self.start()
-      return False
-    else:
-      return True
-
   def _safeAddSlideToDeck(self, slide):
     '''
     Check to see if the given slide, (its id really)
@@ -115,72 +143,55 @@ class Slider():
     '''
     newslideid = slide.id
     addit = True
-    for deckslide in self.slides:
+    for deckslide in self._slides:
       if deckslide.id == newslideid:
         addit = False
         return False
     if addit:
       logging.info('Added slide id %s to slide list' % newslideid)
-      self.slides.append(slide)
+      self._slides.append(slide)
       return True
 
-  def removeSlide(self, id):
-    '''Remove the slide with the given id from the cache'''
-    removalid = id
-    logging.debug('I was told to remove slide id %s from the deck' % removalid)
-    self.logSlideOrder()
-    for slide in self.slides:
-      if slide.id == removalid:
-        logging.info('Removing slide %s from the deck' % removalid)
-        self.slides.remove(slide)
-        self.logSlideOrder()
-
-  def changeSlideOrder(self, direction='forward'):
+  def _changeSlideOrder(self, direction='forward'):
     '''
     Rotate to the next slide in the given direction
     '''
     if direction == 'forward':
-      self.slides.append(self.slides.pop(0))
+      self._slides.append(self._slides.pop(0))
     else:
-      self.slides.insert(0, self.slides.pop())
-    self.logSlideOrder()
+      self._slides.insert(0, self._slides.pop())
+    self._logSlideOrder()
 
-  def logSlideOrder(self):
+  def _logSlideOrder(self):
     il = []
-    for i in self.slides:
+    for i in self._slides:
       il.append(i.id)
     logging.info('current order: %s' % str(il))
 
-  def currentSlide(self):
-    '''Return the current slide'''
-
-    if len(self.slides) > 0:
-      return self.slides[0]
-
-  def loadNextAndPaint(self):
+  def _loadNextAndPaint(self):
     '''Prepare and paint the next slide'''
-    if self.current and (len(self.slides) >= 1):
-      self.loadNext()
-      self.paint()
+    if self._current and (len(self._slides) >= 1):
+      self._loadNext()
+      self._paint()
 
-  def setupAnimation(self):
+  def _setupAnimation(self):
     '''Setup the intro animation for the current slide'''
     # TODO: Update this for the new layout format
 
     logging.debug('Setting up animation')
     if True:
       #(self.current.transition == "fade"):
-      self.current.set_opacity(0)
-    elif(self.current.transition == "slide-right-left"):
-      self.current.set_x(0 - self.stage.get_width())
-    elif(self.current.transition == "slide-left-right"):
-      self.current.set_x(self.stage.get_width())
-    elif(self.current.transition == "slide-up-down"):
-      self.current.set_y(0 - self.stage.get_height())
-    elif(self.current.transition == "slide-down-up"):
-      self.current.set_y(self.stage.get_height())
+      self._current.set_opacity(0)
+    elif(self._current.transition == "slide-right-left"):
+      self._current.set_x(0 - self._stage.get_width())
+    elif(self._current.transition == "slide-left-right"):
+      self._current.set_x(self._stage.get_width())
+    elif(self._current.transition == "slide-up-down"):
+      self._current.set_y(0 - self._stage.get_height())
+    elif(self._current.transition == "slide-down-up"):
+      self._current.set_y(self._stage.get_height())
 
-  def inAnimation(self):
+  def _inAnimation(self):
     '''Run the intro animation of the current slide'''
     # TODO: Update this for the new layout format
 
@@ -190,17 +201,17 @@ class Slider():
     effect = None
     if True:
       #(self.current.transition == "fade"):
-      effect = clutter.effect_fade(template, self.current, 255)
-    elif((self.current.transition == "slide-right-left") or
-         (self.current.transition == "slide-left-right") or
-         (self.current.transition == "slide-up-down") or
-         (self.current.transition == "slide-down-up")):
-      effect = clutter.effect_move(template, self.current, 0, 0)
+      effect = clutter.effect_fade(template, self._current, 255)
+    elif((self._current.transition == "slide-right-left") or
+         (self._current.transition == "slide-left-right") or
+         (self._current.transition == "slide-up-down") or
+         (self._current.transition == "slide-down-up")):
+      effect = clutter.effect_move(template, self._current, 0, 0)
 
     if(effect):
       effect.start()
 
-  def outAnimation(self):
+  def _outAnimation(self):
     '''Run the exit animation of the current slide'''
     # TODO: Update this for the new layout format
     logging.debug('out animation')
@@ -209,41 +220,41 @@ class Slider():
     effect = None
     if True:
       #(self.current.transition == "fade"):
-      effect = clutter.effect_fade(template, self.current, 0)
-    elif(self.current.transition == "slide-right-left"):
-      effect = clutter.effect_move(template, self.current,
-                                   self.stage.get_width(), 0)
-    elif(self.current.transition == "slide-left-right"):
-      effect = clutter.effect_move(template, self.current,
-                                   0 - self.stage.get_width(), 0)
-    elif(self.current.transition == "slide-up-down"):
-      effect = clutter.effect_move(template, self.current,
-                                   0, self.stage.get_height())
-    elif(self.current.transition == "slide-down-up"):
-      effect = clutter.effect_move(template, self.current,
-                                   0, 0 - self.stage.get_height())
+      effect = clutter.effect_fade(template, self._current, 0)
+    elif(self._current.transition == "slide-right-left"):
+      effect = clutter.effect_move(template, self._current,
+                                   self._stage.get_width(), 0)
+    elif(self._current.transition == "slide-left-right"):
+      effect = clutter.effect_move(template, self._current,
+                                   0 - self._stage.get_width(), 0)
+    elif(self._current.transition == "slide-up-down"):
+      effect = clutter.effect_move(template, self._current,
+                                   0, self._stage.get_height())
+    elif(self._current.transition == "slide-down-up"):
+      effect = clutter.effect_move(template, self._current,
+                                   0, 0 - self._stage.get_height())
 
     if (effect):
       effect.start()
 
-  def loadNext(self):
+  def _loadNext(self):
     '''Prepare the next slide to be painted'''
-    if len(self.slides) > 1:
-      self.outAnimation()
-      if self.last:
-        self.last.hide_all()
-        self.stage.remove(self.last)
-    self.last = self.current
-    self.changeSlideOrder(direction='forward')
-    self.current = self.currentSlide()
-    if len(self.slides) > 1:
-      self.setupAnimation()
+    if len(self._slides) > 1:
+      self._outAnimation()
+      if self._last:
+        self._last.hide_all()
+        self._stage.remove(self._last)
+    self._last = self._current
+    self._changeSlideOrder(direction='forward')
+    self._current = self.currentSlide()
+    if len(self._slides) > 1:
+      self._setupAnimation()
 
 
-  def paint(self):
+  def _paint(self):
     '''Paint the next slide to the screen'''
-    if len(self.slides) >1 or not self._paintran:
+    if len(self._slides) >1 or not self._paintran:
       self._paintran = True
-      self.inAnimation()
-      self.current.show_all()
-      self.stage.add(self.current)
+      self._inAnimation()
+      self._current.show_all()
+      self._stage.add(self._current)

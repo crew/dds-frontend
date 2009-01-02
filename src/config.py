@@ -12,10 +12,14 @@ def init(file):
   else:
     execfile(file, globals())
     for key in config.keys():
-      options[key] = config[key]
+      options[key] = os.path.expanduser(config[key])
 
 
 def option(name):
+  """
+  Get an option from the config db.
+  All paths are guaranteed to be expanded.
+  """
   return options[name]
 
 def setOption(name, value):
