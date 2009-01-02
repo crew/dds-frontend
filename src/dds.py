@@ -27,7 +27,7 @@ class DDS:
     self._stage = clutter.stage_get_default()
     self._xmpp = None
 
-  def parse_args(self):
+  def parseArgs(self):
     parser = OptionParser(usage="usage: %prog [options]")
     parser.add_option("-c", "--config", dest="config", default=DEFAULTCONFIG,
                       metavar="FILE", help="set the config file to FILE")
@@ -47,14 +47,14 @@ class DDS:
 
     (options, args) = parser.parse_args()
 
-    self._configFile = os.path.expanduser(options.config)
-    self._logFile = os.path.expanduser(options.log)
+    self._configfile = os.path.expanduser(options.config)
+    self._logfile = os.path.expanduser(options.log)
     self._oneslide = options.oneslide
     self._letterbox = options.letterbox
     self._fullscreen = options.fullscreen
     self._timersenabled = options.timersenabled
 
-  def on_key_press_event(self, stage, event):
+  def onKeyPressEvent(self, stage, event):
     logging.debug('Got keypress %s' % event.keyval)
     if (event.keyval == 113):
       clutter.main_quit()
@@ -98,7 +98,7 @@ class DDS:
     self._stage.set_color(clutter.color_parse('black'))
     self.setupStartupImage()
     self._stage.connect('destroy', clutter.main_quit)
-    self._stage.connect('key-press-event', self.on_key_press_event)
+    self._stage.connect('key-press-event', self.onKeyPressEvent)
     self._stage.hide_cursor()
     self._stage.set_title('CCIS Digital Display')
     self._stage.show_all()
@@ -124,8 +124,8 @@ class DDS:
 
   def main(self):
     self.initializeLibraries()
-    self.parse_args()
-    config.init(self._configFile)
+    self.parseArgs()
+    config.init(self._configfile)
     self.setupCache()
     self.handleFullscreen()
     self.setupStage()

@@ -26,8 +26,8 @@ class Slider():
     '''Starts the Slider, should only be called when there are slides'''
     logging.debug('slider start')
     self.active = True
-    self.setup_animation()
-    self.reset_timer()
+    self.setupAnimation()
+    self.resetTimer()
     self.paint()
 
   def stop(self):
@@ -45,11 +45,11 @@ class Slider():
     gobject.timeout_add(timertimetolive, self.next)
     return True
 
-  def reset_timer(self):
+  def resetTimer(self):
     '''Runs the next timer thread to change slides'''
     # TODO: Make sure that self.scheduled_timer is not set for too long
     # (ie, stale lock)
-    logging.debug('slider reset_timer')
+    logging.debug('slider resetTimer')
     if not self._timersenabled:
       return False
     if (self.currentSlide() is not None):
@@ -65,7 +65,7 @@ class Slider():
       return False
     self._scheduled_timer = False
     self.loadNextAndPaint()
-    self.reset_timer()
+    self.resetTimer()
     return False
 
   def isEmpty(self):
@@ -160,10 +160,10 @@ class Slider():
   def loadNextAndPaint(self):
     '''Prepare and paint the next slide'''
     if self.current and (len(self.slides) >= 1):
-      self.load_next()
+      self.loadNext()
       self.paint()
 
-  def setup_animation(self):
+  def setupAnimation(self):
     '''Setup the intro animation for the current slide'''
     # TODO: Update this for the new layout format
 
@@ -180,7 +180,7 @@ class Slider():
     elif(self.current.transition == "slide-down-up"):
       self.current.set_y(self.stage.get_height())
 
-  def in_animation(self):
+  def inAnimation(self):
     '''Run the intro animation of the current slide'''
     # TODO: Update this for the new layout format
 
@@ -200,7 +200,7 @@ class Slider():
     if(effect):
       effect.start()
 
-  def out_animation(self):
+  def outAnimation(self):
     '''Run the exit animation of the current slide'''
     # TODO: Update this for the new layout format
     logging.debug('out animation')
@@ -226,10 +226,10 @@ class Slider():
     if (effect):
       effect.start()
 
-  def load_next(self):
+  def loadNext(self):
     '''Prepare the next slide to be painted'''
     if len(self.slides) > 1:
-      self.out_animation()
+      self.outAnimation()
       if self.last:
         self.last.hide_all()
         self.stage.remove(self.last)
@@ -237,13 +237,13 @@ class Slider():
     self.changeSlideOrder(direction='forward')
     self.current = self.currentSlide()
     if len(self.slides) > 1:
-      self.setup_animation()
+      self.setupAnimation()
 
 
   def paint(self):
     '''Paint the next slide to the screen'''
     if len(self.slides) >1 or not self._paintran:
       self._paintran = True
-      self.in_animation()
+      self.inAnimation()
       self.current.show_all()
       self.stage.add(self.current)
