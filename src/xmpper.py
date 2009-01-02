@@ -70,7 +70,7 @@ class Xmpper(Thread):
     def trySlideAdd(info):
       clutter.threads_enter()
       flag = self.slider.addSlide(**info)
-      self.slider.reset_timer()
+      self.slider.resetTimer()
       clutter.threads_leave()
       return flag
     gobject.timeout_add(1000, trySlideAdd, info)
