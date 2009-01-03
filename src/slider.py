@@ -60,8 +60,9 @@ class Slider():
       slide.id = id
       slide.duration = duration
       slide.priority = priority
+      empty = self.isEmpty()
       added = self._safeAddSlideToDeck(slide)
-      if not self._current:
+      if (self._current is None) or empty:
         self._current = self.currentSlide()
         self.start()
       else:
@@ -80,14 +81,19 @@ class Slider():
         logging.info('Removing slide %s from the deck' % removalid)
         self._slides.remove(slide)
         self._logSlideOrder()
+    if self.isEmpty():
+      self.stop()
+    else:
+      if not (self._current == self.currentSlide()):
+        self._current = self.currentSlide()
 
   def next(self):
     '''Runs the timer thread for, and shows the next slide'''
     logging.debug('slider next')
+    self._scheduled_timer = False
     if self.isEmpty() or not self.isActive():
       # We don't have any slides, there is nothing to do!
       return False
-    self._scheduled_timer = False
     self._loadNextAndPaint()
     self._resetTimer()
     return False
@@ -108,9 +114,11 @@ class Slider():
         letterbox_y = 0
         height_div = W_HEIGHT
       child.set_x(child.get_x() * (self._stage.get_width() / 16))
-      child.set_y(letterbox_y + child.get_y() * (self._stage.get_height() / height_div))
+      child.set_y(letterbox_y + child.get_y() * (self._stage.get_height() /
+                                                 height_div))
       child.set_width(child.get_width() * (self._stage.get_width() / 16))
-      child.set_height(child.get_height() * (self._stage.get_height() / height_div))
+      child.set_height(child.get_height() * (self._stage.get_height() /
+                                             height_div))
     return slide
 
   def _createNextTimer(self, time_in_seconds):
@@ -170,7 +178,7 @@ class Slider():
 
   def _loadNextAndPaint(self):
     '''Prepare and paint the next slide'''
-    if self._current and (len(self._slides) >= 1):
+    if self._current and (len(self._slides) > 1):
       self._loadNext()
       self._paint()
 
@@ -244,7 +252,7 @@ class Slider():
       if self._last:
         self._last.hide_all()
         self._stage.remove(self._last)
-    self._last = self._current
+      self._last = self._current
     self._changeSlideOrder(direction='forward')
     self._current = self.currentSlide()
     if len(self._slides) > 1:
@@ -253,8 +261,6 @@ class Slider():
 
   def _paint(self):
     '''Paint the next slide to the screen'''
-    if len(self._slides) >1 or not self._paintran:
-      self._paintran = True
-      self._inAnimation()
-      self._current.show_all()
-      self._stage.add(self._current)
+    self._inAnimation()
+    self._current.show_all()
+    self._stage.add(self._current)
