@@ -76,12 +76,6 @@ class Xmpper(Thread):
     info = slide[0]
     logging.debug('removeslide got info = %s' % str(info))
     self.slider.removeSlide(info)
-    ## FIXME
-    try:
-      if self.slider.isEmpty():
-        slider.stop()
-    except:
-      pass
 
   def updateSlide(self, slide):
     logging.info('XMPP updateSlide request')
