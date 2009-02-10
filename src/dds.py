@@ -119,7 +119,7 @@ class DDS:
         logging.error('Could not display single slide id %s. Does %s exist?' %
                       (slideid, slidedirectory))
         sys.exit(1)
-      self._show.addSlide(slideid, 100, 1, [], slidedirectory)
+      self._show.addSlide(slideid, 100, 1)
 
   def main(self):
     self.initializeLibraries()
