@@ -1,4 +1,6 @@
 #!/usr/bin/python
+import imp
+import md5
 import json
 import logging
 import clutter
@@ -55,21 +57,24 @@ class Slider():
     '''Add a new slide to the internal cache'''
     directory = "%s/%s" % (config.option("cache"), str(id))
     layoutfile = '%s/%s' % (directory, 'layout.js')
+    pythonfile = '%s/%s' % (directory, 'layout.py')
     if os.path.exists(layoutfile):
       slide = self._parseLayout(layoutfile, directory)
-      slide.id = id
-      slide.duration = duration
-      slide.priority = priority
-      empty = self.isEmpty()
-      added = self._safeAddSlideToDeck(slide)
-      if (self._current is None) or empty:
-        self._current = self.currentSlide()
-        self.start()
-      else:
-        self._resetTimer()
-      return False
+    elif os.path.exists(pythonfile):
+      slide = self._parsePython(pythonfile, directory)
     else:
       return True
+    slide.id = id
+    slide.duration = duration
+    slide.priority = priority
+    empty = self.isEmpty()
+    added = self._safeAddSlideToDeck(slide)
+    if (self._current is None) or empty:
+      self._current = self.currentSlide()
+      self.start()
+    else:
+      self._resetTimer()
+      return False
 
   def removeSlide(self, id):
     '''Remove the slide with the given id from the cache'''
@@ -106,6 +111,15 @@ class Slider():
     script.add_search_paths(directory)
     script.load_from_file(file)
     slide = script.get_object('slide')
+    slide = self._setupNewSlide(slide)
+    return slide
+
+  def _parsePython(self, file, directory):
+    slideModule = self._loadModule(file, directory)
+    slide = self._setupNewSlide(slideModule.slide)
+    return slide
+
+  def _setupNewSlide(self, slide):
     for child in slide.get_children():
       if (self._letterbox):
         letterbox_y = (self._stage.get_height() / L_HEIGHT) * 1.5
@@ -113,13 +127,24 @@ class Slider():
       else:
         letterbox_y = 0
         height_div = W_HEIGHT
-      child.set_x(child.get_x() * (self._stage.get_width() / 16))
-      child.set_y(letterbox_y + child.get_y() * (self._stage.get_height() /
-                                                 height_div))
-      child.set_width(child.get_width() * (self._stage.get_width() / 16))
-      child.set_height(child.get_height() * (self._stage.get_height() /
-                                             height_div))
+        child.set_x(child.get_x() * (self._stage.get_width() / 16))
+        child.set_y(letterbox_y + child.get_y() * (self._stage.get_height() /
+                                                   height_div))
+        child.set_width(child.get_width() * (self._stage.get_width() / 16))
+        child.set_height(child.get_height() * (self._stage.get_height() /
+                                               height_div))
     return slide
+
+  def _loadModule(self, codepath, directory):
+    try:
+      currentDirectory = os.getcwd()
+      os.chdir(directory)
+      fin = open(codepath, 'rb')
+      module = imp.load_source(md5.new(codepath).hexdigest(), codepath, fin)
+      os.chdir(currentDirectory)
+      return module
+    finally:
+      fin.close()
 
   def _createNextTimer(self, time_in_seconds):
     """Creates a new timer if there isn't already a scheduled timer"""
