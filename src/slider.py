@@ -12,7 +12,7 @@ from clutter import Script
 L_HEIGHT = 12
 W_HEIGHT = 9
 
-class Slider():
+class Slider(object):
   '''Handles the painting and parsing of slides'''
 
   def __init__(self, stage, letterbox=False, timersenabled=True):
@@ -104,8 +104,7 @@ class Slider():
     return False
 
   def _parseLayout(self, file, directory):
-    '''Parses the given file into a slide'''
-
+    '''Parses the given json file into a slide'''
     logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
     script = Script()
     script.add_search_paths(directory)
@@ -115,11 +114,13 @@ class Slider():
     return slide
 
   def _parsePython(self, file, directory):
+    """Returns a slide from the given python module"""
     slideModule = self._loadModule(file, directory)
     slide = self._setupNewSlide(slideModule.slide)
     return slide
 
   def _setupNewSlide(self, slide):
+    """Sets the correct height and width for the given freshly parsed slide"""
     for child in slide.get_children():
       if (self._letterbox):
         letterbox_y = (self._stage.get_height() / L_HEIGHT) * 1.5
@@ -136,6 +137,7 @@ class Slider():
     return slide
 
   def _loadModule(self, codepath, directory):
+    """Returns the module object for the python file at the given path"""
     try:
       currentDirectory = os.getcwd()
       os.chdir(directory)
