@@ -64,12 +64,12 @@ class Xmpper(Thread):
         # The asset download failed. What do we do?
         # TODO: reschedule here
         pass
-    def trySlideAdd(info):
+    def trySlideAdd():
       clutter.threads_enter()
       flag = self.slider.addSlide(**info)
       clutter.threads_leave()
       return flag
-    gobject.timeout_add(1000, trySlideAdd, info)
+    gobject.timeout_add(1000, trySlideAdd)
 
   def removeSlide(self, slide):
     logging.info("XMPP removeSlide request")
