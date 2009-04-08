@@ -53,9 +53,9 @@ class Slider(object):
     """Determines if this slider's active"""
     return self._active
 
-  def addSlide(self, id, duration, priority):
+  def addSlide(self, info):
     '''Add a new slide to the internal cache'''
-    directory = "%s/%s" % (config.option("cache"), str(id))
+    directory = "%s/%s" % (config.option("cache"), str(info["id"]))
     layoutfile = '%s/%s' % (directory, 'layout.js')
     pythonfile = '%s/%s' % (directory, 'layout.py')
     if os.path.exists(layoutfile):
@@ -64,9 +64,9 @@ class Slider(object):
       slide = self._parsePython(pythonfile, directory)
     else:
       return True
-    slide.id = id
-    slide.duration = duration
-    slide.priority = priority
+    slide.id = info["id"]
+    slide.duration = info["duration"]
+    slide.priority = info["priority"]
     empty = self.isEmpty()
     added = self._safeAddSlideToDeck(slide)
     if (self._current is None) or empty:
