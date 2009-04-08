@@ -65,7 +65,7 @@ class Xmpper(Thread):
         # TODO: reschedule here
         pass
     def trySlideAdd():
-      flag = self.slider.addSlide(**info)
+      flag = self.slider.addSlide(info)
       return flag
     gobject.timeout_add(1000, trySlideAdd)
 
