@@ -19,7 +19,7 @@ DEFAULTCONFIG = "~/.dds/config.py"
 DEFAULTLOG = "~/.dds/log"
 
 ## Setup stupid logging for the client
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s', )
 
 class DDS:

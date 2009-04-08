@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import imp
-import md5
-import json
+import hashlib
 import logging
 import clutter
 import os
@@ -41,7 +40,6 @@ class Slider(object):
 
   def currentSlide(self):
     '''Return the current slide'''
-
     if len(self._slides) > 0:
       return self._slides[0]
 
@@ -79,9 +77,8 @@ class Slider(object):
       self._resetTimer()
       return False
 
-  def removeSlide(self, id):
+  def removeSlide(self, removalid):
     '''Remove the slide with the given id from the cache'''
-    removalid = id
     logging.debug('I was told to remove slide id %s from the deck' % removalid)
     self._logSlideOrder()
     for slide in self._slides:
@@ -145,7 +142,7 @@ class Slider(object):
       currentDirectory = os.getcwd()
       os.chdir(directory)
       fin = open(codepath, 'rb')
-      module = imp.load_source(md5.new(codepath).hexdigest(), codepath, fin)
+      module = imp.load_source(hashlib.sha1(codepath).hexdigest(), codepath, fin)
       os.chdir(currentDirectory)
       return module
     finally:

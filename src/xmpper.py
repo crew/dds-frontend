@@ -48,7 +48,7 @@ class Xmpper(Thread):
 
   def addSlide(self, slide):
     logging.info('XMPP addSlide request')
-    #slide[0] has a hash with the id, duration, and priority of the slide
+    #slide[0] has a hash with metadata for the slide
     #slide[1] has a list of hashes, where each hash has the url and id of
     #an asset
     def rescheduleAddSlide(slide):
@@ -73,7 +73,7 @@ class Xmpper(Thread):
     logging.info("XMPP removeSlide request")
     info = slide[0]
     logging.debug('removeslide got info = %s' % str(info))
-    self.slider.removeSlide(info)
+    self.slider.removeSlide(info["id"])
 
   def updateSlide(self, slide):
     logging.info('XMPP updateSlide request')
