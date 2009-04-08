@@ -56,17 +56,20 @@ class Slider(object):
   def addSlide(self, info):
     '''Add a new slide to the internal cache'''
     directory = "%s/%s" % (config.option("cache"), str(info["id"]))
-    layoutfile = '%s/%s' % (directory, 'layout.js')
-    pythonfile = '%s/%s' % (directory, 'layout.py')
-    if os.path.exists(layoutfile):
+    if "layout" == info["mode"]:
+      layoutfile = '%s/%s' % (directory, 'layout.js')
       slide = self._parseLayout(layoutfile, directory)
-    elif os.path.exists(pythonfile):
+    elif "module" == info["mode"]:
+      pythonfile = '%s/%s' % (directory, 'layout.py')
       slide = self._parsePython(pythonfile, directory)
+    elif "executable" == info["mode"]:
+      pass
     else:
       return True
     slide.id = info["id"]
     slide.duration = info["duration"]
     slide.priority = info["priority"]
+    slide.transition = info["transition"]
     empty = self.isEmpty()
     added = self._safeAddSlideToDeck(slide)
     if (self._current is None) or empty:
@@ -214,8 +217,7 @@ class Slider(object):
     # TODO: Update this for the new layout format
 
     logging.debug('Setting up animation')
-    if True:
-      #(self.current.transition == "fade"):
+    if (self._current.transition == "fade"):
       self._current.set_opacity(0)
     elif(self._current.transition == "slide-right-left"):
       self._current.set_x(0 - self._stage.get_width())
@@ -234,8 +236,7 @@ class Slider(object):
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
     effect = None
-    if True:
-      #(self.current.transition == "fade"):
+    if (self._current.transition == "fade"):
       effect = clutter.effect_fade(template, self._current, 255)
     elif((self._current.transition == "slide-right-left") or
          (self._current.transition == "slide-left-right") or
@@ -253,8 +254,7 @@ class Slider(object):
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
     effect = None
-    if True:
-      #(self.current.transition == "fade"):
+    if (self._current.transition == "fade"):
       effect = clutter.effect_fade(template, self._current, 0)
     elif(self._current.transition == "slide-right-left"):
       effect = clutter.effect_move(template, self._current,
