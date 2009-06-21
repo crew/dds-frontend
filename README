@@ -6,6 +6,8 @@ Dependencies:
 
 * python-json
 
+* python-dns
+
 Getting Started:
 
 * copy examples/config.py to ~/.dds (or point it to a config file with the
