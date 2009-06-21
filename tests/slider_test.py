@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import clutter
 import config
-from slider import Slider
+import slider
 from unittest import TestCase
 
 CACHE = "./cache"
@@ -9,25 +9,51 @@ CACHE = "./cache"
 class SliderTest(TestCase):
 
   def setUp(self):
-    self.slider = Slider(clutter.Stage())
+    self.slideshow = slider.Slider(clutter.Stage())
     config.setOption("cache", CACHE)
-    self.slider.addSlide(1, 3, 1)
-    self.slider.addSlide(2, 3, 1)
-    self.slider.addSlide(3, 3, 1)
+    self.slideshow.addSlide({'id': 1, 'duration': 3,
+                             'mode': 'layout', 'priority': 1,
+                             'transition': 'fade'})
+    self.slideshow.addSlide({'id': 2, 'duration': 3,
+                             'mode': 'layout', 'priority': 1,
+                             'transition': 'fade'})
+    self.slideshow.addSlide({'id': 3, 'duration': 3,
+                             'mode': 'layout', 'priority': 1,
+                             'transition': 'fade'})
+    self.slides = self.slideshow._slides
 
   def testSlideCommands(self):
-    self.slider.removeSlide(1)
-    self.slider.removeSlide(2)
-    self.slider.removeSlide(3)
-    self.assertTrue(self.slider.isEmpty())
-    self.slider.addSlide(1 ,1, 1)
-    self.assertFalse(self.slider.isEmpty())
+    self.slideshow.removeSlide(1)
+    self.slideshow.removeSlide(2)
+    self.slideshow.removeSlide(3)
+    self.assertTrue(slider.isEmpty(self.slides))
+    self.slideshow.addSlide({'id': 1, 'duration': 3,
+                          'mode': 'layout', 'priority': 1,
+                          'transition': 'fade'})
+    self.assertFalse(slider.isEmpty(self.slides))
 
   def testActivity(self):
-    self.assertTrue(self.slider.isActive())
-    self.slider.removeSlide(1)
-    self.slider.removeSlide(2)
-    self.slider.removeSlide(3)
-    self.assertFalse(self.slider.isActive())
-    self.slider.addSlide(3, 3, 1)
-    self.assertTrue(self.slider.isActive())
+    self.assertTrue(self.slideshow.isActive())
+    self.slideshow.removeSlide(1)
+    self.slideshow.removeSlide(2)
+    self.slideshow.removeSlide(3)
+    self.assertFalse(self.slideshow.isActive())
+    self.slideshow.addSlide({'id': 3, 'duration': 3,
+                          'mode': 'layout', 'priority': 1,
+                          'transition': 'fade'})
+    self.assertTrue(self.slideshow.isActive())
+
+  def testSafeAddSlide(self):
+    slide = clutter.Group()
+    slide.id = 1
+    self.assertFalse(slider.safeAddSlide(self.slides, slide))
+    slide.id = 10
+    self.assertTrue(slider.safeAddSlide(self.slides, slide))
+
+  def testResetTimer(self):
+    def next():
+      pass
+    self.slideshow.stop()
+    self.assertFalse(slider.resetTimer(next, self.slides, False, False))
+    self.assertTrue(slider.resetTimer(next, self.slides, False, True))
+    self.assertTrue(slider.resetTimer(next, self.slides, True, True))
