@@ -18,121 +18,115 @@ from xmpper import Xmpper
 DEFAULTCONFIG = "~/.dds/config.py"
 DEFAULTLOG = "~/.dds/log"
 
-## Setup stupid logging for the client
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(message)s', )
+def parseArgs():
+  parser = OptionParser(usage="usage: %prog [options]")
+  parser.add_option("-c", "--config", dest="config", default=DEFAULTCONFIG,
+                    metavar="FILE", help="set the config file to FILE")
+  parser.add_option("-l", "--log", dest="log", default=DEFAULTLOG,
+                    metavar="FILE", help="set the log file to FILE")
+  parser.add_option("-n", "--nofull", dest="fullscreen", default=True,
+                    help="No Fullscreen [For Debugging]",
+                    action="store_false")
+  parser.add_option("-b", "--letterbox", dest="letterbox", default=False,
+                    action="store_true")
+  parser.add_option("-t", "--notimers", dest="timersenabled", default=True,
+                    help="No Timers [For Demos?]",
+                    action="store_false")
+  parser.add_option("-o", "--oneslide", dest="oneslide", default=None,
+                    metavar="ID", type="int",
+                    help="Display only one cached slideid")
 
-class DDS:
-  def __init__(self):
-    self._stage = clutter.stage_get_default()
-    self._xmpp = None
+  (options, args) = parser.parse_args()
 
-  def parseArgs(self):
-    parser = OptionParser(usage="usage: %prog [options]")
-    parser.add_option("-c", "--config", dest="config", default=DEFAULTCONFIG,
-                      metavar="FILE", help="set the config file to FILE")
-    parser.add_option("-l", "--log", dest="log", default=DEFAULTLOG,
-                      metavar="FILE", help="set the log file to FILE")
-    parser.add_option("-n", "--nofull", dest="fullscreen", default=True,
-                      help="No Fullscreen [For Debugging]",
-                      action="store_false")
-    parser.add_option("-b", "--letterbox", dest="letterbox", default=False,
-                      action="store_true")
-    parser.add_option("-t", "--notimers", dest="timersenabled", default=True,
-                      help="No Timers [For Demos?]",
-                      action="store_false")
-    parser.add_option("-o", "--oneslide", dest="oneslide", default=None,
-                      metavar="ID", type="int",
-                      help="Display only one cached slideid")
+  configfile = os.path.expanduser(options.config)
+  logfile = os.path.expanduser(options.log)
+  oneslide = options.oneslide
+  letterbox = options.letterbox
+  fullscreen = options.fullscreen
+  timersenabled = options.timersenabled
+  return (configfile, logfile, oneslide, letterbox, fullscreen, timersenabled)
 
-    (options, args) = parser.parse_args()
-
-    self._configfile = os.path.expanduser(options.config)
-    self._logfile = os.path.expanduser(options.log)
-    self._oneslide = options.oneslide
-    self._letterbox = options.letterbox
-    self._fullscreen = options.fullscreen
-    self._timersenabled = options.timersenabled
-
-  def onKeyPressEvent(self, stage, event):
-    logging.debug('Got keypress %s' % event.keyval)
-    if (event.keyval == 113):
-      clutter.main_quit()
-      sys.exit(0)
-    elif (event.keyval == 65363):
-      if not self._timersenabled:
-        logging.debug('Got arrow key, nexting?')
-        self._show.next()
-      else:
-        logging.debug('Got arrow key, Will not advance without -t option')
-
-  def setupStartupImage(self):
-    ''' Create a black rectangle as a startup image. this should prevent the
-        ugly startup corruption we all know and love
-    '''
-    a = clutter.Rectangle()
-    a.set_width(self._stage.get_width())
-    a.set_height(self._stage.get_height())
-    a.set_color(clutter.color_parse('black'))
-    a.set_position(0,0)
-    self._stage.add(a)
-
-  def initializeLibraries(self):
-    ''' Initialize the external libraries used '''
-    gobject.threads_init()
-    clutter.threads_init()
-    # Fix a blocky text issue
-    clutter.set_use_mipmapped_text(False)
-
-  def setupCache(self):
-    cache = config.option("cache")
-    if not os.path.exists(cache):
-      os.makedirs(cache)
-
-  def handleFullscreen(self):
-    if self._fullscreen:
-      logging.debug('Going Fullscreen')
-      self._stage.fullscreen()
-
-  def setupStage(self):
-    self._stage.set_color(clutter.color_parse('black'))
-    self.setupStartupImage()
-    self._stage.connect('destroy', clutter.main_quit)
-    self._stage.connect('key-press-event', self.onKeyPressEvent)
-    self._stage.hide_cursor()
-    self._stage.set_title('CCIS Digital Display')
-    self._stage.show_all()
-
-  def pickRuntimeMode(self):
-    ''' Decide to either: start XMPP or Display a single slide '''
-    if not self._oneslide:
-      self._xmpp = Xmpper(self._show)
-      self._xmpp.start()
+def onKeyPressEvent(stage, event, show, timersenabled):
+  logging.debug('Got keypress %s' % event.keyval)
+  if (event.keyval == 113):
+    clutter.main_quit()
+    sys.exit(0)
+  elif (event.keyval == 65363):
+    if not timersenabled:
+      logging.debug('Got arrow key, nexting?')
+      show.next()
     else:
-      try:
-        slideid = int(self._oneslide)
-      except:
-        logging.error('Invalid integer passed for oneslide ID')
-        sys.exit(1)
-      slidedirectory = '%s/%s' % (config.option('cache'), slideid)
-      if not os.path.exists(slidedirectory):
-        logging.error('Could not display single slide id %s. Does %s exist?' %
-                      (slideid, slidedirectory))
-        sys.exit(1)
-      self._show.addSlide(slideid, 100, 1)
+      logging.debug('Got arrow key, Will not advance without -t option')
 
-  def main(self):
-    self.initializeLibraries()
-    self.parseArgs()
-    config.init(self._configfile)
-    self.setupCache()
-    self.handleFullscreen()
-    self.setupStage()
-    self._show = Slider(self._stage, letterbox=self._letterbox,
-                        timersenabled=self._timersenabled)
-    self.pickRuntimeMode()
-    clutter.main()
+def setupStartupImage(stage):
+  '''Create a black rectangle as a startup image. This should prevent the
+  ugly startup corruption we all know and love.
+  '''
+  a = clutter.Rectangle()
+  a.set_width(stage.get_width())
+  a.set_height(stage.get_height())
+  a.set_color(clutter.color_parse('black'))
+  a.set_position(0,0)
+  stage.add(a)
+
+def initializeLibraries():
+  '''Initialize the external libraries used.'''
+  gobject.threads_init()
+  clutter.threads_init()
+  # Fix a blocky text issue
+  clutter.set_use_mipmapped_text(False)
+
+def setupCache():
+  cache = config.option("cache")
+  if not os.path.exists(cache):
+    os.makedirs(cache)
+
+def handleFullscreen(stage, fullscreen):
+  if fullscreen:
+    logging.debug('Going Fullscreen')
+    stage.fullscreen()
+
+def setupStage(stage, show, timersenabled, fullscreen):
+  handleFullscreen(stage, fullscreen)
+  stage.set_color(clutter.color_parse('black'))
+  setupStartupImage(stage)
+  stage.connect('destroy', clutter.main_quit)
+  stage.connect('key-press-event', onKeyPressEvent, show, timersenabled)
+  stage.hide_cursor()
+  stage.set_title('CCIS Digital Display')
+  stage.show_all()
+
+def pickRuntimeMode(show, oneslide):
+  '''Decide to either: start XMPP or display a single slide.'''
+  if not oneslide:
+    xmpp = Xmpper(show)
+    xmpp.start()
+  else:
+    try:
+      slideid = int(oneslide)
+    except:
+      logging.error('Invalid integer passed for oneslide ID')
+      sys.exit(1)
+
+    slidedirectory = '%s/%s' % (config.option('cache'), slideid)
+    if not os.path.exists(slidedirectory):
+      logging.error('Could not display single slide id %s. Does %s exist?' %
+                    (slideid, slidedirectory))
+      sys.exit(1)
+    show.addSlide(slideid, 100, 1)
+
+def main():
+  initializeLibraries()
+  logging.basicConfig(level=logging.DEBUG,
+                      format='%(asctime)s %(levelname)s %(message)s')
+  stage = clutter.stage_get_default()
+  (configfile, logfile, oneslide, letterbox, fullscreen, timersenabled) = parseArgs()
+  config.init(configfile)
+  setupCache()
+  show = Slider(stage, letterbox, timersenabled)
+  setupStage(stage, show, timersenabled, fullscreen)
+  pickRuntimeMode(show, oneslide)
+  clutter.main()
 
 if __name__ == '__main__':
-  d = DDS()
-  d.main()
+  main()
