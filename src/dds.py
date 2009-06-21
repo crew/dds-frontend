@@ -11,9 +11,9 @@ import threading
 import time
 import gobject
 import logging
+import xmpper
 from optparse import OptionParser
 from slider import Slider
-from xmpper import Xmpper
 
 DEFAULTCONFIG = "~/.dds/config.py"
 DEFAULTLOG = "~/.dds/log"
@@ -99,8 +99,7 @@ def setupStage(stage, show, timersenabled, fullscreen):
 def pickRuntimeMode(show, oneslide):
   '''Decide to either: start XMPP or display a single slide.'''
   if not oneslide:
-    xmpp = Xmpper(show)
-    xmpp.start()
+    xmpper.start(show)
   else:
     try:
       slideid = int(oneslide)
