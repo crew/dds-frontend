@@ -26,7 +26,7 @@ class Slider(object):
     self._slides = []
 
   def addSlide(self, info):
-    '''Add a new slide to the internal cache'''
+    '''Add a new slide to the internal cache.'''
     directory = "%s/%s" % (config.option("cache"), str(info["id"]))
     if "layout" == info["mode"]:
       layoutfile = '%s/%s' % (directory, 'layout.js')
@@ -43,14 +43,11 @@ class Slider(object):
     slide.priority = info["priority"]
     slide.transition = info["transition"]
     empty = isEmpty(self._slides)
-    added = safeAddSlide(self._slides, slide)
-    if (self._current is None) or empty:
+    safeAddSlide(self._slides, slide)
+    if empty:
       self._current = currentSlide(self._slides)
       self.start()
-    else:
-      self._timer_scheduled = resetTimer(self.next, self._slides,
-                                         self._timer_scheduled, self._timersenabled)
-      return False
+    return False
 
   def removeSlide(self, removalid):
     '''Remove the slide with the given id from the cache'''
@@ -145,7 +142,7 @@ def createNextTimer(next, timer_scheduled, time_in_seconds):
   """Creates a new timer if there isn't already a scheduled timer"""
   if timer_scheduled:
     logging.debug('Cannot schedule, already scheduled')
-    return timer_scheduled
+    return True
   # Time in milliseconds
   timertimetolive = 1000 * time_in_seconds
   gobject.timeout_add(timertimetolive, next)
@@ -158,7 +155,6 @@ def resetTimer(next, slides, timer_scheduled, timersenabled):
   logging.debug('slider resetTimer')
   if not(currentSlide(slides) is None) and timersenabled:
     slideduration = currentSlide(slides).duration
-    logging.debug(slideduration)
     return createNextTimer(next, timer_scheduled, slideduration)
   return timer_scheduled
 

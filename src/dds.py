@@ -18,25 +18,25 @@ from slider import Slider
 DEFAULTCONFIG = "~/.dds/config.py"
 DEFAULTLOG = "~/.dds/log"
 
-def parseArgs():
+def parseArgs(arguments):
   parser = OptionParser(usage="usage: %prog [options]")
-  parser.add_option("-c", "--config", dest="config", default=DEFAULTCONFIG,
+  parser.add_option("--config-file", dest="config", default=DEFAULTCONFIG,
                     metavar="FILE", help="set the config file to FILE")
-  parser.add_option("-l", "--log", dest="log", default=DEFAULTLOG,
+  parser.add_option("--log-file", dest="log", default=DEFAULTLOG,
                     metavar="FILE", help="set the log file to FILE")
-  parser.add_option("-n", "--nofull", dest="fullscreen", default=True,
+  parser.add_option("--no-fullscreen", dest="fullscreen", default=True,
                     help="No Fullscreen [For Debugging]",
                     action="store_false")
-  parser.add_option("-b", "--letterbox", dest="letterbox", default=False,
+  parser.add_option("--letterbox", dest="letterbox", default=False,
                     action="store_true")
-  parser.add_option("-t", "--notimers", dest="timersenabled", default=True,
+  parser.add_option("--no-timers", dest="timersenabled", default=True,
                     help="No Timers [For Demos?]",
                     action="store_false")
-  parser.add_option("-o", "--oneslide", dest="oneslide", default=None,
+  parser.add_option("--one-slide", dest="oneslide", default=None,
                     metavar="ID", type="int",
                     help="Display only one cached slideid")
 
-  (options, args) = parser.parse_args()
+  (options, args) = parser.parse_args(arguments)
 
   configfile = os.path.expanduser(options.config)
   logfile = os.path.expanduser(options.log)
@@ -119,7 +119,9 @@ def main():
   logging.basicConfig(level=logging.DEBUG,
                       format='%(asctime)s %(levelname)s %(message)s')
   stage = clutter.stage_get_default()
-  (configfile, logfile, oneslide, letterbox, fullscreen, timersenabled) = parseArgs()
+  (configfile, logfile,
+   oneslide, letterbox,
+   fullscreen, timersenabled) = parseArgs(sys.argv)
   config.init(configfile)
   setupCache()
   show = Slider(stage, letterbox, timersenabled)
