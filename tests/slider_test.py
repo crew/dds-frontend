@@ -49,11 +49,3 @@ class SliderTest(TestCase):
     self.assertFalse(slider.safeAddSlide(self.slides, slide))
     slide.id = 10
     self.assertTrue(slider.safeAddSlide(self.slides, slide))
-
-  def testResetTimer(self):
-    def next():
-      pass
-    self.slideshow.stop()
-    self.assertFalse(slider.resetTimer(next, self.slides, False, False))
-    self.assertTrue(slider.resetTimer(next, self.slides, False, True))
-    self.assertTrue(slider.resetTimer(next, self.slides, True, True))
