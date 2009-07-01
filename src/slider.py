@@ -68,23 +68,27 @@ class Slider(object):
     '''Runs the timer thread for, and shows the next slide'''
     logging.debug('slider next')
     self._timer_scheduled = False
-    if isEmpty(self._slides) or not self.isActive():
-      # We don't have any slides, there is nothing to do!
-      return False
-    (self._current, self._last) = loadNextAndPaint(self._current, self._last,
-                                                   self._stage, self._slides)
-    self.timer_scheduled = resetTimer(self.next, self._slides,
-                                      self._timer_scheduled, self._timersenabled)
+    if not isEmpty(self._slides) and self.isActive():
+      (self._current, self._last) = loadNextAndPaint(self._current, self._last,
+                                                     self._stage, self._slides)
+      createNextTimer(self.next, self._current, self._timersenabled)
     return False
 
   def start(self):
-    '''Starts the Slider, should only be called when there are slides'''
+    '''
+    Starts the slider. This should only be called when there are slides
+    and if the slider isn't already active.
+    '''
     logging.debug('slider start')
-    self._active = True
-    setupAnimation(self._current, self._stage)
-    self._timer_scheduled = resetTimer(self.next, self._slides,
-                                       self._timer_scheduled, self._timersenabled)
-    paint(self._current, self._stage)
+    if self.isActive():
+      logging.error("Attempted to start an already active slider.")
+    elif isEmpty(self._slides):
+      logging.error("Attempted to start an empty slider.")
+    else:
+        self._active = True
+        setupAnimation(self._current, self._stage)
+        createNextTimer(self.next, currentSlide(self._slides), self._timersenabled)
+        paint(self._current, self._stage)
 
   def stop(self):
     '''Stops the Slideshow'''
@@ -118,12 +122,12 @@ def setupNewSlide(slide, stage, letterbox):
     else:
       letterbox_y = 0
       height_div = W_HEIGHT
-      child.set_x(child.get_x() * (stage.get_width() / 16))
-      child.set_y(letterbox_y + child.get_y() * (stage.get_height() /
-                                                 height_div))
-      child.set_width(child.get_width() * (stage.get_width() / 16))
-      child.set_height(child.get_height() * (stage.get_height() /
-                                             height_div))
+    child.set_x(child.get_x() * (stage.get_width() / 16))
+    child.set_y(letterbox_y + child.get_y() * (stage.get_height() /
+                                               height_div))
+    child.set_width(child.get_width() * (stage.get_width() / 16))
+    child.set_height(child.get_height() * (stage.get_height() /
+                                           height_div))
   return slide
 
 def loadModule(codepath, directory):
@@ -138,25 +142,17 @@ def loadModule(codepath, directory):
   finally:
     fin.close()
 
-def createNextTimer(next, timer_scheduled, time_in_seconds):
-  """Creates a new timer if there isn't already a scheduled timer"""
-  if timer_scheduled:
-    logging.debug('Cannot schedule, already scheduled')
-    return True
-  # Time in milliseconds
-  timertimetolive = 1000 * time_in_seconds
-  gobject.timeout_add(timertimetolive, next)
-  return True
-
-def resetTimer(next, slides, timer_scheduled, timersenabled):
-  '''Runs the next timer thread to change slides'''
-  # TODO: Make sure that timer_scheduled is not set for too long
-  # (ie, stale lock)
-  logging.debug('slider resetTimer')
-  if not(currentSlide(slides) is None) and timersenabled:
-    slideduration = currentSlide(slides).duration
-    return createNextTimer(next, timer_scheduled, slideduration)
-  return timer_scheduled
+def createNextTimer(next, slide, timersenabled):
+  """
+  Schedules next to be called in the duration of slide if timersenabled
+  is True.
+  """
+  # This needs some sort of lock, but the one in place before was very
+  # susceptible to a race condition. I'd rather have things simple and
+  # add an effective one later. For now though, this function is never
+  # called in a way that'll cause two timers to be active at once.
+  if not(slide is None) and timersenabled:
+    gobject.timeout_add(slide.duration * 1000, next)
 
 def safeAddSlide(slides, slide):
   '''
