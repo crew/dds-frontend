@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """CCIS Crew Digital Display System Frontend/Client
 
-This module is the executable for the DDS Client, all signs will run this in an
+This module is the executable for the DDS Client, all signs will run this in a
 X SESSION to display pretty slides to users around the world.
 """
 
