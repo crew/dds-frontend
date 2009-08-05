@@ -30,6 +30,12 @@ FLAGS = flags.FLAGS
 
 
 def onKeyPressEvent(stage, event, show):
+  """Handle Keypress Events.
+
+  Args:
+     event: (clutter event) keypress event
+     show: (Slider) Slideshow instance
+  """
   logging.debug('Got keypress %s' % event.keyval)
   if (event.keyval == 113):
     clutter.main_quit()
@@ -39,12 +45,17 @@ def onKeyPressEvent(stage, event, show):
       logging.debug('Got arrow key, nexting?')
       show.next()
     else:
-      logging.debug('Got arrow key, Will not advance without -t option')
+      logging.debug('Got arrow key, Will not advance without disabling timers')
 
 def setupStartupImage(stage):
-  '''Create a black rectangle as a startup image. This should prevent the
+  """Setup the Startup Screen.
+
+  Args:
+     stage: (Clutter Stage)
+
+  Create a black rectangle as a startup image. This should prevent the
   ugly startup corruption we all know and love.
-  '''
+  """
   a = clutter.Rectangle()
   a.set_width(stage.get_width())
   a.set_height(stage.get_height())
@@ -53,23 +64,35 @@ def setupStartupImage(stage):
   stage.add(a)
 
 def initializeLibraries():
-  '''Initialize the external libraries used.'''
+  """Initialize the external libraries used."""
   gobject.threads_init()
   clutter.threads_init()
   # Fix a blocky text issue
   clutter.set_use_mipmapped_text(False)
 
 def setupCache():
+  """Create cache directory if it does not exist."""
   cache = config.option("cache")
   if not os.path.exists(cache):
     os.makedirs(cache)
 
 def handleFullscreen(stage):
+  """Setup fullscreen mode if enabled.
+
+  Args:
+     stage: (Clutter Stage)
+  """
   if FLAGS.fullscreen:
     logging.debug('Going Fullscreen')
     stage.fullscreen()
 
 def setupStage(stage, show):
+  """Setup the Clutter Stage.
+
+  Args:
+     stage: (Clutter Stage)
+     show: (Slider) Slideshow instance
+  """
   handleFullscreen(stage)
   stage.set_color(clutter.color_parse('black'))
   setupStartupImage(stage)
@@ -80,6 +103,7 @@ def setupStage(stage, show):
   stage.show_all()
 
 def main():
+  """Initiate a DDS frontend."""
   initializeLibraries()
   logging.basicConfig(level=logging.DEBUG,
                       format='%(asctime)s %(levelname)s %(message)s')
