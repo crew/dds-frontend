@@ -25,9 +25,16 @@ from slider import Slider
 
 flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
 flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
+flags.DEFINE_string('userdir', '~/.dds', 'user state path')
 
 FLAGS = flags.FLAGS
 
+
+def createDDSDir():
+  """Create the user's DDS dir if it does not exist."""
+  DIR = os.path.expanduser(FLAGS.userdir)
+  if not os.path.exists(DIR):
+    os.makedirs(DIR)
 
 def onKeyPressEvent(stage, event, show):
   """Handle Keypress Events.
@@ -104,6 +111,7 @@ def setupStage(stage, show):
 
 def main():
   """Initiate a DDS frontend."""
+  createDDSDir()
   initializeLibraries()
   logging.basicConfig(level=logging.DEBUG,
                       format='%(asctime)s %(levelname)s %(message)s')
