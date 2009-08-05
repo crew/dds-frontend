@@ -8,6 +8,7 @@ import hashlib
 import imp
 import logging
 import os
+import sys
 
 flags.DEFINE_integer('lheight', 12, 'L_HEIGHT Constant')
 flags.DEFINE_integer('wheight', 9, 'W_HEIGHT Constant')
@@ -149,15 +150,20 @@ def setupNewSlide(slide, stage):
 
 def loadModule(codepath, directory):
   """Returns the module object for the python file at the given path"""
+  fin = None
   try:
     currentDirectory = os.getcwd()
+    currentPath = sys.path
+    sys.path.append(directory)
     os.chdir(directory)
     fin = open(codepath, 'rb')
     module = imp.load_source(hashlib.sha1(codepath).hexdigest(), codepath, fin)
     os.chdir(currentDirectory)
+    sys.path = currentPath
     return module
   finally:
-    fin.close()
+    if fin:
+      fin.close()
 
 def createNextTimer(next, slide):
   """
