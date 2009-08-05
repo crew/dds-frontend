@@ -1,4 +1,3 @@
-from xmpp import Client, NodeProcessed, protocol
 import xmpp
 import xmlrpclib
 import os
@@ -98,14 +97,17 @@ def proceed(client):
 def setupXmpp(slider):
   jid = config.option("client-jid")
   password = config.option("client-password")
-  jid = protocol.JID(jid)
-  client = Client(jid.getDomain(), debug=[])
+  jid = xmpp.protocol.JID(jid)
+  client = xmpp.Client(jid.getDomain(), debug=[])
 
   if client.connect() == "":
     logging.error("Could not connection to the XMPP server")
+    return False
 
-  if client.auth(jid.getNode(), password, jid.getResource()) == None:
+  auth = client.auth(jid.getNode(), password, jid.getResource())
+  if not auth:
     logging.error("XMPP password was incorrect")
+    return False
 
   client.RegisterHandler("iq", generateIqHandler(slider))
   client.RegisterHandler("presense", handlePresence)
@@ -137,5 +139,5 @@ def generateIqHandler(slider):
           logging.error("rpc function " + methodName +
                         " is not defined")
 
-    raise NodeProcessed
+    raise xmpp.NodeProcessed
   return handleIq
