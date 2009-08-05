@@ -220,12 +220,12 @@ def loadNextAndPaint(current, last, stage, slides):
   if current and (len(slides) > 1):
     (current, last) = loadNext(current, last, stage, slides)
     paint(current, stage)
-  return (current, last)
+  return current, last
 
 def setupAnimation(current, stage):
   '''Setup the intro animation for the current slide'''
   logging.debug('Setting up animation')
-  if (current.transition == "fade"):
+  if current.transition == "fade":
     current.set_opacity(0)
   elif(current.transition == "slide-right-left"):
     current.set_x(0 - stage.get_width())
@@ -242,14 +242,14 @@ def inAnimation(current):
   timeline = clutter.Timeline(fps=60, duration=500)
   template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
   effect = None
-  if (current.transition == "fade"):
+  if current.transition == "fade":
     effect = clutter.effect_fade(template, current, 255)
-  elif((current.transition == "slide-right-left") or
-       (current.transition == "slide-left-right") or
-       (current.transition == "slide-up-down") or
-       (current.transition == "slide-down-up")):
+  elif ((current.transition == "slide-right-left") or
+        (current.transition == "slide-left-right") or
+        (current.transition == "slide-up-down") or
+        (current.transition == "slide-down-up")):
     effect = clutter.effect_move(template, current, 0, 0)
-  if(effect):
+  if effect:
     effect.start()
 
 def outAnimation(current, stage):
@@ -272,11 +272,19 @@ def outAnimation(current, stage):
   elif(current.transition == "slide-down-up"):
     effect = clutter.effect_move(template, current,
                                  0, 0 - stage.get_height())
-  if (effect):
+  if effect:
     effect.start()
 
 def loadNext(current, last, stage, slides):
   '''Prepare the next slide to be painted'''
+
+  if hasattr(current, 'teardownslide'):
+    logging.info('Trying teardown on %s' % current.id)
+    try:
+      current.teardownslide()
+    except Exception, e:
+      logging.error('Failed to teardown slide with defined teardown method: '+e)
+
   if len(slides) > 1:
     outAnimation(current, stage)
     if last:
@@ -285,8 +293,17 @@ def loadNext(current, last, stage, slides):
     last = current
   changeSlideOrder(slides, direction='forward')
   current = currentSlide(slides)
+
+  if hasattr(current, 'setupslide'):
+    logging.info('Trying setup on %s' % current.id)
+    try:
+      current.setupslide()
+    except Exception, e:
+      logging.error('Failed to setup slide with defined setupslide method: '+e)
+
   if len(slides) > 1:
     setupAnimation(current, stage)
+
   return (current, last)
 
 def paint(current, stage):
