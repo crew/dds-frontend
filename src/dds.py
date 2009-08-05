@@ -16,8 +16,6 @@ import xmpper
 from slider import Slider
 
 flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
-flags.DEFINE_boolean('enabletimers', True,
-                     'Control automatic slide advancement')
 flags.DEFINE_integer('oneslide', 0, 'Display only the given slide ID')
 flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 

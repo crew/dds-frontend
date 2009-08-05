@@ -9,10 +9,12 @@ import imp
 import logging
 import os
 
-flags.DEFINE_integer('lheight', 12, '')
-flags.DEFINE_integer('wheight', 9, '')
+flags.DEFINE_integer('lheight', 12, 'L_HEIGHT Constant')
+flags.DEFINE_integer('wheight', 9, 'W_HEIGHT Constant')
 flags.DEFINE_boolean('letterbox', False,
                      'Set the view mode to use letterboxing')
+flags.DEFINE_boolean('enabletimers', True,
+                     'Control automatic slide advancement')
 
 FLAGS = flags.FLAGS
 
@@ -154,7 +156,7 @@ def createNextTimer(next, slide):
   # susceptible to a race condition. I'd rather have things simple and
   # add an effective one later. For now though, this function is never
   # called in a way that'll cause two timers to be active at once.
-  if not (slide is None) and FLAGS.timersenabled:
+  if not (slide is None) and FLAGS.enabletimers:
     gobject.timeout_add(slide.duration * 1000, next)
 
 def safeAddSlide(slides, slide):
