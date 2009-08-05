@@ -4,55 +4,33 @@
 import projectreqs
 ######################################################################
 import clutter
-import sys
-import os
 import config
-import threading
-import time
+import gflags as flags
 import gobject
 import logging
+import os
+import sys
+import threading
+import time
 import xmpper
-from optparse import OptionParser
 from slider import Slider
 
-DEFAULTCONFIG = "~/.dds/config.py"
-DEFAULTLOG = "~/.dds/log"
+flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
+flags.DEFINE_boolean('enabletimers', True,
+                     'Control automatic slide advancement')
+flags.DEFINE_integer('oneslide', 0, 'Display only the given slide ID')
+flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 
-def parseArgs(arguments):
-  parser = OptionParser(usage="usage: %prog [options]")
-  parser.add_option("--config-file", dest="config", default=DEFAULTCONFIG,
-                    metavar="FILE", help="set the config file to FILE")
-  parser.add_option("--log-file", dest="log", default=DEFAULTLOG,
-                    metavar="FILE", help="set the log file to FILE")
-  parser.add_option("--no-fullscreen", dest="fullscreen", default=True,
-                    help="No Fullscreen [For Debugging]",
-                    action="store_false")
-  parser.add_option("--letterbox", dest="letterbox", default=False,
-                    action="store_true")
-  parser.add_option("--no-timers", dest="timersenabled", default=True,
-                    help="No Timers [For Demos?]",
-                    action="store_false")
-  parser.add_option("--one-slide", dest="oneslide", default=None,
-                    metavar="ID", type="int",
-                    help="Display only one cached slideid")
+FLAGS = flags.FLAGS
 
-  (options, args) = parser.parse_args(arguments)
 
-  configfile = os.path.expanduser(options.config)
-  logfile = os.path.expanduser(options.log)
-  oneslide = options.oneslide
-  letterbox = options.letterbox
-  fullscreen = options.fullscreen
-  timersenabled = options.timersenabled
-  return (configfile, logfile, oneslide, letterbox, fullscreen, timersenabled)
-
-def onKeyPressEvent(stage, event, show, timersenabled):
+def onKeyPressEvent(stage, event, show):
   logging.debug('Got keypress %s' % event.keyval)
   if (event.keyval == 113):
     clutter.main_quit()
     sys.exit(0)
   elif (event.keyval == 65363):
-    if not timersenabled:
+    if not FLAGS.enabletimers:
       logging.debug('Got arrow key, nexting?')
       show.next()
     else:
@@ -81,28 +59,28 @@ def setupCache():
   if not os.path.exists(cache):
     os.makedirs(cache)
 
-def handleFullscreen(stage, fullscreen):
-  if fullscreen:
+def handleFullscreen(stage):
+  if FLAGS.fullscreen:
     logging.debug('Going Fullscreen')
     stage.fullscreen()
 
-def setupStage(stage, show, timersenabled, fullscreen):
-  handleFullscreen(stage, fullscreen)
+def setupStage(stage, show):
+  handleFullscreen(stage)
   stage.set_color(clutter.color_parse('black'))
   setupStartupImage(stage)
   stage.connect('destroy', clutter.main_quit)
-  stage.connect('key-press-event', onKeyPressEvent, show, timersenabled)
+  stage.connect('key-press-event', onKeyPressEvent, show)
   stage.hide_cursor()
   stage.set_title('CCIS Digital Display')
   stage.show_all()
 
-def pickRuntimeMode(show, oneslide):
+def pickRuntimeMode(show):
   '''Decide to either: start XMPP or display a single slide.'''
-  if not oneslide:
+  if not FLAGS.oneslide:
     xmpper.start(show)
   else:
     try:
-      slideid = int(oneslide)
+      slideid = int(FLAGS.oneslide)
     except:
       logging.error('Invalid integer passed for oneslide ID')
       sys.exit(1)
@@ -119,15 +97,13 @@ def main():
   logging.basicConfig(level=logging.DEBUG,
                       format='%(asctime)s %(levelname)s %(message)s')
   stage = clutter.stage_get_default()
-  (configfile, logfile,
-   oneslide, letterbox,
-   fullscreen, timersenabled) = parseArgs(sys.argv)
-  config.init(configfile)
+  config.init()
   setupCache()
-  show = Slider(stage, letterbox, timersenabled)
-  setupStage(stage, show, timersenabled, fullscreen)
-  pickRuntimeMode(show, oneslide)
+  show = Slider(stage)
+  setupStage(stage, show)
+  pickRuntimeMode(show)
   clutter.main()
 
 if __name__ == '__main__':
+  FLAGS(sys.argv)
   main()
