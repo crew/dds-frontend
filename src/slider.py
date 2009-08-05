@@ -56,7 +56,11 @@ class Slider(object):
 
   def removeSlide(self, removalid):
     '''Remove the slide with the given id from the cache'''
-    logging.debug('I was told to remove slide id %s from the deck' % removalid)
+    if removalid not in map(lambda x: x.id, self._slides):
+      logging.debug(('I was told to remove slide id %s from the deck, but its'
+                     ' already gone') % removalid)
+    else:
+      logging.debug('I was told to remove slide id %s from the deck' % removalid)
     logSlideOrder(self._slides)
     for slide in self._slides:
       if slide.id == removalid:
@@ -74,8 +78,15 @@ class Slider(object):
     logging.debug('slider next')
     self._timer_scheduled = False
     if not isEmpty(self._slides) and self.isActive():
-      (self._current, self._last) = loadNextAndPaint(self._current, self._last,
-                                                     self._stage, self._slides)
+      if self._last is None:
+        self._last = self._current
+
+      # If self._slides is of length one, ns will be None
+      ns = loadNextAndPaint(self._current, self._last, self._stage,
+                            self._slides)
+      if ns is not None:
+        self._current, self._last = ns
+
       createNextTimer(self.next, self._current)
     return False
 
