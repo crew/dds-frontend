@@ -16,7 +16,6 @@ import xmpper
 from slider import Slider
 
 flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
-flags.DEFINE_integer('oneslide', 0, 'Display only the given slide ID')
 flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 
 FLAGS = flags.FLAGS
@@ -72,24 +71,6 @@ def setupStage(stage, show):
   stage.set_title('CCIS Digital Display')
   stage.show_all()
 
-def pickRuntimeMode(show):
-  '''Decide to either: start XMPP or display a single slide.'''
-  if not FLAGS.oneslide:
-    xmpper.start(show)
-  else:
-    try:
-      slideid = int(FLAGS.oneslide)
-    except:
-      logging.error('Invalid integer passed for oneslide ID')
-      sys.exit(1)
-
-    slidedirectory = '%s/%s' % (config.option('cache'), slideid)
-    if not os.path.exists(slidedirectory):
-      logging.error('Could not display single slide id %s. Does %s exist?' %
-                    (slideid, slidedirectory))
-      sys.exit(1)
-    show.addSlide(slideid, 100, 1)
-
 def main():
   initializeLibraries()
   logging.basicConfig(level=logging.DEBUG,
@@ -99,7 +80,7 @@ def main():
   setupCache()
   show = Slider(stage)
   setupStage(stage, show)
-  pickRuntimeMode(show)
+  xmpper.start(show)
   clutter.main()
 
 if __name__ == '__main__':
