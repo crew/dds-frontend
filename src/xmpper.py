@@ -63,8 +63,8 @@ def removeSlide(slider, slide):
 def updateSlide(slider, slide):
   logging.info('XMPP updateSlide request')
   logging.debug('Update slide: %s' % str(slide[0]['id']))
-  removeSlide(slide)
-  addSlide(slide)
+  removeSlide(slider, slide)
+  addSlide(slider, slide)
 
 def addAsset(slider, slide):
   logging.info("XMPP addAsset request")
