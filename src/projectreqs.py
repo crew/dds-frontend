@@ -6,11 +6,20 @@ This simple module tests to see if a module is available for import. If it is no
 import sys
 import logging
 
-def error(string):
-  logging.error(string)
+def error(msg):
+  """Log an error message with the given string then exit.
+  Args:
+    msg: (string) Error message to log
+  """
+  logging.error(msg)
   sys.exit(1)
 
 def testit(modulename, errorstr=None):
+  """Attempt to import a module, fail if it cannot be loaded.
+  Args:
+     modulename: (string) Module name to try and import
+     errorstr: (string) Display a custom import error instead of a template
+  """
   name = modulename.lower()
   if errorstr is None:
     errorstr = ('Python %(name)s module was not found. '
