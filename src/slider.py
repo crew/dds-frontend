@@ -1,26 +1,29 @@
 #!/usr/bin/python
-import imp
-import hashlib
-import logging
 import clutter
-import os
-import gobject
-import config
 from clutter import Script
+import config
+import gflags as flags
+import gobject
+import hashlib
+import imp
+import logging
+import os
 
-L_HEIGHT = 12
-W_HEIGHT = 9
+flags.DEFINE_integer('lheight', 12, '')
+flags.DEFINE_integer('wheight', 9, '')
+flags.DEFINE_boolean('letterbox', False,
+                     'Set the view mode to use letterboxing')
+
+FLAGS = flags.FLAGS
 
 class Slider(object):
   '''Handles the painting and parsing of slides'''
 
-  def __init__(self, stage, letterbox=False, timersenabled=True):
+  def __init__(self, stage):
     self._stage = stage
     self._current = None
     self._last = None
     self._paintran = False
-    self._letterbox = letterbox
-    self._timersenabled = timersenabled
     self._timer_scheduled = False
     self._active = False
     self._slides = []
@@ -30,10 +33,10 @@ class Slider(object):
     directory = "%s/%s" % (config.option("cache"), str(info["id"]))
     if "layout" == info["mode"]:
       layoutfile = '%s/%s' % (directory, 'layout.js')
-      slide = parseLayout(layoutfile, directory, self._stage, self._letterbox)
+      slide = parseLayout(layoutfile, directory, self._stage)
     elif "module" == info["mode"]:
       pythonfile = '%s/%s' % (directory, 'layout.py')
-      slide = parsePython(pythonfile, directory, self._stage, self._letterbox)
+      slide = parsePython(pythonfile, directory, self._stage)
     elif "executable" == info["mode"]:
       pass
     else:
@@ -71,7 +74,7 @@ class Slider(object):
     if not isEmpty(self._slides) and self.isActive():
       (self._current, self._last) = loadNextAndPaint(self._current, self._last,
                                                      self._stage, self._slides)
-      createNextTimer(self.next, self._current, self._timersenabled)
+      createNextTimer(self.next, self._current)
     return False
 
   def start(self):
@@ -87,7 +90,7 @@ class Slider(object):
     else:
         self._active = True
         setupAnimation(self._current, self._stage)
-        createNextTimer(self.next, currentSlide(self._slides), self._timersenabled)
+        createNextTimer(self.next, currentSlide(self._slides))
         paint(self._current, self._stage)
 
   def stop(self):
@@ -99,29 +102,29 @@ class Slider(object):
     """Determines if this slider's active"""
     return self._active
 
-def parseLayout(file, directory, stage, letterbox):
+def parseLayout(file, directory, stage):
   '''Parses the given json file into a slide'''
   logging.debug('Parsing layout file: %s dir: %s' % (file, directory))
   script = Script()
   script.add_search_paths(directory)
   script.load_from_file(file)
   slide = script.get_object('slide')
-  return setupNewSlide(slide, stage, letterbox)
+  return setupNewSlide(slide, stage)
 
-def parsePython(file, directory, stage, letterbox):
+def parsePython(file, directory, stage):
   """Returns a slide from the given python module"""
   slideModule = loadModule(file, directory)
-  return setupNewSlide(slideModule.slide, stage, letterbox)
+  return setupNewSlide(slideModule.slide, stage)
 
-def setupNewSlide(slide, stage, letterbox):
+def setupNewSlide(slide, stage):
   """Sets the correct height and width for the given freshly parsed slide"""
   for child in slide.get_children():
-    if (letterbox):
-      letterbox_y = (stage.get_height() / L_HEIGHT) * 1.5
-      height_div = L_HEIGHT
+    if (FLAGS.letterbox):
+      letterbox_y = (stage.get_height() / FLAGS.lheight) * 1.5
+      height_div = FLAGS.lheight
     else:
       letterbox_y = 0
-      height_div = W_HEIGHT
+      height_div = FLAGS.wheight
     child.set_x(child.get_x() * (stage.get_width() / 16))
     child.set_y(letterbox_y + child.get_y() * (stage.get_height() /
                                                height_div))
@@ -142,7 +145,7 @@ def loadModule(codepath, directory):
   finally:
     fin.close()
 
-def createNextTimer(next, slide, timersenabled):
+def createNextTimer(next, slide):
   """
   Schedules next to be called in the duration of slide if timersenabled
   is True.
@@ -151,7 +154,7 @@ def createNextTimer(next, slide, timersenabled):
   # susceptible to a race condition. I'd rather have things simple and
   # add an effective one later. For now though, this function is never
   # called in a way that'll cause two timers to be active at once.
-  if not(slide is None) and timersenabled:
+  if not (slide is None) and FLAGS.timersenabled:
     gobject.timeout_add(slide.duration * 1000, next)
 
 def safeAddSlide(slides, slide):
