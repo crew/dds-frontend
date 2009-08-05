@@ -62,7 +62,8 @@ class Slider(object):
       logging.debug(('I was told to remove slide id %s from the deck, but its'
                      ' already gone') % removalid)
     else:
-      logging.debug('I was told to remove slide id %s from the deck' % removalid)
+      logging.debug('I was told to remove slide id %s from the deck'
+                    % removalid)
     logSlideOrder(self._slides)
     for slide in self._slides:
       if slide.id == removalid:
@@ -80,8 +81,8 @@ class Slider(object):
       if self._last is None:
         self._last = self._current
 
-      (self._current, self._last) = loadNextAndPaint(self._current, self._last, self._stage,
-                                                     self._slides)
+      self._current, self._last = loadNextAndPaint(self._current, self._last,
+                                                   self._stage, self._slides)
 
       createNextTimer(self.next, self._current)
     return False
