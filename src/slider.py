@@ -83,11 +83,8 @@ class Slider(object):
       if self._last is None:
         self._last = self._current
 
-      # If self._slides is of length one, ns will be None
-      ns = loadNextAndPaint(self._current, self._last, self._stage,
-                            self._slides)
-      if ns is not None:
-        self._current, self._last = ns
+      (self._current, self._last) = loadNextAndPaint(self._current, self._last, self._stage,
+                                                     self._slides)
 
       createNextTimer(self.next, self._current)
     return False
@@ -131,7 +128,7 @@ def parsePython(file_name, directory, stage):
   try:
     slideModule = loadModule(file_name, directory)
     return setupNewSlide(slideModule.slide, stage)
-  except Exception, e: 
+  except Exception, e:
     logging.error('Could not load module %s in dir %s because %s'
                   % (file_name, directory, e))
 
@@ -219,7 +216,7 @@ def loadNextAndPaint(current, last, stage, slides):
   if current and (len(slides) > 1):
     (current, last) = loadNext(current, last, stage, slides)
     paint(current, stage)
-    return (current, last)
+  return (current, last)
 
 def setupAnimation(current, stage):
   '''Setup the intro animation for the current slide'''
