@@ -1,4 +1,12 @@
 #!/usr/bin/python
+"""CCIS Crew Digital Display System Frontend/Client
+
+This module is the executable for the DDS Client, all signs will run this in an
+X SESSION to display pretty slides to users around the world.
+"""
+
+__author__ = 'CCIS Crew <crew@ccs.neu.edu>'
+
 
 ## This module tries importing everything, and bails if it didnt work.
 import projectreqs
