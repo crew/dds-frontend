@@ -10,6 +10,8 @@ import gobject
 import clutter
 from threading import Thread
 
+ALLOWABLERESOURCES = ['dds-client']
+
 def start(slider):
   Thread(target=setupXmpp, args=(slider,)).start()
 
@@ -104,6 +106,10 @@ def setupXmpp(slider):
     logging.error("Could not connection to the XMPP server")
     return False
 
+  if jid.getResource() not in ALLOWABLERESOURCES:
+    logging.error('Invalid JID Resource given. Must be in: %s'
+                  % str(ALLOWABLERESOURCES))
+    return False
   auth = client.auth(jid.getNode(), password, jid.getResource())
   if not auth:
     logging.error("XMPP password was incorrect")
