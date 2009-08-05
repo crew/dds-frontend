@@ -21,9 +21,7 @@ def testit(modulename, errorstr=None):
     error(errorstr)
 
 # Make sure the following modules are installed. Bail out if not.
-testit('clutter', 'Python clutter module was not found. '
-                  'You will need to build this yourself')
-
+testit('clutter')
 testit('DNS')
 testit('json')
 testit('xmpp')
