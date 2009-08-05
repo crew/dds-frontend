@@ -113,9 +113,9 @@ def parseLayout(file, directory, stage):
   slide = script.get_object('slide')
   return setupNewSlide(slide, stage)
 
-def parsePython(file, directory, stage):
+def parsePython(file_name, directory, stage):
   """Returns a slide from the given python module"""
-  slideModule = loadModule(file, directory)
+  slideModule = loadModule(file_name, directory)
   return setupNewSlide(slideModule.slide, stage)
 
 def setupNewSlide(slide, stage):
