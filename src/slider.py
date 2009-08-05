@@ -71,9 +71,6 @@ class Slider(object):
         logSlideOrder(self._slides)
     if isEmpty(self._slides):
       self.stop()
-    else:
-      if not (self._current == currentSlide(self._slides)):
-        self._current = currentSlide(self._slides)
 
   def next(self):
     '''Runs the timer thread for, and shows the next slide'''
