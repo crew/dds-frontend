@@ -39,6 +39,8 @@ class Slider(object):
     elif "module" == info["mode"]:
       pythonfile = '%s/%s' % (directory, 'layout.py')
       slide = parsePython(pythonfile, directory, self._stage)
+      if not slide:
+        return False
     elif "executable" == info["mode"]:
       pass
     else:
@@ -126,8 +128,12 @@ def parseLayout(file, directory, stage):
 
 def parsePython(file_name, directory, stage):
   """Returns a slide from the given python module"""
-  slideModule = loadModule(file_name, directory)
-  return setupNewSlide(slideModule.slide, stage)
+  try:
+    slideModule = loadModule(file_name, directory)
+    return setupNewSlide(slideModule.slide, stage)
+  except Exception, e: 
+    logging.error('Could not load module %s in dir %s because %s'
+                  % (file_name, directory, e))
 
 def setupNewSlide(slide, stage):
   """Sets the correct height and width for the given freshly parsed slide"""
