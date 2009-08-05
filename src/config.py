@@ -63,9 +63,9 @@ def init(file_path=None):
 
 
 def option(name):
-  """
-  Get an option from the config db.
-  All paths are guaranteed to be expanded.
+  """Get an option from the configuration object.
+  Args:
+     name: (string) configuration key
   """
   global OPTIONS
   if OPTIONS is None:
@@ -74,6 +74,11 @@ def option(name):
 
 
 def setOption(name, value):
+  """Set an option in the configuration object.
+  Args:
+     name: (string) configuration key
+     value: (string) configuration value
+  """
   global OPTIONS
   if OPTIONS is None:
     init()
