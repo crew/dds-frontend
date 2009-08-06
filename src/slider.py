@@ -9,8 +9,9 @@ import logging
 import os
 import sys
 
-flags.DEFINE_integer('lheight', 12, 'L_HEIGHT Constant')
-flags.DEFINE_integer('wheight', 9, 'W_HEIGHT Constant')
+flags.DEFINE_integer('lheight', 1440, 'Letterbox Height Divisor Constant')
+flags.DEFINE_integer('wheight', 1080, 'Widescreen Height Divisor Constant')
+flags.DEFINE_integer('widthdivisor', 1920, 'Width Divisor Constant')
 flags.DEFINE_boolean('letterbox', False,
                      'Set the view mode to use letterboxing')
 flags.DEFINE_boolean('enabletimers', True,
@@ -147,6 +148,17 @@ class Slider(object):
         createNextTimer(self.next, currentSlide(self._slides))
         paint(self._current, self._stage)
 
+  def idExists(self, slideid):
+    """Determine if a slide id exists in the slide list.
+
+    Args:
+       slideid: (int) slide ID
+
+    Returns:
+       Boolean True if slide exists, False otherwise
+    """
+    return slideid in map(lambda x: x.id, self._slides)
+
   def stop(self):
     """Stops the Slideshow"""
     logging.debug('slider stop')
@@ -167,7 +179,7 @@ def parseLayout(filename, directory, stage):
   Returns:
      Parsed slide from setupNewSlide
   """
-  logging.debug('Parsing layout filename: %s dir: %s' % (filename, directory))
+  logging.debug('Parsing JSON layout filename: %s' % filename)
   script = clutter.Script()
   script.add_search_paths(directory)
   script.load_from_file(filename)
@@ -202,19 +214,33 @@ def setupNewSlide(slide, stage):
   Returns:
      Clutter Slide
   """
+  logging.info('Resetting sizing/spacing')
   for child in slide.get_children():
+    stagehw = (stage.get_height(), stage.get_width())
     if (FLAGS.letterbox):
       letterbox_y = (stage.get_height() / FLAGS.lheight) * 1.5
       height_div = FLAGS.lheight
     else:
       letterbox_y = 0
       height_div = FLAGS.wheight
-    child.set_x(child.get_x() * (stage.get_width() / 16))
-    child.set_y(letterbox_y + child.get_y() * (stage.get_height() /
-                                               height_div))
-    child.set_width(child.get_width() * (stage.get_width() / 16))
-    child.set_height(child.get_height() * (stage.get_height() /
-                                           height_div))
+    originalxy = (child.get_x(), child.get_y())
+ 
+    child.set_x(int(child.get_x() *
+                    (stage.get_width() / float(FLAGS.widthdivisor))))
+    child.set_y(int(letterbox_y + child.get_y() *
+                    (stage.get_height() / float(height_div))))
+    newxy = (child.get_x(), child.get_y())
+    logging.info('Converted xy %s -> %s' % (str(originalxy), str(newxy)))
+    originalwh = (child.get_width(), child.get_height())
+    multip = (stage.get_width() / float(FLAGS.widthdivisor))
+    logging.info(multip)
+    logging.info(child.get_width()*multip)
+    child.set_width(int(child.get_width() *
+                    (stage.get_width() / float(FLAGS.widthdivisor))))
+    child.set_height(int(child.get_height() * (stage.get_height() /
+                                           float(height_div))))
+    newwh = (child.get_width(), child.get_height())
+    logging.info('Converted wh %s -> %s' % (str(originalwh), str(newwh)))
   return slide
 
 def loadModule(codepath, directory):
