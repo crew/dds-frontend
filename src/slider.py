@@ -1,6 +1,5 @@
 #!/usr/bin/python
 import clutter
-from clutter import Script
 import config
 import gflags as flags
 import gobject
@@ -141,7 +140,7 @@ def parseLayout(filename, directory, stage):
      Parsed slide from setupNewSlide
   """
   logging.debug('Parsing layout filename: %s dir: %s' % (filename, directory))
-  script = Script()
+  script = clutter.Script()
   script.add_search_paths(directory)
   script.load_from_file(filename)
   slide = script.get_object('slide')
@@ -234,7 +233,7 @@ def safeAddSlide(slides, slide):
      slide: (Clutter Slide) Slide to check for presence in slides
   """
   if slide.id not in map(lambda x: x.id, slides):
-    logging.info('Added slide id %s to slide list' % newslideid)
+    logging.info('Added slide id %s to slide list' % slide.id)
     slides.append(slide)
     return True
   else:
