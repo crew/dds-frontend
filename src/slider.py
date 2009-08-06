@@ -30,6 +30,33 @@ class Slider(object):
     self._active = False
     self._slides = []
 
+  def updateSlideInfo(self, slide, info):
+    """Update a slide with an info dict.
+
+    Args:
+       slide: (Clutter Slide)
+       info: (dictionary)
+    """
+    slide.id = info["id"]
+    slide.duration = info["duration"]
+    slide.priority = info["priority"]
+    slide.transition = info["transition"]
+
+  def updateSlide(self, info):
+    """Using an info dict, update its slide.
+
+    Args:
+       info: (dictionary)
+    """
+    if info['id'] not in map(lambda x: x.id, self._slides):
+      logging.error('Could not update slide %s as it is not in the deck'
+                    % info['id'])
+    else:
+      slide = filter(lambda x: x.id == info['id'] and x, self._slides)[0]
+      logging.error('Updating slide %s with new info dict.' % info['id'])
+      self.updateSlideInfo(slide, info)
+      
+
   def addSlide(self, info):
     """Add a new slide to the internal cache.
 
@@ -57,10 +84,8 @@ class Slider(object):
       logging.error('Unknown slide type "%s" given, skipping' % info['mode'])
       return False
 
-    slide.id = info["id"]
-    slide.duration = info["duration"]
-    slide.priority = info["priority"]
-    slide.transition = info["transition"]
+    self.updateSlideInfo(slide, info)
+
     empty = isEmpty(self._slides)
     safeAddSlide(self._slides, slide)
     if empty:
@@ -226,6 +251,8 @@ def createNextTimer(next, slide):
   # add an effective one later. For now though, this function is never
   # called in a way that'll cause two timers to be active at once.
   if not (slide is None) and FLAGS.enabletimers:
+    logging.info('Scheduling timer for slide %s in %ss'
+                 % (slide.id, slide.duration))
     gobject.timeout_add(slide.duration * 1000, next)
 
 def safeAddSlide(slides, slide):
