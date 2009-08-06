@@ -83,6 +83,8 @@ class Slider(object):
     logSlideOrder(self._slides)
     for slide in self._slides:
       if slide.id == removalid:
+        if slide == self._current:
+          self.next()
         logging.info('Removing slide %s from the deck' % removalid)
         self._slides.remove(slide)
         logSlideOrder(self._slides)
