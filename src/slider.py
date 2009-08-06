@@ -86,6 +86,7 @@ class Slider(object):
         if slide == self._current:
           self.next()
         logging.info('Removing slide %s from the deck' % removalid)
+        slide.destroy()
         self._slides.remove(slide)
         logSlideOrder(self._slides)
     if isEmpty(self._slides):
