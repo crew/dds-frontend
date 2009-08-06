@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import xmpp
 import xmlrpclib
 import os
@@ -33,14 +34,32 @@ def downloadAsset(asset, slideid, retry=False):
   except:
     return False
 
+def scheduleSlideAddition(slider, slideinfo):
+  """Try to add a slideinfo dictionary to the slider.
+
+  Args:
+     slider: (Slider) slider instance referencing the active slideshow
+     slideinfo: (dictionary) slide information as returned from the master
+  """
+  logging.info('scheduling slide addition for %s' % slideinfo['id'])
+  def trySlideAdd():
+    flag = slider.addSlide(slideinfo)
+    logging.info('Attempting slide add of %s resulted %s'
+                 % (slideinfo['id'], flag))
+    return flag
+  gobject.timeout_add(1000, trySlideAdd)
+
 def addSlide(slider, slide):
   logging.info('XMPP addSlide request')
   # slide[0] has a hash with metadata for the slide
   # slide[1] has a list of hashes, where each hash has the url and id of
   # an asset
-  def rescheduleAddSlide(slide):
-    addSlide(slide)
+  logging.info(slide)
+
+  if len(slide) != 2:
+    logging.error('Invalid slide tuple passed: %s' % slide)
     return False
+
   info = slide[0]
   assets = slide[1]
   slideid = info['id']
@@ -50,12 +69,14 @@ def addSlide(slider, slide):
     if not gotasset:
       # The asset download failed. What do we do?
       # TODO: reschedule here
-      pass
-  def trySlideAdd():
-    flag = slider.addSlide(info)
-    logging.info('Attempting slide add of %s resulted %s' % (info['id'], flag))
-    return flag
-  gobject.timeout_add(1000, trySlideAdd)
+      logging.warn('Failed to download asset %s' % asset)
+
+  logging.info('addSlide assets complete for %s' % slideid)
+
+  if not slider.idExists(slideid):
+    scheduleSlideAddition(slider, info)
+
+
 
 def removeSlide(slider, slide):
   logging.info("XMPP removeSlide request")
