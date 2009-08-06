@@ -115,7 +115,7 @@ def main():
   initializeLibraries()
   logging.basicConfig(level=logging.DEBUG,
                       format='%(asctime)s %(levelname)s %(message)s')
-  stage = clutter.Stage()
+  stage = clutter.stage_get_default()
   config.init()
   setupCache()
   show = Slider(stage)
