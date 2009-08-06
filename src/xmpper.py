@@ -53,6 +53,7 @@ def addSlide(slider, slide):
       pass
   def trySlideAdd():
     flag = slider.addSlide(info)
+    logging.info('Attempting slide add of %s resulted %s' % (info['id'], flag))
     return flag
   gobject.timeout_add(1000, trySlideAdd)
 
@@ -61,11 +62,13 @@ def removeSlide(slider, slide):
   info = slide[0]
   logging.debug('removeslide got info = %s' % str(info))
   slider.removeSlide(info)
+  addSlide(slider, slide)
 
 def updateSlide(slider, slide):
   logging.info('XMPP updateSlide request')
   logging.debug('Update slide: %s' % str(slide[0]['id']))
-  removeSlide(slider, slide)
+  #slider.removeSlide(slide[0])
+  slider.updateSlide(slide[0])
   addSlide(slider, slide)
 
 def addAsset(slider, slide):
@@ -95,6 +98,7 @@ def checkXmpp(connection):
 def proceed(client):
   while checkXmpp(client):
     pass
+  sys.exit(1)
 
 def setupXmpp(slider):
   jid = config.option("client-jid")
