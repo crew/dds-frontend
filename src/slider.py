@@ -204,6 +204,36 @@ def parsePython(filename, directory, stage):
     logging.error('Could not load module %s in dir %s because %s'
                   % (filename, directory, e))
 
+def resizeChild(stage, child):
+  stagehw = (stage.get_height(), stage.get_width())
+  if (FLAGS.letterbox):
+    letterbox_y = (stage.get_height() / FLAGS.lheight) * 1.5
+    height_div = FLAGS.lheight
+  else:
+    letterbox_y = 0
+    height_div = FLAGS.wheight
+  originalxy = (child.get_x(), child.get_y())
+
+  child.set_x(int(child.get_x() *
+                  (stage.get_width() / float(FLAGS.widthdivisor))))
+  child.set_y(int(letterbox_y + child.get_y() *
+                  (stage.get_height() / float(height_div))))
+  newxy = (child.get_x(), child.get_y())
+  logging.info('Converted xy %s -> %s' % (str(originalxy), str(newxy)))
+  originalwh = (child.get_width(), child.get_height())
+  multip = (stage.get_width() / float(FLAGS.widthdivisor))
+  logging.info(multip)
+  logging.info(child.get_width()*multip)
+  child.set_width(int(child.get_width() *
+                  (stage.get_width() / float(FLAGS.widthdivisor))))
+  child.set_height(int(child.get_height() * (stage.get_height() /
+                                          float(height_div))))
+  newwh = (child.get_width(), child.get_height())
+  logging.info('Converted wh %s -> %s' % (str(originalwh), str(newwh)))
+  if hasattr(child, 'get_children'):
+    for c in child.get_children():
+      resizeChild(stage, c)
+
 def setupNewSlide(slide, stage):
   """Sets the correct height and width for the given freshly parsed slide.
 
@@ -216,31 +246,9 @@ def setupNewSlide(slide, stage):
   """
   logging.info('Resetting sizing/spacing')
   for child in slide.get_children():
-    stagehw = (stage.get_height(), stage.get_width())
-    if (FLAGS.letterbox):
-      letterbox_y = (stage.get_height() / FLAGS.lheight) * 1.5
-      height_div = FLAGS.lheight
-    else:
-      letterbox_y = 0
-      height_div = FLAGS.wheight
-    originalxy = (child.get_x(), child.get_y())
- 
-    child.set_x(int(child.get_x() *
-                    (stage.get_width() / float(FLAGS.widthdivisor))))
-    child.set_y(int(letterbox_y + child.get_y() *
-                    (stage.get_height() / float(height_div))))
-    newxy = (child.get_x(), child.get_y())
-    logging.info('Converted xy %s -> %s' % (str(originalxy), str(newxy)))
-    originalwh = (child.get_width(), child.get_height())
-    multip = (stage.get_width() / float(FLAGS.widthdivisor))
-    logging.info(multip)
-    logging.info(child.get_width()*multip)
-    child.set_width(int(child.get_width() *
-                    (stage.get_width() / float(FLAGS.widthdivisor))))
-    child.set_height(int(child.get_height() * (stage.get_height() /
-                                           float(height_div))))
-    newwh = (child.get_width(), child.get_height())
-    logging.info('Converted wh %s -> %s' % (str(originalwh), str(newwh)))
+    logging.info('Slide %s child %s' % (str(slide), str(child)))
+    resizeChild(stage, child)
+
   return slide
 
 def loadModule(codepath, directory):
