@@ -49,47 +49,19 @@ def scheduleSlideAddition(slider, slideinfo):
     return flag
   gobject.timeout_add(1000, trySlideAdd)
 
+#### Begin XMPP Methods
 def addSlide(slider, slide):
   logging.info('XMPP addSlide request')
-  # slide[0] has a hash with metadata for the slide
-  # slide[1] has a list of hashes, where each hash has the url and id of
-  # an asset
-  logging.info(slide)
-
-  if len(slide) != 2:
-    logging.error('Invalid slide tuple passed: %s' % slide)
-    return False
-
-  info = slide[0]
-  assets = slide[1]
-  slideid = info['id']
-  directory = createSlideDir(slideid)
-  for asset in assets:
-    gotasset = downloadAsset(asset, slideid)
-    if not gotasset:
-      # The asset download failed. What do we do?
-      # TODO: reschedule here
-      logging.warn('Failed to download asset %s' % asset)
-
-  logging.info('addSlide assets complete for %s' % slideid)
-
-  if not slider.idExists(slideid):
-    scheduleSlideAddition(slider, info)
-
-
+  doAddSlide(slider, slide)
 
 def removeSlide(slider, slide):
   logging.info("XMPP removeSlide request")
-  info = slide[0]
-  logging.debug('removeslide got info = %s' % str(info))
-  slider.removeSlide(info)
+  doRemoveSlide(slider, slide)
 
 def updateSlide(slider, slide):
   logging.info('XMPP updateSlide request')
   logging.debug('Update slide: %s' % str(slide[0]['id']))
-  #slider.removeSlide(slide[0])
-  slider.updateSlide(slide[0])
-  addSlide(slider, slide)
+  doUpdateSlide(slider, slide)
 
 def addAsset(slider, slide):
   logging.info("XMPP addAsset request")
@@ -102,6 +74,47 @@ def removeAsset(slider, slide):
 def updateAsset(slider, slide):
   logging.info("XMPP updateAsset request")
   logging.debug('Update Asset: %s' % str(slide))
+
+#### End XMPP Actions
+
+def getSlideAssets(slide):
+  slideid = slide[0]['id']
+  assets = slide[1]
+
+  logging.info('Starting Asset download for %s' % slideid)
+  directory = createSlideDir(slideid)
+  for asset in assets:
+    gotasset = downloadAsset(asset, slideid)
+    if not gotasset:
+      # The asset download failed. What do we do?
+      # TODO: reschedule here
+      logging.warn('Failed to download asset %s' % asset)
+  logging.info('Asset download complete for %s' % slideid)
+
+def doAddSlide(slider, slide):
+  logging.info('Doing addSlide action')
+  # slide[0] has a hash with metadata for the slide
+  # slide[1] has a list of hashes, where each hash has the url and id of
+  # an asset
+  logging.info(slide)
+
+  if len(slide) != 2:
+    logging.error('Invalid slide tuple passed: %s' % slide)
+    return False
+
+  info = slide[0]
+  getSlideAssets(slide) 
+  
+  scheduleSlideAddition(slider, info)
+
+def doRemoveSlide(slider, slide):
+  info = slide[0]
+  logging.debug('removeslide got info = %s' % str(info))
+  slider.removeSlide(info)
+
+def doUpdateSlide(slider, slide):
+  slider.updateSlide(slide[0])
+  getSlideAssets(slide)
 
 def handlePresence(dispatch, pr):
   jid = pr.getAttr('from')
