@@ -205,7 +205,6 @@ def parsePython(filename, directory, stage):
                   % (filename, directory, e))
 
 def resizeChild(stage, child):
-  stagehw = (stage.get_height(), stage.get_width())
   if (FLAGS.letterbox):
     letterbox_y = (stage.get_height() / FLAGS.lheight) * 1.5
     height_div = FLAGS.lheight
@@ -218,18 +217,10 @@ def resizeChild(stage, child):
                   (stage.get_width() / float(FLAGS.widthdivisor))))
   child.set_y(int(letterbox_y + child.get_y() *
                   (stage.get_height() / float(height_div))))
-  newxy = (child.get_x(), child.get_y())
-  logging.info('Converted xy %s -> %s' % (str(originalxy), str(newxy)))
-  originalwh = (child.get_width(), child.get_height())
-  multip = (stage.get_width() / float(FLAGS.widthdivisor))
-  logging.info(multip)
-  logging.info(child.get_width()*multip)
   child.set_width(int(child.get_width() *
                   (stage.get_width() / float(FLAGS.widthdivisor))))
   child.set_height(int(child.get_height() * (stage.get_height() /
                                           float(height_div))))
-  newwh = (child.get_width(), child.get_height())
-  logging.info('Converted wh %s -> %s' % (str(originalwh), str(newwh)))
   if hasattr(child, 'get_children'):
     for c in child.get_children():
       resizeChild(stage, c)
