@@ -54,7 +54,7 @@ class Slider(object):
                     % info['id'])
     else:
       slide = filter(lambda x: x.id == info['id'] and x, self._slides)[0]
-      logging.error('Updating slide %s with new info dict.' % info['id'])
+      logging.info('Updating slide %s with new info dict.' % info['id'])
       self.updateSlideInfo(slide, info)
       
 
