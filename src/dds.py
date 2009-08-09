@@ -66,8 +66,9 @@ def onKeyPressEvent(stage, event, show):
 
 def toggleFullscreen(stage):
   """Toggle the fullscreen state."""
-  logging.info('Toggling fullscreen: Current = %s' % FULLSCREEN)
   global FULLSCREEN
+  logging.info('Toggling fullscreen: Current = %s' % FULLSCREEN)
+
   if FULLSCREEN:
     FULLSCREEN = False
     stage.unfullscreen()
