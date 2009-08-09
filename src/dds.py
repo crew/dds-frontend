@@ -24,11 +24,15 @@ import xmpper
 from slider import Slider
 
 flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
+flags.DEFINE_boolean('fullscreenhotkey', True,
+                     'Enable/Disable `f` for fullscreen')
 flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 flags.DEFINE_string('userdir', '~/.dds', 'user state path')
 
 FLAGS = flags.FLAGS
 
+# Global variable to track fullscreen state
+FULLSCREEN = False
 
 def createDDSDir():
   """Create the user's DDS dir if it does not exist."""
@@ -44,15 +48,32 @@ def onKeyPressEvent(stage, event, show):
      show: (Slider) Slideshow instance
   """
   logging.debug('Got keypress %s' % event.keyval)
+  # Handle `q`
   if (event.keyval == 113):
     clutter.main_quit()
     sys.exit(0)
+  # Handle `f`
+  elif (event.keyval == 102):
+    if FLAGS.fullscreenhotkey:
+      toggleFullscreen(stage)
   elif (event.keyval == 65363):
     if not FLAGS.enabletimers:
       logging.debug('Got arrow key, nexting?')
       show.next()
     else:
       logging.debug('Got arrow key, Will not advance without disabling timers')
+
+
+def toggleFullscreen(stage):
+  """Toggle the fullscreen state."""
+  logging.info('Toggling fullscreen: Current = %s' % FULLSCREEN)
+  global FULLSCREEN
+  if FULLSCREEN:
+    FULLSCREEN = False
+    stage.unfullscreen()
+  else:
+    FULLSCREEN = True
+    stage.fullscreen()
 
 def setupStartupImage(stage):
   """Setup the Startup Screen.
@@ -89,9 +110,12 @@ def handleFullscreen(stage):
   Args:
      stage: (Clutter Stage)
   """
+  global FULLSCREEN
   if FLAGS.fullscreen:
     logging.debug('Going Fullscreen')
+    FULLSCREEN = True
     stage.fullscreen()
+    
 
 def setupStage(stage, show):
   """Setup the Clutter Stage.
