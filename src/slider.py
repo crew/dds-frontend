@@ -237,9 +237,7 @@ def setupNewSlide(slide, stage):
   """
   logging.info('Resetting sizing/spacing')
   for child in slide.get_children():
-    logging.info('Slide %s child %s' % (str(slide), str(child)))
     resizeChild(stage, child)
-
   return slide
 
 def loadModule(codepath, directory):
