@@ -204,26 +204,29 @@ def parsePython(filename, directory, stage):
     logging.error('Could not load module %s in dir %s because %s'
                   % (filename, directory, e))
 
-def resizeChild(stage, child):
-  if (FLAGS.letterbox):
-    letterbox_y = (stage.get_height() / FLAGS.lheight) * 1.5
-    height_div = FLAGS.lheight
-  else:
-    letterbox_y = 0
-    height_div = FLAGS.wheight
-  originalxy = (child.get_x(), child.get_y())
+def resizeSlide(stage, slide):
+  """Resize the given slide to fit the stage."""
+  # find the ratio based on width
+  slide.set_size(1920, 1080)
+  width, height = stage.get_size()
+  ratio_w = float(width) / 1920
+  ratio_h = float(height) / 1920
+  new_width = ratio_w * 1920
+  slide.set_anchor_point(0, 0)
+  
+  if FLAGS.letterbox:
+    # TODO support letterboxing on the side, i.e. 4 x 3 shown in 16 x 10
+    # anchor at top left, then scale.
+    slide.set_scale(ratio_w, ratio_w)
 
-  child.set_x(int(child.get_x() *
-                  (stage.get_width() / float(FLAGS.widthdivisor))))
-  child.set_y(int(letterbox_y + child.get_y() *
-                  (stage.get_height() / float(height_div))))
-  child.set_width(int(child.get_width() *
-                  (stage.get_width() / float(FLAGS.widthdivisor))))
-  child.set_height(int(child.get_height() * (stage.get_height() /
-                                          float(height_div))))
-  if hasattr(child, 'get_children'):
-    for c in child.get_children():
-      resizeChild(stage, c)
+    # letterboxing
+    new_height = ratio_w * 1080
+    h_diff = (height - new_height) / 2
+    slide.move_by(0, h_diff)
+    # XXX clips the slide to fit the letterbox format
+    slide.set_clip(0, 0, slide.get_width(), slide.get_height() - h_diff)
+  else:
+    slide.set_scale(ratio_w, ratio_h)
 
 def setupNewSlide(slide, stage):
   """Sets the correct height and width for the given freshly parsed slide.
@@ -236,8 +239,7 @@ def setupNewSlide(slide, stage):
      Clutter Slide
   """
   logging.info('Resetting sizing/spacing')
-  for child in slide.get_children():
-    resizeChild(stage, child)
+  resizeSlide(stage, slide)
   return slide
 
 def loadModule(codepath, directory):
@@ -469,6 +471,7 @@ def paint(current, stage):
      current: (Clutter Slide)
      stage: (Clutter Stage)
   """
-  inAnimation(current)
-  current.show_all()
-  stage.add(current)
+  inAnimation(current) # show transition
+  current.show_all()   # mark everything to be shown
+  stage.add(current)   # show the slide
+
