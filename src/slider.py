@@ -437,7 +437,8 @@ def loadNext(current, last, stage, slides):
     try:
       current.teardownslide()
     except Exception, e:
-      logging.error('Failed to teardown slide with defined teardown method: '+e)
+      logging.error('Failed to teardown slide with defined teardown method: %s'
+                    % (str(e)))
 
   if len(slides) > 1:
     outAnimation(current, stage)
