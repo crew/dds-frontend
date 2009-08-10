@@ -453,7 +453,8 @@ def loadNext(current, last, stage, slides):
     try:
       current.setupslide()
     except Exception, e:
-      logging.error('Failed to setup slide with defined setupslide method: '+e)
+      logging.error('Failed to setup slide with defined setupslide method: %s'
+                    % (str(e)))
 
   if len(slides) > 1:
     setupAnimation(current, stage)
