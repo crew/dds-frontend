@@ -32,6 +32,7 @@ class SlideManager(object):
     self._active = False
     self._slides = []
     self._timers = {}
+    self.log = logging.getLogger('slidemanager')
 
   def updateSlide(self, slidetuple):
     """Using a slide manifest tuple, update it.
@@ -50,6 +51,7 @@ class SlideManager(object):
     Args:
       slideobj: (Slide) Slide to add to deck
     """
+    self.log.info('Add slide')
     newslide = slideobject.Slide.CreateSlideWithManifest(slidetuple)
     if not newslide.parse():
       del newslide
