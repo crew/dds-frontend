@@ -20,35 +20,27 @@ def start(slider):
 #### Begin XMPP Methods
 def addSlide(slider, slidetuple):
   logging.info('XMPP addSlide request')
-  doAddSlide(slider, slidetuple)
-
-def removeSlide(slider, slidetuple):
-  logging.info("XMPP removeSlide request")
-  doRemoveSlide(slider, slidetuple)
-
-def updateSlide(slider, slidetuple):
-  logging.info('XMPP updateSlide request')
-  logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
-  doUpdateSlide(slider, slidetuple)
-
-#### End XMPP Actions
-
-def doAddSlide(slider, slidetuple):
-  logging.info('Doing addSlide action')
-
   if len(slidetuple) != 2:
     logging.error('Invalid slide tuple passed: %s' % slidetuple)
     return False
- 
+
+  # We have to wrap slide creation in a gobject timeout. Slide parsing (clutter
+  # object creation) doesn't like happening in a different thread (this method
+  # will get called from the XMPP thread)
   gobject.timeout_add(100, lambda: slider.addSlide(slidetuple))
 
-def doRemoveSlide(slider, slidetuple):
+def removeSlide(slider, slidetuple):
+  logging.info("XMPP removeSlide request")
   info = slidetuple[0]
   logging.debug('removeslide got info = %s' % str(info))
   slider.removeSlide(info)
 
-def doUpdateSlide(slider, slidetuple):
+def updateSlide(slider, slidetuple):
+  logging.info('XMPP updateSlide request')
+  logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
   slider.updateSlide(slidetuple)
+
+#### End XMPP Actions
 
 def handlePresence(dispatch, pr):
   jid = pr.getAttr('from')
