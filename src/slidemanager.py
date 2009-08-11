@@ -73,15 +73,15 @@ class SlideManager(object):
     else:
       logging.debug('I was told to remove slide id %s from the deck'
                     % removalid)
-    logSlideOrder(self._slides)
+    self.logSlideOrder()
     for slide in self._slides:
       if slide.id == removalid:
         if slide == self._current:
           self.next()
         logging.info('Removing slide %s from the deck' % removalid)
-        slide.destroy()
+        slide.slide.destroy()
         self._slides.remove(slide)
-        logSlideOrder(self._slides)
+        self.logSlideOrder()
     if self.isEmpty():
       self.stop()
 
