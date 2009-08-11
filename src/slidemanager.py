@@ -96,11 +96,14 @@ class SlideManager(object):
     if not self.hasMultipleSlides():
       self.stop()
       return
+    
 
     if self.isActive():
       if self._last is None:
         self._last = self._current
-
+      
+      if self._last in self._timers:
+        del self._timers[self._last]
       self.loadNextAndPaint()
       self.createNextTimer(self.next, self._current)
     return False
@@ -316,7 +319,8 @@ class SlideManager(object):
         if nextuuid in self._timers.values():
           logging.info('Hitting next')
           next()
-          del self._timers[slide]
+          if slide in self._timers:
+            del self._timers[slide]
         else:
           logging.info('Would hit next, but our slide vanished')
 
