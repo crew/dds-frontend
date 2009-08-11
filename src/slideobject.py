@@ -49,9 +49,6 @@ class Slide(object):
     s = Slide()
     s.manifest = manifesttuple
     info, assets = s.manifest
-    logging.info('Creating new slide from tuple')
-    logging.info('info: %s' % str(info))
-    logging.info('assets: %s' % str(assets))
     s.updateInfo(info)
     s.updateAssets(assets)
     s.saveManifest()

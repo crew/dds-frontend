@@ -54,9 +54,8 @@ class SlideManager(object):
     newslide = slideobject.Slide.CreateSlideWithManifest(slidetuple)
     newslide.parse()
     
-    wasempty = self.isEmpty()
     self.safeAddSlide(newslide)
-    if wasempty:
+    if not self.isActive():
       self._current = self.currentSlide()
       self.start()
     return False
@@ -87,8 +86,11 @@ class SlideManager(object):
 
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
-    logging.debug('slider next')
-    if self.hasMultipleSlides() and self.isActive():
+    if not self.hasMultipleSlides():
+      self.stop()
+      return
+
+    if self.isActive():
       if self._last is None:
         self._last = self._current
 
