@@ -30,6 +30,8 @@ flags.DEFINE_boolean('fullscreenhotkey', True,
                      'Enable/Disable `f` for fullscreen')
 flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 flags.DEFINE_string('userdir', '~/.dds', 'user state path')
+flags.DEFINE_boolean('enablemanualadvance', True,
+                     'Controls manual slide advancement')
 
 FLAGS = flags.FLAGS
 
@@ -59,11 +61,11 @@ def onKeyPressEvent(stage, event, show):
     if FLAGS.fullscreenhotkey:
       toggleFullscreen(stage)
   elif (event.keyval == 65363):
-    if not FLAGS.enabletimers:
+    if FLAGS.enablemanualadvance:
       logging.debug('Got arrow key, nexting?')
       show.next()
     else:
-      logging.debug('Got arrow key, Will not advance without disabling timers')
+      logging.debug('Got arrow key, manual advance disabled')
 
 
 def toggleFullscreen(stage):

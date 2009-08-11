@@ -18,7 +18,7 @@ flags.DEFINE_integer('ratiowidth', 1920, 'Width Divisor Constant')
 flags.DEFINE_boolean('letterbox', False,
                      'Set the view mode to use letterboxing')
 flags.DEFINE_boolean('enabletimers', True,
-                     'Control automatic slide advancement')
+                     'Enable automatic slide advancement')
 
 FLAGS = flags.FLAGS
 
