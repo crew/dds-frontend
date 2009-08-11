@@ -20,8 +20,10 @@ import os
 import sys
 import threading
 import time
+
+## DDS Imports
 import xmpper
-from slider import Slider
+import slidemanager
 
 flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
 flags.DEFINE_boolean('fullscreenhotkey', True,
@@ -143,9 +145,10 @@ def main():
   stage = clutter.stage_get_default()
   config.init()
   setupCache()
-  show = Slider(stage)
+  show = slidemanager.SlideManager(stage)
   setupStage(stage, show)
   xmpper.start(show)
+
   clutter.main()
 
 if __name__ == '__main__':

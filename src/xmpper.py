@@ -3,118 +3,53 @@ import xmpp
 import xmlrpclib
 import os
 import sys
+import json
 import logging
 import config
 import urllib
 import urlparse
 import gobject
 import clutter
-from threading import Thread
+import threading
 
 ALLOWABLERESOURCES = ['dds-client']
 
 def start(slider):
-  Thread(target=setupXmpp, args=(slider,)).start()
-
-def createSlideDir(id):
-  directory = '%s/%s' % (config.option('cache'), str(id))
-  if not os.path.exists(directory):
-    os.mkdir(directory)
-  return directory
-
-def downloadAsset(asset, slideid, retry=False):
-  rootdest = createSlideDir(slideid)
-  asseturl = asset['url']
-  asseturlpath = urlparse.urlparse(asseturl)[2]
-  filename = os.path.basename(asseturlpath)
-  destpath = '%s/%s' % (rootdest, filename)
-  try:
-    urllib.urlretrieve(asseturl, destpath)
-    return os.path.exists(destpath)
-  except:
-    return False
-
-def scheduleSlideAddition(slider, slideinfo):
-  """Try to add a slideinfo dictionary to the slider.
-
-  Args:
-     slider: (Slider) slider instance referencing the active slideshow
-     slideinfo: (dictionary) slide information as returned from the master
-  """
-  logging.info('scheduling slide addition for %s' % slideinfo['id'])
-  def trySlideAdd():
-    flag = slider.addSlide(slideinfo)
-    logging.info('Attempting slide add of %s resulted %s'
-                 % (slideinfo['id'], flag))
-    return flag
-  gobject.timeout_add(1000, trySlideAdd)
+  threading.Thread(target=setupXmpp, args=(slider,)).start()
 
 #### Begin XMPP Methods
-def addSlide(slider, slide):
+def addSlide(slider, slidetuple):
   logging.info('XMPP addSlide request')
-  doAddSlide(slider, slide)
+  doAddSlide(slider, slidetuple)
 
-def removeSlide(slider, slide):
+def removeSlide(slider, slidetuple):
   logging.info("XMPP removeSlide request")
-  doRemoveSlide(slider, slide)
+  doRemoveSlide(slider, slidetuple)
 
-def updateSlide(slider, slide):
+def updateSlide(slider, slidetuple):
   logging.info('XMPP updateSlide request')
-  logging.debug('Update slide: %s' % str(slide[0]['id']))
-  doUpdateSlide(slider, slide)
-
-def addAsset(slider, slide):
-  logging.info("XMPP addAsset request")
-  logging.debug('Add Asset: %s' % str(slide))
-
-def removeAsset(slider, slide):
-  logging.info("XMPP removeAsset request")
-  logging.debug('Remove Asset: %s' % str(slide))
-
-def updateAsset(slider, slide):
-  logging.info("XMPP updateAsset request")
-  logging.debug('Update Asset: %s' % str(slide))
+  logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
+  doUpdateSlide(slider, slidetuple)
 
 #### End XMPP Actions
 
-def getSlideAssets(slide):
-  slideid = slide[0]['id']
-  assets = slide[1]
-
-  logging.info('Starting Asset download for %s' % slideid)
-  directory = createSlideDir(slideid)
-  for asset in assets:
-    gotasset = downloadAsset(asset, slideid)
-    if not gotasset:
-      # The asset download failed. What do we do?
-      # TODO: reschedule here
-      logging.warn('Failed to download asset %s' % asset)
-  logging.info('Asset download complete for %s' % slideid)
-
-def doAddSlide(slider, slide):
+def doAddSlide(slider, slidetuple):
   logging.info('Doing addSlide action')
-  # slide[0] has a hash with metadata for the slide
-  # slide[1] has a list of hashes, where each hash has the url and id of
-  # an asset
-  logging.info(slide)
 
-  if len(slide) != 2:
-    logging.error('Invalid slide tuple passed: %s' % slide)
+  if len(slidetuple) != 2:
+    logging.error('Invalid slide tuple passed: %s' % slidetuple)
     return False
+ 
+  gobject.timeout_add(100, lambda: slider.addSlide(slidetuple))
 
-  info = slide[0]
-  getSlideAssets(slide) 
-  
-  scheduleSlideAddition(slider, info)
-
-def doRemoveSlide(slider, slide):
-  info = slide[0]
+def doRemoveSlide(slider, slidetuple):
+  info = slidetuple[0]
   logging.debug('removeslide got info = %s' % str(info))
   slider.removeSlide(info)
 
-def doUpdateSlide(slider, slide):
-  slider.updateSlide(slide[0])
-  getSlideAssets(slide)
+def doUpdateSlide(slider, slidetuple):
+  slider.updateSlide(slidetuple[0])
+  getSlideAssets(slidetuple)
 
 def handlePresence(dispatch, pr):
   jid = pr.getAttr('from')
@@ -162,9 +97,7 @@ def generateIqHandler(slider):
   methods = { "addSlide"    : addSlide,
               "removeSlide" : removeSlide,
               "updateSlide" : updateSlide,
-              "addAsset"    : addAsset,
-              "removeAsset" : removeAsset,
-              "updateAsset" : updateAsset }
+            }
 
   def handleIq(connection, iq):
     if iq.getQueryNS() == xmpp.NS_RPC:
