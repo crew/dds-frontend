@@ -12,9 +12,6 @@ import sys
 import urlparse
 import urllib
 
-class UnsupportedSlideModeException(Exception):
-  """Raised when one tries to parse an unsupported slide mode."""
-  pass
 
 class Slide(object):
 
@@ -63,11 +60,15 @@ class Slide(object):
 
   def verifyComplete(self):
     ok = True
-    layoutfilepath = os.path.join(self.slideDir(),
-                                  self.LAYOUTFILE_MAP[self.mode])
-    if not os.path.exists(layoutfilepath):
-      logging.error('Layout file for slide ID %s missing!' % self.id)
+    if self.mode not in self.LAYOUTFILE_MAP:
+      logging.error('Slide ID %s unsupported mode "%s"' % (self.id, self.mode))
       ok = False
+    else:
+      layoutfilepath = os.path.join(self.slideDir(),
+                                    self.LAYOUTFILE_MAP[self.mode])
+      if not os.path.exists(layoutfilepath):
+        logging.error('Layout file for slide ID %s missing!' % self.id)
+        ok = False
 
     for asset in self.assets:
       if not self.assetExists(asset):
@@ -132,11 +133,15 @@ class Slide(object):
     return self.assetExists(asset)
 
   def parse(self):
-    if self.mode not in self.PARSER_MAP:
-      raise UnsupportedSlideModeException
-    
+    if self.slide:
+      return True
+
+    if not self.verifyComplete():
+      return False
+
     self.slide = self.PARSER_MAP[self.mode](self.LAYOUTFILE_MAP[self.mode],
                                             self.slideDir())
+    return True
 
   def parseJSON(self, filename, directory):
     """Parses the given json file into a slide.
@@ -196,16 +201,6 @@ class Slide(object):
     finally:
       if fin:
         fin.close()
-
-  def attach(self, slidemanager):
-    """Attach this slide to a slidemanager.
-
-    Args:
-       slidemanager: (SlideManager) Deck this slide will be inserted into.
-    """
-    logging.info('self.slide: %s' % self.slide)
-    logging.info('Called attach with manager: %s' % slidemanager)
-    slidemanager.addSlide(self)
 
   def teardownslide(self):
     if hasattr(self.slide, 'teardownslide'):
