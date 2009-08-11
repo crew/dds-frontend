@@ -12,9 +12,8 @@ import uuid
 
 import slideobject
 
-flags.DEFINE_integer('lheight', 1440, 'Letterbox Height Divisor Constant')
-flags.DEFINE_integer('wheight', 1080, 'Widescreen Height Divisor Constant')
-flags.DEFINE_integer('widthdivisor', 1920, 'Width Divisor Constant')
+flags.DEFINE_integer('ratioheight', 1080, 'Height Divisor Constant')
+flags.DEFINE_integer('ratiowidth', 1920, 'Width Divisor Constant')
 flags.DEFINE_boolean('letterbox', False,
                      'Set the view mode to use letterboxing')
 flags.DEFINE_boolean('enabletimers', True,
@@ -339,11 +338,11 @@ class SlideManager(object):
   def resizeSlide(self, slide):
     """Resize the given slide to fit the stage."""
     # find the ratio based on width
-    slide.set_size(1920, 1080)
+    slide.set_size(FLAGS.ratiowidth, FLAGS.ratioheight)
     width, height = self._stage.get_size()
-    ratio_w = float(width) / 1920
-    ratio_h = float(height) / 1080
-    new_width = ratio_w * 1920
+    ratio_w = float(width) / FLAGS.ratiowidth
+    ratio_h = float(height) / FLAGS.ratioheight
+    new_width = ratio_w * FLAGS.ratiowidth
     slide.set_anchor_point(0, 0)
     
     if FLAGS.letterbox:
@@ -352,7 +351,7 @@ class SlideManager(object):
       slide.set_scale(ratio_w, ratio_w)
 
       # letterboxing
-      new_height = ratio_w * 1080
+      new_height = ratio_w * FLAGS.ratioheight
       h_diff = (height - new_height) / 2
       slide.move_by(0, h_diff)
       # XXX clips the slide to fit the letterbox format
