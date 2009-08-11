@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import clutter
+import cluttergst
 import config
 import gflags as flags
 import gobject
@@ -338,8 +339,9 @@ class SlideManager(object):
 
   def resizeSlide(self, slide):
     """Resize the given slide to fit the stage."""
+    logging.debug('Start resize')
     # find the ratio based on width
-    slide.set_size(FLAGS.ratiowidth, FLAGS.ratioheight)
+    # slide.set_size(FLAGS.ratiowidth, FLAGS.ratioheight)
     width, height = self._stage.get_size()
     ratio_w = float(width) / FLAGS.ratiowidth
     ratio_h = float(height) / FLAGS.ratioheight
@@ -350,14 +352,30 @@ class SlideManager(object):
       # TODO support letterboxing on the side, i.e. 4 x 3 shown in 16 x 10
       # anchor at top left, then scale.
       slide.set_scale(ratio_w, ratio_w)
-
       # letterboxing
       new_height = ratio_w * FLAGS.ratioheight
       h_diff = (height - new_height) / 2
+      logging.info('hdiff = %d' % h_diff)
       slide.move_by(0, h_diff)
+
+      noclip = False
+      # XXX Hack to support video letterboxing, sort of
+      try:
+        for c in slide.get_children():
+          if isinstance(c, cluttergst.VideoTexture):
+            c.move_by(0, h_diff * 1.5)
+            noclip = True
+      except:
+        pass
+
       # XXX clips the slide to fit the letterbox format
-      slide.set_clip(0, 0, slide.get_width(), slide.get_height())
+      if not noclip:
+        slide.set_clip(0, 0, slide.get_width(), slide.get_height())
     else:
       slide.set_scale(ratio_w, ratio_h)
+    self._stage.queue_redraw()
+    logging.debug('%d %d' % slide.get_position())
+    logging.debug('%d %d' % slide.get_size())
+    logging.debug('End resize')
     return slide
 
