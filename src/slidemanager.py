@@ -324,7 +324,7 @@ class SlideManager(object):
     slide.set_size(1920, 1080)
     width, height = self._stage.get_size()
     ratio_w = float(width) / 1920
-    ratio_h = float(height) / 1920
+    ratio_h = float(height) / 1080
     new_width = ratio_w * 1920
     slide.set_anchor_point(0, 0)
     
@@ -338,7 +338,7 @@ class SlideManager(object):
       h_diff = (height - new_height) / 2
       slide.move_by(0, h_diff)
       # XXX clips the slide to fit the letterbox format
-      slide.set_clip(0, 0, slide.get_width(), slide.get_height() - h_diff)
+      slide.set_clip(0, 0, slide.get_width(), slide.get_height())
     else:
       slide.set_scale(ratio_w, ratio_h)
     return slide
