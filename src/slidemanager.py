@@ -49,17 +49,16 @@ class SlideManager(object):
 
     Args:
       slideobj: (Slide) Slide to add to deck
-    Returns:
-       False on add failure (for unsupported or improperly parsed slides)
     """
     newslide = slideobject.Slide.CreateSlideWithManifest(slidetuple)
-    newslide.parse()
-    
-    self.safeAddSlide(newslide)
-    if not self.isActive():
-      self._current = self.currentSlide()
-      self.start()
-    return False
+    if not newslide.parse():
+      del newslide
+
+    else:
+      self.safeAddSlide(newslide)
+      if not self.isActive():
+        self._current = self.currentSlide()
+        self.start()
 
   def removeSlide(self, removalid):
     """Remove the slide with the given id from the cache
