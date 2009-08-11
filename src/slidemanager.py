@@ -305,7 +305,7 @@ class SlideManager(object):
                   % (slide.id, slide.duration))
       currentid = self._current.id
       def conditionalnext():
-        if currentid in map(lambda x: x.id, self._slides):
+        if currentid == self._current.id:
           logging.info('Hitting next')
           next()
         else:
