@@ -27,7 +27,7 @@ def addSlide(slider, slidetuple):
   # We have to wrap slide creation in a gobject timeout. Slide parsing (clutter
   # object creation) doesn't like happening in a different thread (this method
   # will get called from the XMPP thread)
-  gobject.timeout_add(100, lambda: slider.addSlide(slidetuple))
+  gobject.timeout_add(100, slider.addSlide, slidetuple)
 
 def removeSlide(slider, slidetuple):
   logging.info("XMPP removeSlide request")
