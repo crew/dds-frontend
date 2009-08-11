@@ -17,12 +17,15 @@ class UnsupportedSlideModeException(Exception):
   pass
 
 class Slide(object):
+
   def __init__(self, filename=None):
     """Create a DDS Slide instance.
 
     Args:
        filename: (string) path to slide manifest
     """
+    self.PARSER_MAP = {'layout': self.parseJSON, 'module': self.parsePython}
+    self.LAYOUTFILE_MAP = {'layout': 'layout.js', 'module': 'layout.py'}
     self.id = None
     self.duration = None
     self.transition = None
@@ -61,20 +64,41 @@ class Slide(object):
         os.mkdir(self.dir)
     return self.dir
 
-  def parseManifest(self, filename):
+  def verifyComplete(self):
+    ok = True
+    layoutfilepath = os.path.join(self.slideDir(),
+                                  self.LAYOUTFILE_MAP[self.mode])
+    if not os.path.exists(layoutfilepath):
+      logging.error('Layout file for slide ID %s missing!' % self.id)
+      ok = False
+
+    for asset in self.assets:
+      if not self.assetExists(asset):
+        logging.err('Asset missing for slide ID %s: %s' % (slide.id, asset))
+        ok = False
+
+    if not ok:
+      logging.error('Slide not consistent, missing components.')
+      return False
+    else:
+      return True
+
+  def parseManifest(self, filename=None):
     """Parse a JSON slide manifest.
 
     Args:
        filename: (string) path to slide manifest
     """
-    self.manifestfile = filename
-    fh = open(self.manifestfile, 'r')
-    self.manifest = json.load(fh)
-    fh.close()
+    if filename:
+      self.manifestfile = filename
+      fh = open(self.manifestfile, 'r')
+      self.manifest = json.load(fh)
+      fh.close()
 
-    info, assets = self.manifest
-    self.updateInfo(info)
-    self.updateAssets(assets)
+    if self.manifest:
+      info, assets = self.manifest
+      self.updateInfo(info)
+      self.updateAssets(assets)
 
   def saveManifest(self):
     self.manifestfile = os.path.join(self.slideDir(), 'manifest.js')
@@ -95,21 +119,27 @@ class Slide(object):
     for asset in self.assets:
       self.downloadAsset(asset)
 
-  def downloadAsset(self, asset, retry=False):
+  def assetFilePath(self, asset):
     asseturl = asset['url']
     asseturlpath = urlparse.urlparse(asseturl)[2]
     filename = os.path.basename(asseturlpath)
-    destpath = os.path.join(self.slideDir(), filename)
+    return os.path.join(self.slideDir(), filename)
+
+  def assetExists(self, asset):
+    return os.path.exists(self.assetFilePath(asset))
+
+  def downloadAsset(self, asset, retry=False):
+    asseturl = asset['url']
+    destpath = self.assetFilePath(asset)
     urllib.urlretrieve(asseturl, destpath)
-    return os.path.exists(destpath)
+    return self.assetExists(asset)
 
   def parse(self):
-    parser_map = {'layout': self.parseJSON, 'module': self.parsePython}
-    file_map = {'layout': 'layout.js', 'module': 'layout.py'}
-    if self.mode not in parser_map:
+    if self.mode not in self.PARSER_MAP:
       raise UnsupportedSlideModeException
     
-    self.slide = parser_map[self.mode](file_map[self.mode], self.slideDir())
+    self.slide = self.PARSER_MAP[self.mode](self.LAYOUTFILE_MAP[self.mode],
+                                            self.slideDir())
 
   def parseJSON(self, filename, directory):
     """Parses the given json file into a slide.
@@ -183,11 +213,18 @@ class Slide(object):
   def teardownslide(self):
     if hasattr(self.slide, 'teardownslide'):
       self.slide.teardownslide()
-    else:
-      logging.debug('Teardown Slide %d is a noop, no method defined' % self.id)
 
   def setupslide(self):
     if hasattr(self.slide, 'setupslide'):
       self.slide.setupslide()
-    else:
-      logging.debug('Setup Slide %d is a noop, no method defined' % self.id)
+
+  def canUpdateManifest(self, newmanifest):
+    info, assets = newmanifest
+    if info['id'] == self.id:
+      return True
+    return False
+
+  def updateManifest(self, newmanifest):
+    self.manifest = newmanifest
+    self.saveManifest()
+    self.parseManifest()

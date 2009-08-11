@@ -48,8 +48,7 @@ def doRemoveSlide(slider, slidetuple):
   slider.removeSlide(info)
 
 def doUpdateSlide(slider, slidetuple):
-  slider.updateSlide(slidetuple[0])
-  getSlideAssets(slidetuple)
+  slider.updateSlide(slidetuple)
 
 def handlePresence(dispatch, pr):
   jid = pr.getAttr('from')
