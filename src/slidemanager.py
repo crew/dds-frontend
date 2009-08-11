@@ -32,32 +32,16 @@ class SlideManager(object):
     self._active = False
     self._slides = []
 
-  def updateSlideInfo(self, slide, info):
-    """Update a slide with an info dict.
+  def updateSlide(self, slidetuple):
+    """Using a slide manifest tuple, update it.
 
     Args:
-       slide: (Clutter Slide)
-       info: (dictionary)
+       slidetuple: 
     """
-    slide.id = info["id"]
-    slide.duration = info["duration"]
-    slide.priority = info["priority"]
-    slide.transition = info["transition"]
-
-  def updateSlide(self, info):
-    """Using an info dict, update its slide.
-
-    Args:
-       info: (dictionary)
-    """
-    if info['id'] not in map(lambda x: x.id, self._slides):
-      logging.error('Could not update slide %s as it is not in the deck'
-                    % info['id'])
-    else:
-      slide = filter(lambda x: x.id == info['id'] and x, self._slides)[0]
-      logging.info('Updating slide %s with new info dict.' % info['id'])
-      self.updateSlideInfo(slide, info)
-      
+    for slide in self._slides:
+      if slide.canUpdateManifest(slidetuple):
+        slide.updateManifest(slidetuple)
+        logging.info('Updating slide %s with new manifest' % slide.id)
 
   def addSlide(self, slidetuple):
     """Add a new slide to the internal cache.
@@ -104,7 +88,7 @@ class SlideManager(object):
   def next(self):
     """Runs the timer thread for, and shows the next slide"""
     logging.debug('slider next')
-    if not self.isEmpty() and self.isActive():
+    if self.hasMultipleSlides() and self.isActive():
       if self._last is None:
         self._last = self._current
 
@@ -228,7 +212,6 @@ class SlideManager(object):
       current.slide.set_y(0 - stage.get_height())
     elif(current.transition == "slide-down-up"):
       current.slide.set_y(stage.get_height())
-    logging.debug('Setting up animation done')
 
   def inAnimation(self, current):
     """Run the intro animation of the current slide.
@@ -302,7 +285,7 @@ class SlideManager(object):
                     % (str(e)))
 
     if self.hasMultipleSlides():
-      self.setupAnimation(current, stage)
+      self.setupAnimation()
 
   def createNextTimer(self, next, slide):
     """Schedule a timer for the next slide transition.
