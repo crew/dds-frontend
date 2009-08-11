@@ -303,13 +303,15 @@ class SlideManager(object):
     if not (slide is None) and FLAGS.enabletimers:
       logging.info('Scheduling timer for slide %s in %ss'
                   % (slide.id, slide.duration))
-      currentid = self._current.id
+
+      currentid = slide.id
       def conditionalnext():
         if currentid == self._current.id:
           logging.info('Hitting next')
           next()
         else:
           logging.info('Would hit next, but our slide vanished')
+
       gobject.timeout_add(slide.duration * 1000, conditionalnext)
 
   def safeAddSlide(self, slide):
