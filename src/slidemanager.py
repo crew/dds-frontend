@@ -8,6 +8,7 @@ import imp
 import logging
 import os
 import sys
+import uuid
 
 import slideobject
 
@@ -31,6 +32,7 @@ class SlideManager(object):
     self._paintran = False
     self._active = False
     self._slides = []
+    self._timers = {}
 
   def updateSlide(self, slidetuple):
     """Using a slide manifest tuple, update it.
@@ -80,6 +82,8 @@ class SlideManager(object):
         logging.info('Removing slide %s from the deck' % removalid)
         slide.slide.destroy()
         self._slides.remove(slide)
+        if slide in self._timers:
+          del self._timers[slide]
         self.logSlideOrder()
     if self.isEmpty():
       self.stop()
@@ -304,13 +308,16 @@ class SlideManager(object):
       logging.info('Scheduling timer for slide %s in %ss'
                   % (slide.id, slide.duration))
 
-      currentid = slide.id
+      nextuuid = str(uuid.uuid4())
       def conditionalnext():
-        if currentid == self._current.id:
+        if nextuuid in self._timers.values():
           logging.info('Hitting next')
           next()
+          del self._timers[slide]
         else:
           logging.info('Would hit next, but our slide vanished')
+
+      self._timers[slide] = nextuuid
 
       gobject.timeout_add(slide.duration * 1000, conditionalnext)
 
