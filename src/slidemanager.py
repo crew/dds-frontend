@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import clutter
-import cluttergst
+# Normally I think doing this is a bad idea -- In this case we do it because
+# cluttergst is exceptionally dumb and steals --help from sys.argv on import.
+from cluttergst import VideoTexture
 import config
 import gflags as flags
 import gobject
@@ -362,7 +364,7 @@ class SlideManager(object):
       # XXX Hack to support video letterboxing, sort of
       try:
         for c in slide.get_children():
-          if isinstance(c, cluttergst.VideoTexture):
+          if isinstance(c, VideoTexture):
             c.move_by(0, h_diff * 1.5)
             noclip = True
       except:
