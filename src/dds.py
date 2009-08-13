@@ -38,6 +38,7 @@ FLAGS = flags.FLAGS
 # Global variable to track fullscreen state
 FULLSCREEN = False
 
+
 def createDDSDir():
   """Create the user's DDS dir if it does not exist."""
   DIR = os.path.expanduser(FLAGS.userdir)
