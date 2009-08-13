@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import clutter
 import config
-import slider
+import slidemanager
 from unittest import TestCase
 
 CACHE = "./cache"
@@ -9,7 +9,7 @@ CACHE = "./cache"
 class SliderTest(TestCase):
 
   def setUp(self):
-    self.slideshow = slider.Slider(clutter.Stage())
+    self.slideshow = slidemanager.SlideManager(clutter.Stage())
     config.setOption("cache", CACHE)
     self.slideshow.addSlide({'id': 1, 'duration': 3,
                              'mode': 'layout', 'priority': 1,
