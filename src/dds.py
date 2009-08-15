@@ -8,9 +8,6 @@ X SESSION to display pretty slides to users around the world.
 __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 
-## This module tries importing everything, and bails if it didnt work.
-import projectreqs
-######################################################################
 import clutter
 import config
 import gflags as flags
