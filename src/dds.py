@@ -19,7 +19,7 @@ import threading
 import time
 
 ## DDS Imports
-import xmpper
+import xmppthread
 import slidemanager
 
 flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
@@ -147,7 +147,9 @@ def main():
   setupCache()
   show = slidemanager.SlideManager(stage)
   setupStage(stage, show)
-  xmpper.start(show)
+  t = xmppthread.XMPPThread()
+  t.attachSlideManager(show)
+  t.start()
 
   clutter.main()
 
