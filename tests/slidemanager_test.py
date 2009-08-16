@@ -2,11 +2,11 @@
 import clutter
 import config
 import slidemanager
-from unittest import TestCase
+import unittest
 
 CACHE = "./cache"
 
-class SliderTest(TestCase):
+class SlideManagerTest(unittest.TestCase):
 
   def setUp(self):
     self.slideshow = slidemanager.SlideManager(clutter.Stage())
