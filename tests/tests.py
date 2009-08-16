@@ -5,7 +5,7 @@ import gflags as flags
 
 FLAGS = flags.FLAGS
 
-from slider_test import SliderTest
+from slidemanager_test import SlideManagerTest
 import unittest
 
 if __name__ == '__main__':
