@@ -1,51 +1,93 @@
 #!/usr/bin/env python
 import clutter
 import config
-import slidemanager
+import mox
 import unittest
 
+import slidemanager
+import slideobject
+
 CACHE = "./cache"
+
 
 class SlideManagerTest(unittest.TestCase):
 
   def setUp(self):
-    self.slideshow = slidemanager.SlideManager(clutter.Stage())
-    config.setOption("cache", CACHE)
-    self.slideshow.addSlide({'id': 1, 'duration': 3,
-                             'mode': 'layout', 'priority': 1,
-                             'transition': 'fade'})
-    self.slideshow.addSlide({'id': 2, 'duration': 3,
-                             'mode': 'layout', 'priority': 1,
-                             'transition': 'fade'})
-    self.slideshow.addSlide({'id': 3, 'duration': 3,
-                             'mode': 'layout', 'priority': 1,
-                             'transition': 'fade'})
-    self.slides = self.slideshow._slides
+    self.sm = slidemanager.SlideManager(None)
+    self.mox = mox.Mox()
 
-  def testSlideCommands(self):
-    self.slideshow.removeSlide(1)
-    self.slideshow.removeSlide(2)
-    self.slideshow.removeSlide(3)
-    self.assertTrue(slider.isEmpty(self.slides))
-    self.slideshow.addSlide({'id': 1, 'duration': 3,
-                          'mode': 'layout', 'priority': 1,
-                          'transition': 'fade'})
-    self.assertFalse(slider.isEmpty(self.slides))
+  def tearDown(self):
+    del self.sm
+    del self.mox
 
-  def testActivity(self):
-    self.assertTrue(self.slideshow.isActive())
-    self.slideshow.removeSlide(1)
-    self.slideshow.removeSlide(2)
-    self.slideshow.removeSlide(3)
-    self.assertFalse(self.slideshow.isActive())
-    self.slideshow.addSlide({'id': 3, 'duration': 3,
-                          'mode': 'layout', 'priority': 1,
-                          'transition': 'fade'})
-    self.assertTrue(self.slideshow.isActive())
+  def testisActive(self):
+    self.sm._active = False
+    self.assertEqual(False, self.sm.isActive())
+    self.sm._active = True
+    self.assertEqual(True, self.sm.isActive())
 
-  def testSafeAddSlide(self):
-    slide = clutter.Group()
-    slide.id = 1
-    self.assertFalse(slider.safeAddSlide(self.slides, slide))
-    slide.id = 10
-    self.assertTrue(slider.safeAddSlide(self.slides, slide))
+  def testhasMultipleSlides(self):
+    # Should be empty here
+    self.assertEqual(False, self.sm.hasMultipleSlides())
+    
+    # Add an object to the slide list (one slide)
+    self.sm._slides.append(object())
+    self.assertEqual(False, self.sm.hasMultipleSlides())
+
+    # Add an object to the slide list (two slides)
+    self.sm._slides.append(object())
+    self.assertEqual(True, self.sm.hasMultipleSlides())
+
+  def teststop(self):
+    self.sm._active = True
+    self.assertEqual(True, self.sm.isActive())
+    self.sm.stop()
+    self.assertEqual(False, self.sm.isActive())
+  
+  def testlogSlideOrder(self):
+    s1 = slideobject.Slide()
+    s1.id = 1
+    s2 = slideobject.Slide()
+    s2.id = 2
+    self.sm._slides = [s1, s2]
+    emsg = 'Current Slide Order: [1, 2]'
+    self.assertEqual(emsg, self.sm.logSlideOrder())
+
+  def testisEmpty(self):
+    # Should be empty here
+    self.assertEqual(True, self.sm.isEmpty())
+    
+    # Add an object to the slide list
+    self.sm._slides.append(object())
+    self.assertEqual(False, self.sm.isEmpty())
+
+  def testcurrentSlide(self):
+    s1 = slideobject.Slide()
+    s1.id = 1
+    s2 = slideobject.Slide()
+    s2.id = 2
+    self.sm._slides = [s1, s2]
+    self.assertEqual(s1, self.sm.currentSlide())
+
+  def testupdateSlide(self):
+    testslidetuple = object()
+
+    mockslide1 = mox.MockObject(slideobject.Slide)
+    mockslide2 = mox.MockObject(slideobject.Slide)
+    self.sm._slides = [mockslide1, mockslide2]
+
+    mockslide1.canUpdateManifest(testslidetuple).AndReturn(False)
+    mockslide2.canUpdateManifest(testslidetuple).AndReturn(True)
+
+    mockslide2.ID().AndReturn(2)
+
+    mockslide2.updateManifest(testslidetuple)
+
+    mox.Replay(mockslide1)
+    mox.Replay(mockslide2)
+
+    self.sm.updateSlide(testslidetuple)
+
+    mox.Verify(mockslide1)
+    mox.Verify(mockslide2)
+
