@@ -220,3 +220,6 @@ class Slide(object):
     self.manifest = newmanifest
     self.saveManifest()
     self.parseManifest()
+
+  def ID(self):
+    return self.id
