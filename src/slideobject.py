@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import sys
+import time
 import urlparse
 import urllib
 
@@ -28,6 +29,7 @@ class Slide(object):
     self.transition = None
     self.mode = None
     self.priority = None
+    self.parsedone = None
 
     self.info = None
     self.assets = None
@@ -61,7 +63,8 @@ class Slide(object):
   def verifyComplete(self):
     ok = True
     if self.mode not in self.LAYOUTFILE_MAP:
-      logging.error('Slide ID %s unsupported mode "%s"' % (self.id, self.mode))
+      logging.error('Slide ID %s unsupported mode "%s"'
+                    % (self.id, self.mode))
       ok = False
     else:
       layoutfilepath = os.path.join(self.slideDir(),
@@ -132,16 +135,40 @@ class Slide(object):
     urllib.urlretrieve(asseturl, destpath)
     return self.assetExists(asset)
 
+  def getParserMethod(self):
+    return self.PARSER_MAP[self.mode]
+
+  def getLayoutFile(self):
+    return self.LAYOUTFILE_MAP[self.mode]
+
   def parse(self):
     if self.slide:
       return True
 
     if not self.verifyComplete():
       return False
+   
+    gobject.timeout_add(100, self.runParser)
+    while self.parsedone is None:
+      time.sleep(0.1)
+    return self.parsedone
+    
+  def setParseDone(self, status=True):
+    """Set the parse completion status.
+    
+    Args:
+       stats: (boolean) True/False i
 
-    self.slide = self.PARSER_MAP[self.mode](self.LAYOUTFILE_MAP[self.mode],
-                                            self.slideDir())
-    return True
+    Note:
+      Called from gobject.idle_add in runParser
+    """
+    self.parsedone = status
+
+  def runParser(self):
+    """Run the parser for this slide (Executed from a gobject timeout)."""
+    parser = self.getParserMethod()
+    self.slide = parser(self.getLayoutFile(), self.slideDir())
+    gobject.idle_add(self.setParseDone, self.slide is not None)
 
   def parseJSON(self, filename, directory):
     """Parses the given json file into a slide.
