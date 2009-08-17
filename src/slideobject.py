@@ -84,7 +84,7 @@ class Slide(object):
     else:
       return True
 
-  def parseManifest(self, filename=None):
+  def parseManifest(self, filename=None, download=True):
     """Parse a JSON slide manifest.
 
     Args:
@@ -99,7 +99,16 @@ class Slide(object):
     if self.manifest:
       info, assets = self.manifest
       self.updateInfo(info)
-      self.updateAssets(assets)
+      self.updateAssets(assets, download)
+
+  def loadSlideID(self, id):
+    """FIXME: hi"""
+    self.id = id
+    self.manifestfile = os.path.join(self.slideDir(), 'manifest.js')
+    if not os.path.exists(self.manifestfile):
+      raise Exception('Could not find manifest for slide ID: %s' % id)
+    else:
+      self.parseManifest(self.manifestfile, download=False)
 
   def saveManifest(self):
     self.manifestfile = os.path.join(self.slideDir(), 'manifest.js')
@@ -115,10 +124,11 @@ class Slide(object):
     self.mode = self.info['mode']
     self.priority = self.info['priority']
 
-  def updateAssets(self, assetlist):
+  def updateAssets(self, assetlist, download=True):
     self.assets = assetlist
-    for asset in self.assets:
-      self.downloadAsset(asset)
+    if download:
+      for asset in self.assets:
+        self.downloadAsset(asset)
 
   def assetFilePath(self, asset):
     asseturl = asset['url']

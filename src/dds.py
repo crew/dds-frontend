@@ -21,6 +21,7 @@ import time
 ## DDS Imports
 import xmppthread
 import slidemanager
+import slideobject
 
 flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
 flags.DEFINE_boolean('fullscreenhotkey', True,
@@ -29,6 +30,7 @@ flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 flags.DEFINE_string('userdir', '~/.dds', 'user state path')
 flags.DEFINE_boolean('enablemanualadvance', True,
                      'Controls manual slide advancement')
+flags.DEFINE_integer('oneslide', None, 'Display only the given slideid')
 
 FLAGS = flags.FLAGS
 
@@ -147,8 +149,14 @@ def main():
   setupCache()
   show = slidemanager.SlideManager(stage)
   setupStage(stage, show)
-  t = xmppthread.XMPPThread()
-  t.attachSlideManager(show)
+  if FLAGS.oneslide:
+    s = slideobject.Slide()
+    s.loadSlideID(FLAGS.oneslide)
+    b = lambda: show.addSlideObject(s)
+    t = threading.Timer(0.1, b)
+  else:
+    t = xmppthread.XMPPThread()
+    t.attachSlideManager(show)
   t.start()
 
   clutter.main()

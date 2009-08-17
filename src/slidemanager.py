@@ -94,22 +94,26 @@ class SlideManager(object):
         logging.info('Updating slide %s with new manifest' % slide.ID())
         slide.updateManifest(slidetuple)
 
-  def addSlide(self, slidetuple):
+  def addSlide(self, slidetuple, start=True):
     """Add a new slide to the internal cache.
 
     Args:
       slideobj: (Slide) Slide to add to deck
+      start: (boolean) if true, start the show if not already active
     """
-    self.log.info('Add slide')
     newslide = slideobject.Slide.CreateSlideWithManifest(slidetuple)
+    self.addSlideObject(newslide, start=start)
+ 
+  def addSlideObject(self, newslide, start=True):
     if not newslide.parse():
       del newslide
+      return
 
-    else:
-      self.safeAddSlide(newslide)
-      if not self.isActive():
-        self._current = self.currentSlide()
-        self.start()
+    self.log.info('Add slide')
+    self.safeAddSlide(newslide)
+    if start and not self.isActive():
+      self._current = self.currentSlide()
+      self.start()
 
   def removeSlide(self, removalid):
     """Remove the slide with the given id from the cache
