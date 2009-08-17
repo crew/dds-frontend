@@ -6,6 +6,9 @@ import gflags as flags
 FLAGS = flags.FLAGS
 
 from slidemanager_test import SlideManagerTest
+from slideobject_test import SlideObjectTest
+from xmppthread_test import XMPPThreadTest
+from config_test import ConfigTest
 import unittest
 
 if __name__ == '__main__':
