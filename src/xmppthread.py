@@ -41,10 +41,7 @@ class XMPPThread(threading.Thread):
       logging.error('Invalid slide tuple passed: %s' % slidetuple)
       return False
 
-    # We have to wrap slide creation in a gobject timeout. Slide parsing   
-    # (clutter object creation) doesn't like happening in a different
-    # thread (this method will get called from the XMPP thread)
-    gobject.timeout_add(100, self.slidemanager.addSlide, slidetuple)
+    self.slidemanager.addSlide(slidetuple)
 
   def removeSlide(self, slidetuple):
     """XMPP removeSlide method handler.
