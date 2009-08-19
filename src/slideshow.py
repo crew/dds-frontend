@@ -1,33 +1,8 @@
-import config
-import glob
-import urllib
-import time
-import clutter
-import os.path
-import logging
 import json
-from clutter import Label
-from clutter import Texture
-from clutter import Group
-from clutter import Color
-from clutter import EffectTemplate
-from clutter import Timeline
-from threading import Timer
-import xml.sax as sax
-from xml.sax.handler import ContentHandler
-from xml.sax.handler import ErrorHandler
+import logging
+import clutter
 
-
-def create(canvas):
-  """Public creator for the slider"""
-
-  return Slider(canvas)
-
-class Slide(Group):
-
-  def __init__(self, transition):
-    self.transition = transition
-    Group.__init__(self)
+from slide import Slide
 
 class Slideshow():
   """Handles the painting and parsing of slides"""
@@ -53,7 +28,7 @@ class Slideshow():
       type = element['type']
       if type == 'text':
         logging.debug('Adding text element')
-        label = Label()
+        label = clutter.Label()
         label.set_font_name(element.get('font', 'sans 32'))
         label.set_line_wrap(True)
         label.set_color(clutter.color_parse(element.get('color', 'white')))
@@ -71,7 +46,7 @@ class Slideshow():
 
       elif type == "image":
         logging.debug('Adding image element')
-        image = Texture()
+        image = clutter.Texture()
         imageWidth = (self.stage.get_width() / 16) * int(element.get('width', 16))
         image.set_width(imageWidth)
         imageHeight = (self.stage.get_height() / 9) * int(element.get('height', 9))
@@ -212,46 +187,3 @@ class Slideshow():
     self.in_animation()
     self.current.show_all()
     self.stage.add(self.current)
-
-class Slider(Slideshow):
-  """Manages the order and timing of slide switching"""
-
-  def __init__(self, canvas):
-    self.timer = None
-    self.active = False
-    Slideshow.__init__(self, canvas)
-
-  def start(self):
-    """Starts the Slider, should only be called when there are slides"""
-
-    self.active = True
-    self.setup_animation()
-    self.reset_timer()
-    self.paint()
-
-  def stop(self):
-    """Stops the Slideshow"""
-
-    logging.debug('stopping slider')
-
-    self.active = False
-    if self.timer:
-      self.timer = None
-
-  def reset_timer(self):
-    """Runs the next timer thread to change slides"""
-
-    if self.timer:
-      self.timer = None
-
-    if self.active:
-      self.timer = Timer(float(self.currentSlide().duration),
-                         self.next)
-      self.timer.daemon = True
-      self.timer.start()
-
-  def next(self):
-    """Runs the timer thread for, and shows the next slide"""
-
-    Slideshow.next(self)
-    self.reset_timer()
