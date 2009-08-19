@@ -8,6 +8,11 @@ X SESSION to display pretty slides to users around the world.
 __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 
+
+# XXX Hide Deprecation warnings
+import warnings
+warnings.simplefilter('ignore', DeprecationWarning)
+
 import clutter
 import config
 import gflags as flags
