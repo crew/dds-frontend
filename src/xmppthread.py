@@ -21,6 +21,8 @@ class XMPPThread(threading.Thread):
     threading.Thread.__init__(self, group, target, name, args, kwargs)
 
     self.slidemanager = None
+    self.status = xmpp.Presence()
+
 
   def attachSlideManager(self, slidemanager):
     """Attach a slide manager to this thread.
@@ -29,6 +31,7 @@ class XMPPThread(threading.Thread):
        slidemanager: (SlideManager) slidemanager instance
     """
     self.slidemanager = slidemanager
+    self.slidemanager.setXMPPHandler(self)
 
   def addSlide(self, slidetuple):
     """XMPP addSlide method handler.
@@ -94,8 +97,19 @@ class XMPPThread(threading.Thread):
 
     self.connection.RegisterHandler("iq", self.generateIqHandler())
     self.connection.sendInitPresence()
-    self.connection.sendPresence(jid = config.option("server-jid"))
+    p = xmpp.Presence(to=config.option("server-jid"))
+    p.setStatus('initialsliderequest')
+    self.connection.send(p)
     self.proceed()
+
+  def setCurrentSlide(self, slide):
+    """Send a global presence packet with the current slide ID.
+
+    Args:
+       slide: (Slide) Slide object to send out presence for
+    """
+    self.status.setStatus('Current=%s' % slide.ID())
+    self.connection.send(self.status)
 
   def generateIqHandler(self):
     methods = { "addSlide"    : self.addSlide,
