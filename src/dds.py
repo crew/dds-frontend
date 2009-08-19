@@ -148,7 +148,8 @@ def main():
   createDDSDir()
   initializeLibraries()
   logging.basicConfig(level=logging.DEBUG,
-                      format='%(asctime)s %(levelname)s %(message)s')
+                      format='%(asctime)s %(filename)s %(lineno)d '
+                             '%(levelname)s %(message)s')
   stage = clutter.stage_get_default()
   config.init()
   setupCache()
