@@ -32,6 +32,7 @@ class SlideManager(object):
     self._active = False
     self._slides = []
     self._timers = {}
+    self.xmpphandler = None
     self.log = logging.getLogger('slidemanager')
 
   ## State/Status methods
@@ -93,6 +94,14 @@ class SlideManager(object):
       if slide.canUpdateManifest(slidetuple):
         logging.info('Updating slide %s with new manifest' % slide.ID())
         slide.updateManifest(slidetuple)
+
+  def setXMPPHandler(self, handler):
+    """Set the XMPP Thread bound to this slide manager.
+
+    Args:
+       handler: XMPPThread instance
+    """
+    self.xmpphandler = handler
 
   def addSlide(self, slidetuple, start=True):
     """Add a new slide to the internal cache.
@@ -156,6 +165,8 @@ class SlideManager(object):
         del self._timers[self._last]
       self.loadNextAndPaint()
       self.createNextTimer(self.next, self._current)
+      if self.xmpphandler:
+        self.xmpphandler.setCurrentSlide(self._current)
     return False
 
   def start(self):
