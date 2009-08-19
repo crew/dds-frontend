@@ -92,16 +92,25 @@ class Slideshow():
     def setup_animation(self):
         if(self.current.transition == "fade"):
             self.current.set_opacity(0)
-        elif(self.current.transition == "slide-x"):
-            self.current.set_x(-1 * self.stage.get_width())
+        elif(self.current.transition == "slide-right-left"):
+            self.current.set_x(0 - self.stage.get_width())
+        elif(self.current.transition == "slide-left-right"):
+            self.current.set_x(self.stage.get_width())
+        elif(self.current.transition == "slide-up-down"):
+            self.current.set_y(0 - self.stage.get_height())
+        elif(self.current.transition == "slide-down-up"):
+            self.current.set_y(self.stage.get_height())
 
     def in_animation(self):
         timeline = clutter.Timeline(fps=60, duration=500)
-        template = clutter.EffectTemplate(timeline, clutter.ramp_inc_func)
+        template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
         effect = None
         if(self.current.transition == "fade"):
             effect = clutter.effect_fade(template, self.current, 255)
-        elif(self.current.transition == "slide-x"):
+        elif((self.current.transition == "slide-right-left") or
+             (self.current.transition == "slide-left-right") or
+             (self.current.transition == "slide-up-down") or
+             (self.current.transition == "slide-down-up")):
             effect = clutter.effect_move(template, self.current, 0, 0)
 
         if(effect):
@@ -109,13 +118,22 @@ class Slideshow():
 
     def out_animation(self):
         timeline = clutter.Timeline(fps=60, duration=500)
-        template = clutter.EffectTemplate(timeline, clutter.ramp_inc_func)
+        template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
         effect = None
         if(self.current.transition == "fade"):
             effect = clutter.effect_fade(template, self.current, 0)
-        elif(self.current.transition == "slide-x"):
+        elif(self.current.transition == "slide-right-left"):
             effect = clutter.effect_move(template, self.current,
                                          self.stage.get_width(), 0)
+        elif(self.current.transition == "slide-left-right"):
+            effect = clutter.effect_move(template, self.current,
+                                         0 - self.stage.get_width(), 0)
+        elif(self.current.transition == "slide-up-down"):
+            effect = clutter.effect_move(template, self.current,
+                                         0, self.stage.get_height())
+        elif(self.current.transition == "slide-down-up"):
+            effect = clutter.effect_move(template, self.current,
+                                         0, 0 - self.stage.get_height())
 
         if(effect):
             effect.start()
