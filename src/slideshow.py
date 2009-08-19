@@ -121,11 +121,12 @@ class Slideshow():
 
   def nextSlide(self):
     """Rotate the next slide to the front of the list"""
-
+    logging.debug('nextSlide updating self.slides')
     self.slides.append(self.slides.pop(0))
 
   def currentSlide(self):
     """Return the current slide"""
+    logging.debug('querying current slide')
 
     if len(self.slides) > 0:
       return self.slides[0]
@@ -134,8 +135,9 @@ class Slideshow():
 
   def next(self):
     """Prepare and paint the next slide"""
-
+    logging.debug('slideshow next')
     if self.current and (len(self.slides) > 1):
+      logging.debug('slideshow next -- executing code')
       self.load_next()
       self.paint()
 
@@ -200,7 +202,7 @@ class Slideshow():
   def load_next(self):
     """Prepare the next slide to be painted"""
 
-    logging.debug('load_next')
+    logging.debug('slideshow load_next')
 
     self.out_animation()
     if self.last:
