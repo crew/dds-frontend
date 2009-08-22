@@ -38,3 +38,6 @@ class XMPPThreadTest(unittest.TestCase):
     self.xt.AttachSlideManager(sm)
     self.assertEqual(self.xt.slidemanager, sm)
     self.assertEqual(sm.xmpphandler, self.xt)
+
+if __name__ == '__main__':
+    unittest.main()

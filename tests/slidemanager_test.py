@@ -91,3 +91,5 @@ class SlideManagerTest(unittest.TestCase):
     mox.Verify(mockslide1)
     mox.Verify(mockslide2)
 
+if __name__ == '__main__':
+    unittest.main()
