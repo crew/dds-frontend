@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import mox
 import unittest
 
 import config
@@ -8,10 +7,10 @@ import config
 class ConfigTest(unittest.TestCase):
 
   def setUp(self):
-    self.mox = mox.Mox()
+    pass
 
   def tearDown(self):
-    del self.mox
+    pass
 
   def testFIXME(self):
     self.assert_(True)

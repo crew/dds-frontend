@@ -1,4 +1,13 @@
 #!/usr/bin/python
+"""CCIS Crew Digital Display System Frontend/Client
+
+This module handles running the slideshow -- slide ordering, transitions, etc.
+Each slide gets attached to the SlideManager to be displayed.
+"""
+
+__author__ = 'CCIS Crew <crew@ccs.neu.edu>'
+
+
 import clutter
 import config
 import gflags as flags
@@ -26,8 +35,6 @@ class SlideManager(object):
 
   def __init__(self, stage):
     self._stage = stage
-    self._current = None
-    self._last = None
     self._paintran = False
     self._active = False
     self._slides = []
@@ -37,7 +44,7 @@ class SlideManager(object):
 
   ## State/Status methods
   #######################
-  def idExists(self, slideid):
+  def IdExists(self, slideid):
     """Determine if a slide id exists in the slide list.
 
     Args:
@@ -48,26 +55,26 @@ class SlideManager(object):
     """
     return slideid in map(lambda x: x.ID(), self._slides)
 
-  def isActive(self):
+  def IsActive(self):
     """Determines if this slider's active."""
     return self._active
 
-  def hasMultipleSlides(self):
+  def HasMultipleSlides(self):
     """Determine if we have more than one slide and should transition."""
     return len(self._slides) > 1
 
-  def stop(self):
+  def Stop(self):
     """Stops the Slideshow"""
-    logging.debug('slider stop')
+    self.log.debug('slider stop')
     self._active = False
 
-  def logSlideOrder(self):
+  def LogSlideOrder(self):
     """Create a log message with the current slide order list."""
     msg = 'Current Slide Order: %s' % str(map(lambda x: x.ID(), self._slides))
-    logging.info(msg)
+    self.log.info(msg)
     return msg
 
-  def isEmpty(self):
+  def IsEmpty(self):
     """Determines if slides is empty.
     
     Returns:
@@ -75,7 +82,7 @@ class SlideManager(object):
     """
     return not self._slides
 
-  def currentSlide(self):
+  def CurrentSlide(self):
     """Get the current slide from slides.
 
     Returns:
@@ -84,18 +91,27 @@ class SlideManager(object):
     if len(self._slides) > 0:
       return self._slides[0]
 
-  def updateSlide(self, slidetuple):
+  def PreviousSlide(self):
+    """Get the previously shown slide from slides.
+
+    Returns:
+      Clutter Slide that was just shown
+    """
+    if len(self._slides) > 0:
+      return self._slides[self._slides.index(self.CurrentSlide())-1]
+
+  def UpdateSlide(self, slidetuple):
     """Using a slide manifest tuple, update it.
 
     Args:
        slidetuple: 
     """
     for slide in self._slides:
-      if slide.canUpdateManifest(slidetuple):
-        logging.info('Updating slide %s with new manifest' % slide.ID())
-        slide.updateManifest(slidetuple)
+      if slide.CanUpdateManifest(slidetuple):
+        self.log.info('Updating slide %s with new manifest' % slide.ID())
+        slide.UpdateManifest(slidetuple)
 
-  def setXMPPHandler(self, handler):
+  def SetXMPPHandler(self, handler):
     """Set the XMPP Thread bound to this slide manager.
 
     Args:
@@ -103,7 +119,7 @@ class SlideManager(object):
     """
     self.xmpphandler = handler
 
-  def addSlide(self, slidetuple, start=True):
+  def AddSlide(self, slidetuple, start=True):
     """Add a new slide to the internal cache.
 
     Args:
@@ -111,37 +127,32 @@ class SlideManager(object):
       start: (boolean) if true, start the show if not already active
     """
     newslide = slideobject.Slide.CreateSlideWithManifest(slidetuple)
-    self.addSlideObject(newslide, start=start)
+    self.AddSlideObject(newslide, start=start)
  
-  def addSlideObject(self, newslide, start=True):
-    if not newslide.parse():
-      del newslide
-      return
+  def AddSlideObject(self, newslide, start=True):
+    if newslide.Parse():
+      self.SafeAddSlide(newslide)
+      if start and not self.IsActive():
+        self.Start()
 
-    self.log.info('Add slide')
-    self.safeAddSlide(newslide)
-    if start and not self.isActive():
-      self._current = self.currentSlide()
-      self.start()
-
-  def removeSlide(self, removalid):
+  def RemoveSlide(self, removalid):
     """Remove the slide with the given id from the cache
 
     Args:
        removalid: (int) Slide ID to remove
     """
     if removalid not in map(lambda x: x.ID(), self._slides):
-      logging.debug(('I was told to remove slide id %s from the deck, but its'
+      self.log.debug(('I was told to remove slide id %s from the deck, but its'
                      ' already gone') % removalid)
     else:
-      logging.debug('I was told to remove slide id %s from the deck'
+      self.log.debug('I was told to remove slide id %s from the deck'
                     % removalid)
-    self.logSlideOrder()
+    self.LogSlideOrder()
     for slide in self._slides:
       if slide.ID() == removalid:
-        if slide == self._current:
+        if slide == self.CurrentSlide():
           self.next()
-        logging.info('Removing slide %s from the deck' % removalid)
+        self.log.info('Removing slide %s from the deck' % removalid)
         slide.slide.destroy()
         self._slides.remove(slide)
         if slide in self._timers:
@@ -150,57 +161,55 @@ class SlideManager(object):
     if self.isEmpty():
       self.stop()
 
-  def next(self):
+  def Next(self):
     """Runs the timer thread for, and shows the next slide"""
-    if not self.hasMultipleSlides():
-      self.stop()
+    if not self.HasMultipleSlides():
+      self.Stop()
       return
-    
 
-    if self.isActive():
-      if self._last is None:
-        self._last = self._current
-      
-      if self._last in self._timers:
-        del self._timers[self._last]
-      self.loadNextAndPaint()
-      self.createNextTimer(self.next, self._current)
+    if self.IsActive():
+      if self.PreviousSlide() in self._timers:
+        del self._timers[self.PreviousSlide()]
+      self.LoadNextAndPaint()
+      self.CreateNextTimer(self.next, self.CurrentSlide())
       if self.xmpphandler:
-        self.xmpphandler.setCurrentSlide(self._current)
+        self.xmpphandler.SetCurrentSlide(self.CurrentSlide())
     return False
 
-  def start(self):
+  def Start(self):
+    """Starts the slide manager.
+
+    Note:
+       This should only be called when there are slides
+       and if the slider isn't already active.
     """
-    Starts the slider. This should only be called when there are slides
-    and if the slider isn't already active.
-    """
-    logging.debug('slider start')
-    if self.isActive():
-      logging.error("Attempted to start an already active slider.")
-    elif self.isEmpty():
-      logging.error("Attempted to start an empty slider.")
+    self.log.debug('slider start')
+    if self.IsActive():
+      self.log.error("Attempted to start an already active slider.")
+    elif self.IsEmpty():
+      self.log.error("Attempted to start an empty slider.")
     else:
       self._active = True
-      self.setupAnimation()
-      self.createNextTimer(self.next, self.currentSlide())
-      self.paint(self.currentSlide())
+      self.SetupAnimation()
+      self.CreateNextTimer(self.Next, self.CurrentSlide())
+      self.Paint(self.CurrentSlide())
 
-  def paint(self, slide):
+  def Paint(self, slide):
     """Paint the next slide to the screen.
     
     Args:
-      slide: (Clutter Slide)
+       slide: (Clutter Slide)
     """
-    logging.info('starting paint')
-    self.inAnimation(slide)
+    self.log.info('starting paint')
+    self.InAnimation(slide)
     slide.slide.show_all()
     self._stage.add(slide.slide)
 
-  def changeSlideOrder(self, direction='forward'):
+  def ChangeSlideOrder(self, direction='forward'):
     """Advance the slide order in the given direction.
 
     Args:
-      direction: (string) either forward or backward for rotation direction
+       direction: (string) either forward or backward for rotation direction
     """
     if direction == 'forward':
       self._slides.append(self._slides.pop(0))
@@ -208,33 +217,33 @@ class SlideManager(object):
       self._slides.insert(0, self._slides.pop())
     self.logSlideOrder()
 
-  def advance(self):
+  def Advance(self):
     """Forward alias for changeSlideOrder."""
     self.changeSlideOrder(direction='forward')
 
-  def rewind(self):
+  def Rewind(self):
     """Reverse alias for changeSlideOrder."""
     self.changeSlideOrder(direction='reverse')
 
-  def loadNextAndPaint(self):
+  def LoadNextAndPaint(self):
     """Prepare and paint the next slide.
     
     Returns:
       Tuple with the current and last clutter slides in the deck
     """
-    if self._current and not self.isEmpty():
-      self.loadNext()
-      self.paint(self._current)
-    return self._current, self._last
+    if self.CurrentSlide() and not self.IsEmpty():
+      self.LoadNext()
+      self.Paint(self.CurrentSlide())
+    return self.CurrentSlide(), self.PreviousSlide()
 
-  def setupAnimation(self):
+  def SetupAnimation(self):
     """Setup the intro animation for the current slide.
     
     Args:
     """
-    current = self.currentSlide()
+    current = self.CurrentSlide()
     stage = self._stage
-    logging.debug('Setting up animation')
+    self.log.debug('Setting up animation')
     if current.transition == "fade":
       current.slide.set_opacity(0)
     elif(current.transition == "slide-right-left"):
@@ -246,13 +255,13 @@ class SlideManager(object):
     elif(current.transition == "slide-down-up"):
       current.slide.set_y(stage.get_height())
 
-  def inAnimation(self, current):
+  def InAnimation(self, current):
     """Run the intro animation of the current slide.
 
     Args:
       current: (Clutter Slide) The current slide in the deck
     """
-    logging.debug('in animation')
+    self.log.debug('in animation')
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
     effect = None
@@ -267,57 +276,55 @@ class SlideManager(object):
       effect.start()
 
 
-  def outAnimation(self):
+  def OutAnimation(self):
     """Run the exit animation of the self.currentSlide() slide."""
-    logging.debug('out animation')
+    self.log.debug('out animation')
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
     effect = None
-    if (self.currentSlide().transition == "fade"):
-      effect = clutter.effect_fade(template, self.currentSlide().slide, 0)
-    elif(self.currentSlide().transition == "slide-right-left"):
-      effect = clutter.effect_move(template, self.currentSlide().slide,
+    if (self.CurrentSlide().transition == "fade"):
+      effect = clutter.effect_fade(template, self.CurrentSlide().slide, 0)
+    elif(self.CurrentSlide().transition == "slide-right-left"):
+      effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   self._stage.get_width(), 0)
-    elif(self.currentSlide().transition == "slide-left-right"):
-      effect = clutter.effect_move(template, self.currentSlide().slide,
+    elif(self.CurrentSlide().transition == "slide-left-right"):
+      effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0 - self._stage.get_width(), 0)
-    elif(self.currentSlide().transition == "slide-up-down"):
-      effect = clutter.effect_move(template, self.currentSlide().slide,
+    elif(self.CurrentSlide().transition == "slide-up-down"):
+      effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0, self._stage.get_height())
-    elif(self.currentSlide().transition == "slide-down-up"):
-      effect = clutter.effect_move(template, self.currentSlide().slide,
+    elif(self.CurrentSlide().transition == "slide-down-up"):
+      effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0, 0 - self._stage.get_height())
     if effect:
       effect.start()
 
-  def loadNext(self):
+  def LoadNext(self):
     """Prepare the next slide to be painted."""
 
     try:
-      self._current.teardownslide()
+      self.CurrentSlide().teardownslide()
     except Exception, e:
-      logging.error('Failed to teardown slide with defined teardown method: %s'
-                    % (str(e)))
+      self.log.error('Failed to teardown slide with defined teardown method: %s'
+                     % (str(e)))
 
-    if self.hasMultipleSlides():
+    if self.HasMultipleSlides():
       self.outAnimation()
-      if self._last:
-        self._last.slide.hide_all()
-        self._stage.remove(self._last.slide)
-      self._last = self._current
+      if self.PreviousSlide():
+        self.PreviousSlide().slide.hide_all()
+        self._stage.remove(self.PreviousSlide().slide)
     self.advance()
-    self._current = self.currentSlide()
 
     try:
-      self._current.setupslide()
+      self.CurrentSlide().setupslide()
     except Exception, e:
-      logging.error('Failed to setup slide with defined setupslide method: %s'
-                    % (str(e)))
+      self.log.error('Failed to setup slide with defined setupslide method: %s'
+                     % (str(e)))
 
-    if self.hasMultipleSlides():
-      self.setupAnimation()
+    if self.HasMultipleSlides():
+      self.SetupAnimation()
 
-  def createNextTimer(self, next, slide):
+  def CreateNextTimer(self, next, slide):
     """Schedule a timer for the next slide transition.
 
     Args:
@@ -329,24 +336,24 @@ class SlideManager(object):
     # add an effective one later. For now though, this function is never
     # called in a way that'll cause two timers to be active at once.
     if not (slide is None) and FLAGS.enabletimers:
-      logging.info('Scheduling timer for slide %s in %ss'
-                  % (slide.ID(), slide.duration))
+      self.log.info('Scheduling timer for slide %s in %ss'
+                    % (slide.ID(), slide.duration))
 
       nextuuid = str(uuid.uuid4())
       def conditionalnext():
         if nextuuid in self._timers.values():
-          logging.info('Hitting next')
+          self.log.info('Hitting next')
           next()
           if slide in self._timers:
             del self._timers[slide]
         else:
-          logging.info('Would hit next, but our slide vanished')
+          self.log.info('Would hit next, but our slide vanished')
 
       self._timers[slide] = nextuuid
 
       gobject.timeout_add(slide.duration * 1000, conditionalnext)
 
-  def safeAddSlide(self, slide):
+  def SafeAddSlide(self, slide):
     """Add a slide to the slides list if it does not already exist there.
 
     Args:
@@ -354,16 +361,16 @@ class SlideManager(object):
       slide: (Clutter Slide) Slide to check for presence in slides
     """
     if slide.ID() not in map(lambda x: x.ID(), self._slides):
-      logging.info('Added slide id %s to slide list' % slide.ID())
-      self.resizeSlide(slide.slide)
+      self.log.info('Added slide id %s to slide list' % slide.ID())
+      self.ResizeSlide(slide.slide)
       self._slides.append(slide)
       return True
     else:
       return False
 
-  def resizeSlide(self, slide):
+  def ResizeSlide(self, slide):
     """Resize the given slide to fit the stage."""
-    logging.debug('Start resize')
+    self.log.debug('Start resize')
     # find the ratio based on width
     # slide.set_size(FLAGS.ratiowidth, FLAGS.ratioheight)
     width, height = self._stage.get_size()
@@ -379,7 +386,7 @@ class SlideManager(object):
       # letterboxing
       new_height = ratio_w * FLAGS.ratioheight
       h_diff = (height - new_height) / 2
-      logging.info('hdiff = %d' % h_diff)
+      self.log.info('hdiff = %d' % h_diff)
       slide.move_by(0, h_diff)
 
       noclip = False
@@ -398,8 +405,8 @@ class SlideManager(object):
     else:
       slide.set_scale(ratio_w, ratio_h)
     self._stage.queue_redraw()
-    logging.debug('%d %d' % slide.get_position())
-    logging.debug('%d %d' % slide.get_size())
-    logging.debug('End resize')
+    self.log.debug('%d %d' % slide.get_position())
+    self.log.debug('%d %d' % slide.get_size())
+    self.log.debug('End resize')
     return slide
 

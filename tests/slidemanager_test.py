@@ -22,27 +22,27 @@ class SlideManagerTest(unittest.TestCase):
 
   def testisActive(self):
     self.sm._active = False
-    self.assertEqual(False, self.sm.isActive())
+    self.assertEqual(False, self.sm.IsActive())
     self.sm._active = True
-    self.assertEqual(True, self.sm.isActive())
+    self.assertEqual(True, self.sm.IsActive())
 
   def testhasMultipleSlides(self):
     # Should be empty here
-    self.assertEqual(False, self.sm.hasMultipleSlides())
+    self.assertEqual(False, self.sm.HasMultipleSlides())
     
     # Add an object to the slide list (one slide)
     self.sm._slides.append(object())
-    self.assertEqual(False, self.sm.hasMultipleSlides())
+    self.assertEqual(False, self.sm.HasMultipleSlides())
 
     # Add an object to the slide list (two slides)
     self.sm._slides.append(object())
-    self.assertEqual(True, self.sm.hasMultipleSlides())
+    self.assertEqual(True, self.sm.HasMultipleSlides())
 
   def teststop(self):
     self.sm._active = True
-    self.assertEqual(True, self.sm.isActive())
+    self.assertEqual(True, self.sm.IsActive())
     self.sm.stop()
-    self.assertEqual(False, self.sm.isActive())
+    self.assertEqual(False, self.sm.IsActive())
   
   def testlogSlideOrder(self):
     s1 = slideobject.Slide()
@@ -51,15 +51,15 @@ class SlideManagerTest(unittest.TestCase):
     s2.id = 2
     self.sm._slides = [s1, s2]
     emsg = 'Current Slide Order: [1, 2]'
-    self.assertEqual(emsg, self.sm.logSlideOrder())
+    self.assertEqual(emsg, self.sm.LogSlideOrder())
 
   def testisEmpty(self):
     # Should be empty here
-    self.assertEqual(True, self.sm.isEmpty())
+    self.assertEqual(True, self.sm.IsEmpty())
     
     # Add an object to the slide list
     self.sm._slides.append(object())
-    self.assertEqual(False, self.sm.isEmpty())
+    self.assertEqual(False, self.sm.IsEmpty())
 
   def testcurrentSlide(self):
     s1 = slideobject.Slide()
@@ -67,7 +67,7 @@ class SlideManagerTest(unittest.TestCase):
     s2 = slideobject.Slide()
     s2.id = 2
     self.sm._slides = [s1, s2]
-    self.assertEqual(s1, self.sm.currentSlide())
+    self.assertEqual(s1, self.sm.CurrentSlide())
 
   def testupdateSlide(self):
     testslidetuple = object()
@@ -76,18 +76,20 @@ class SlideManagerTest(unittest.TestCase):
     mockslide2 = mox.MockObject(slideobject.Slide)
     self.sm._slides = [mockslide1, mockslide2]
 
-    mockslide1.canUpdateManifest(testslidetuple).AndReturn(False)
-    mockslide2.canUpdateManifest(testslidetuple).AndReturn(True)
+    mockslide1.CanUpdateManifest(testslidetuple).AndReturn(False)
+    mockslide2.CanUpdateManifest(testslidetuple).AndReturn(True)
 
     mockslide2.ID().AndReturn(2)
 
-    mockslide2.updateManifest(testslidetuple)
+    mockslide2.UpdateManifest(testslidetuple)
 
     mox.Replay(mockslide1)
     mox.Replay(mockslide2)
 
-    self.sm.updateSlide(testslidetuple)
+    self.sm.UpdateSlide(testslidetuple)
 
     mox.Verify(mockslide1)
     mox.Verify(mockslide2)
 
+if __name__ == '__main__':
+    unittest.main()
