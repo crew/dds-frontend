@@ -43,13 +43,13 @@ FLAGS = flags.FLAGS
 FULLSCREEN = False
 
 
-def createDDSDir():
+def CreateDDSDir():
   """Create the user's DDS dir if it does not exist."""
   DIR = os.path.expanduser(FLAGS.userdir)
   if not os.path.exists(DIR):
     os.makedirs(DIR)
 
-def onKeyPressEvent(stage, event, show):
+def OnKeyPressEvent(stage, event, show):
   """Handle Keypress Events.
 
   Args:
@@ -73,7 +73,7 @@ def onKeyPressEvent(stage, event, show):
       logging.debug('Got arrow key, manual advance disabled')
 
 
-def toggleFullscreen(stage):
+def ToggleFullscreen(stage):
   """Toggle the fullscreen state."""
   global FULLSCREEN
   logging.info('Toggling fullscreen: Current = %s' % FULLSCREEN)
@@ -85,7 +85,8 @@ def toggleFullscreen(stage):
     FULLSCREEN = True
     stage.fullscreen()
 
-def setupStartupImage(stage):
+
+def SetupStartupImage(stage):
   """Setup the Startup Screen.
 
   Args:
@@ -101,20 +102,23 @@ def setupStartupImage(stage):
   a.set_position(0,0)
   stage.add(a)
 
-def initializeLibraries():
+
+def InitializeLibraries():
   """Initialize the external libraries used."""
   gobject.threads_init()
   clutter.threads_init()
   # Fix a blocky text issue
   clutter.set_use_mipmapped_text(False)
 
-def setupCache():
+
+def SetupCache():
   """Create cache directory if it does not exist."""
   cache = config.option("cache")
   if not os.path.exists(cache):
     os.makedirs(cache)
 
-def handleFullscreen(stage):
+
+def HandleFullscreen(stage):
   """Setup fullscreen mode if enabled.
 
   Args:
@@ -127,34 +131,35 @@ def handleFullscreen(stage):
     stage.fullscreen()
     
 
-def setupStage(stage, show):
+def SetupStage(stage, show):
   """Setup the Clutter Stage.
 
   Args:
      stage: (Clutter Stage)
      show: (Slider) Slideshow instance
   """
-  handleFullscreen(stage)
+  HandleFullscreen(stage)
   stage.set_color(clutter.color_parse('black'))
-  setupStartupImage(stage)
+  SetupStartupImage(stage)
   stage.connect('destroy', clutter.main_quit)
-  stage.connect('key-press-event', onKeyPressEvent, show)
+  stage.connect('key-press-event', OnKeyPressEvent, show)
   stage.hide_cursor()
   stage.set_title('CCIS Digital Display')
   stage.show_all()
 
-def main():
+
+def Main():
   """Initiate a DDS frontend."""
-  createDDSDir()
-  initializeLibraries()
+  CreateDDSDir()
+  InitializeLibraries()
   logging.basicConfig(level=logging.DEBUG,
                       format='%(asctime)s %(filename)s %(lineno)d '
                              '%(levelname)s %(message)s')
   stage = clutter.stage_get_default()
   config.init()
-  setupCache()
+  SetupCache()
   show = slidemanager.SlideManager(stage)
-  setupStage(stage, show)
+  SetupStage(stage, show)
   if FLAGS.oneslide:
     s = slideobject.Slide()
     s.LoadSlideID(FLAGS.oneslide)
@@ -169,4 +174,4 @@ def main():
 
 if __name__ == '__main__':
   FLAGS(sys.argv)
-  main()
+  Main()
