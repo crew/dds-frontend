@@ -15,6 +15,7 @@ import urllib
 
 
 class Slide(object):
+  """Class representing all portions of a DDS Slide (metadata and content)."""
 
   def __init__(self, filename=None):
     """Create a DDS Slide instance.
@@ -45,15 +46,28 @@ class Slide(object):
 
   @staticmethod
   def CreateSlideWithManifest(manifesttuple):
+    """Given a slide manifest, create a Slide instance.
+
+    Args:
+       manifesttuple: (tuple) contains (slide metadata, assetlist)
+
+    Returns:
+       Slide instance.
+
+    Note:
+       Also creates cached copy of this slide on disk, and downloads all the
+       needed assets.
+    """
     s = Slide()
     s.manifest = manifesttuple
     info, assets = s.manifest
     s.UpdateInfo(info)
     s.UpdateAssets(assets)
-    s.saveManifest()
+    s.SaveManifest()
     return s
 
   def SlideDir(self):
+    """Get the filesystem directory containing this slide data."""
     if self.dir is None:
       self.dir = os.path.join(config.option('cache'), str(self.id))
       if not os.path.exists(self.dir):
@@ -61,6 +75,7 @@ class Slide(object):
     return self.dir
 
   def verifyComplete(self):
+    """Verify that we have everything needed to display this slide."""
     ok = True
     if self.mode not in self.LAYOUTFILE_MAP:
       logging.error('Slide ID %s unsupported mode "%s"'
@@ -102,7 +117,11 @@ class Slide(object):
       self.UpdateAssets(assets, download)
 
   def LoadSlideID(self, id):
-    """FIXME: hi"""
+    """Given a Slide ID, try and load a cached copy of it from disk.
+    
+    Args:
+       id: (int) Slide ID
+    """
     self.id = id
     self.manifestfile = os.path.join(self.SlideDir(), 'manifest.js')
     if not os.path.exists(self.manifestfile):
@@ -110,13 +129,19 @@ class Slide(object):
     else:
       self.parseManifest(self.manifestfile, download=False)
 
-  def saveManifest(self):
+  def SaveManifest(self):
+    """Save the in-memory slide manifest to disk."""
     self.manifestfile = os.path.join(self.SlideDir(), 'manifest.js')
     fh = open(self.manifestfile, 'w')
     json.dump(self.manifest, fh)
     fh.close()
 
   def UpdateInfo(self, infohash):
+    """Given a dictionary of slide metadata, update our saved copy.
+
+    Args:
+       infohash: (dictionary) Slide metadata
+    """
     self.info = infohash
     self.id = self.info['id']
     self.duration = self.info['duration']
@@ -125,40 +150,62 @@ class Slide(object):
     self.priority = self.info['priority']
 
   def UpdateAssets(self, assetlist, download=True):
+    """Given a list of assets, update our saved assetlist.
+
+    Args:
+       assetlist: (list of dict) Contains a list of this slides assets
+       download: (boolean) If true, download the assets to disk.
+    """
     self.assets = assetlist
     if download:
       for asset in self.assets:
         self.DownloadAsset(asset)
 
-  def assetFilePath(self, asset):
+  def AssetFilePath(self, asset):
+    """Get the final filesystem path of a given asset.
+
+    Args:
+       asset: (dictionary) information about the asset to be downloaded
+    """
     asseturl = asset['url']
     asseturlpath = urlparse.urlparse(asseturl)[2]
     filename = os.path.basename(asseturlpath)
     return os.path.join(self.SlideDir(), filename)
 
-  def assetExists(self, asset):
+  def AssetExists(self, asset):
+    """Get a boolean answer to the question of if an asset exists on disk."""
     return os.path.exists(self.assetFilePath(asset))
 
-  def DownloadAsset(self, asset, retry=False):
+  #TODO(wan): Write the retry code.
+  def DownloadAsset(self, asset, unused_retry=False):
+    """Download an Asset to Disk.
+
+    Args:
+       asset: (dictionary) information about the asset to be downloaded
+       unused_retry: (Boolean) Should the fetch be retried if it fails
+    """
     asseturl = asset['url']
-    destpath = self.assetFilePath(asset)
+    destpath = self.AssetFilePath(asset)
     urllib.urlretrieve(asseturl, destpath)
-    return self.assetExists(asset)
+    return self.AssetExists(asset)
 
   def GetParserMethod(self):
+    """Using self.mode, get the method to use for parsing this slide."""
     return self.PARSER_MAP[self.mode]
 
   def GetLayoutFile(self):
+    """Using self.mode, get the filename of this slides layout file."""
     return self.LAYOUTFILE_MAP[self.mode]
 
-  def parse(self):
+  def Parse(self):
+    """Parse this slide into self.slide."""
     if self.slide:
       return True
 
-    if not self.verifyComplete():
+    if not self.VerifyComplete():
       return False
    
-    gobject.timeout_add(100, self.runParser)
+    gobject.timeout_add(100, self.RunParser)
     while self.parsedone is None:
       time.sleep(0.1)
     return self.parsedone
@@ -239,24 +286,40 @@ class Slide(object):
       if fin:
         fin.close()
 
-  def teardownslide(self):
-    if hasattr(self.slide, 'teardownslide'):
-      self.slide.teardownslide()
+  def CanUpdateManifest(self, newmanifest):
+    """Given a manifest, determine if it can be used to update this slide.
 
-  def setupslide(self):
-    if hasattr(self.slide, 'setupslide'):
-      self.slide.setupslide()
-
-  def canUpdateManifest(self, newmanifest):
+    Args:
+       newmanifest: (tuple) manifest of (slide metadata, assets)
+    """
     info, assets = newmanifest
     if info['id'] == self.id:
       return True
     return False
 
-  def updateManifest(self, newmanifest):
+  def UpdateManifest(self, newmanifest):
+    """Given a manifest, update our stored copy and re-parse.
+
+    Args:
+       newmanifest: (tuple) manifest of (slide metadata, assets)
+    """
     self.manifest = newmanifest
-    self.saveManifest()
+    self.SaveManifest()
     self.parseManifest()
 
   def ID(self):
+    """Returns the Integer ID of this slide."""
     return self.id
+
+  ## Following two methods virtual as they call a method if present on
+  ## self.slide
+  def teardownslide(self):
+    """Safe alias for self.slide.teardownslide."""
+    if hasattr(self.slide, 'teardownslide'):
+      self.slide.teardownslide()
+
+  def setupslide(self):
+    """Safe alias for self.slide.setupslide."""
+    if hasattr(self.slide, 'setupslide'):
+      self.slide.setupslide()
+

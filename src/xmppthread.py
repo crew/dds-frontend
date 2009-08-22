@@ -16,13 +16,13 @@ ALLOWABLERESOURCES = ['dds-client']
 
 
 class XMPPThread(threading.Thread):
+  """Class for interacting with XMPP portions of the DDS System."""
 
   def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
     threading.Thread.__init__(self, group, target, name, args, kwargs)
 
     self.slidemanager = None
     self.status = xmpp.Presence()
-
 
   def AttachSlideManager(self, slidemanager):
     """Attach a slide manager to this thread.
