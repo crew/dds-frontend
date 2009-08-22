@@ -309,11 +309,11 @@ class SlideManager(object):
                      % (str(e)))
 
     if self.HasMultipleSlides():
-      self.outAnimation()
+      self.OutAnimation()
       if self.PreviousSlide():
         self.PreviousSlide().slide.hide_all()
         self._stage.remove(self.PreviousSlide().slide)
-    self.advance()
+    self.Advance()
 
     try:
       self.CurrentSlide().setupslide()
