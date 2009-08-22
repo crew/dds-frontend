@@ -157,12 +157,12 @@ def main():
   setupStage(stage, show)
   if FLAGS.oneslide:
     s = slideobject.Slide()
-    s.loadSlideID(FLAGS.oneslide)
-    b = lambda: show.addSlideObject(s)
+    s.LoadSlideID(FLAGS.oneslide)
+    b = lambda: show.AddSlideObject(s)
     t = threading.Timer(0.1, b)
   else:
     t = xmppthread.XMPPThread()
-    t.attachSlideManager(show)
+    t.AttachSlideManager(show)
   t.start()
 
   clutter.main()

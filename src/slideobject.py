@@ -22,7 +22,7 @@ class Slide(object):
     Args:
        filename: (string) path to slide manifest
     """
-    self.PARSER_MAP = {'layout': self.parseJSON, 'module': self.parsePython}
+    self.PARSER_MAP = {'layout': self.ParseJSON, 'module': self.ParsePython}
     self.LAYOUTFILE_MAP = {'layout': 'layout.js', 'module': 'layout.py'}
     self.id = None
     self.duration = None
@@ -48,12 +48,12 @@ class Slide(object):
     s = Slide()
     s.manifest = manifesttuple
     info, assets = s.manifest
-    s.updateInfo(info)
-    s.updateAssets(assets)
+    s.UpdateInfo(info)
+    s.UpdateAssets(assets)
     s.saveManifest()
     return s
 
-  def slideDir(self):
+  def SlideDir(self):
     if self.dir is None:
       self.dir = os.path.join(config.option('cache'), str(self.id))
       if not os.path.exists(self.dir):
@@ -67,7 +67,7 @@ class Slide(object):
                     % (self.id, self.mode))
       ok = False
     else:
-      layoutfilepath = os.path.join(self.slideDir(),
+      layoutfilepath = os.path.join(self.SlideDir(),
                                     self.LAYOUTFILE_MAP[self.mode])
       if not os.path.exists(layoutfilepath):
         logging.error('Layout file for slide ID %s missing!' % self.id)
@@ -98,25 +98,25 @@ class Slide(object):
 
     if self.manifest:
       info, assets = self.manifest
-      self.updateInfo(info)
-      self.updateAssets(assets, download)
+      self.UpdateInfo(info)
+      self.UpdateAssets(assets, download)
 
-  def loadSlideID(self, id):
+  def LoadSlideID(self, id):
     """FIXME: hi"""
     self.id = id
-    self.manifestfile = os.path.join(self.slideDir(), 'manifest.js')
+    self.manifestfile = os.path.join(self.SlideDir(), 'manifest.js')
     if not os.path.exists(self.manifestfile):
       raise Exception('Could not find manifest for slide ID: %s' % id)
     else:
       self.parseManifest(self.manifestfile, download=False)
 
   def saveManifest(self):
-    self.manifestfile = os.path.join(self.slideDir(), 'manifest.js')
+    self.manifestfile = os.path.join(self.SlideDir(), 'manifest.js')
     fh = open(self.manifestfile, 'w')
     json.dump(self.manifest, fh)
     fh.close()
 
-  def updateInfo(self, infohash):
+  def UpdateInfo(self, infohash):
     self.info = infohash
     self.id = self.info['id']
     self.duration = self.info['duration']
@@ -124,31 +124,31 @@ class Slide(object):
     self.mode = self.info['mode']
     self.priority = self.info['priority']
 
-  def updateAssets(self, assetlist, download=True):
+  def UpdateAssets(self, assetlist, download=True):
     self.assets = assetlist
     if download:
       for asset in self.assets:
-        self.downloadAsset(asset)
+        self.DownloadAsset(asset)
 
   def assetFilePath(self, asset):
     asseturl = asset['url']
     asseturlpath = urlparse.urlparse(asseturl)[2]
     filename = os.path.basename(asseturlpath)
-    return os.path.join(self.slideDir(), filename)
+    return os.path.join(self.SlideDir(), filename)
 
   def assetExists(self, asset):
     return os.path.exists(self.assetFilePath(asset))
 
-  def downloadAsset(self, asset, retry=False):
+  def DownloadAsset(self, asset, retry=False):
     asseturl = asset['url']
     destpath = self.assetFilePath(asset)
     urllib.urlretrieve(asseturl, destpath)
     return self.assetExists(asset)
 
-  def getParserMethod(self):
+  def GetParserMethod(self):
     return self.PARSER_MAP[self.mode]
 
-  def getLayoutFile(self):
+  def GetLayoutFile(self):
     return self.LAYOUTFILE_MAP[self.mode]
 
   def parse(self):
@@ -163,7 +163,7 @@ class Slide(object):
       time.sleep(0.1)
     return self.parsedone
     
-  def setParseDone(self, status=True):
+  def SetParseDone(self, status=True):
     """Set the parse completion status.
     
     Args:
@@ -176,11 +176,11 @@ class Slide(object):
 
   def runParser(self):
     """Run the parser for this slide (Executed from a gobject timeout)."""
-    parser = self.getParserMethod()
-    self.slide = parser(self.getLayoutFile(), self.slideDir())
-    gobject.idle_add(self.setParseDone, self.slide is not None)
+    parser = self.GetParserMethod()
+    self.slide = parser(self.GetLayoutFile(), self.SlideDir())
+    gobject.idle_add(self.SetParseDone, self.slide is not None)
 
-  def parseJSON(self, filename, directory):
+  def ParseJSON(self, filename, directory):
     """Parses the given json file into a slide.
 
     Args:
@@ -198,7 +198,7 @@ class Slide(object):
     script.load_from_file(filename)
     return script.get_object('slide')
 
-  def parsePython(self, filename, directory):
+  def ParsePython(self, filename, directory):
     """Returns a slide from the given python module.
 
     Args:
@@ -210,13 +210,13 @@ class Slide(object):
       Parsed slide from setupNewSlide
     """
     try:
-      slideModule = self.loadModule(filename, directory)
+      slideModule = self.LoadModule(filename, directory)
       return slideModule.slide
     except Exception, e:
       logging.error('Could not load module %s in dir %s because %s'
                     % (filename, directory, e))
 
-  def loadModule(self, codepath, directory):
+  def LoadModule(self, codepath, directory):
     """Returns the module object for the python file at the given path.
 
     Args:

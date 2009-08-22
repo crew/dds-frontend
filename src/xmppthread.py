@@ -24,16 +24,25 @@ class XMPPThread(threading.Thread):
     self.status = xmpp.Presence()
 
 
-  def attachSlideManager(self, slidemanager):
+  def AttachSlideManager(self, slidemanager):
     """Attach a slide manager to this thread.
     
     Args:
        slidemanager: (SlideManager) slidemanager instance
     """
     self.slidemanager = slidemanager
-    self.slidemanager.setXMPPHandler(self)
+    self.slidemanager.SetXMPPHandler(self)
 
-  def addSlide(self, slidetuple):
+  def SetCurrentSlide(self, slide):
+    """Send a global presence packet with the current slide ID.
+
+    Args:
+       slide: (Slide) Slide object to send out presence for
+    """
+    self.status.setStatus('Current=%s' % slide.ID())
+    self.connection.send(self.status)
+
+  def AddSlide(self, slidetuple):
     """XMPP addSlide method handler.
 
     Args:
@@ -44,9 +53,9 @@ class XMPPThread(threading.Thread):
       logging.error('Invalid slide tuple passed: %s' % slidetuple)
       return False
 
-    self.slidemanager.addSlide(slidetuple)
+    self.slidemanager.AddSlide(slidetuple)
 
-  def removeSlide(self, slidetuple):
+  def RemoveSlide(self, slidetuple):
     """XMPP removeSlide method handler.
 
     Args:
@@ -55,28 +64,28 @@ class XMPPThread(threading.Thread):
     logging.info("XMPP removeSlide request")
     info = slidetuple[0]
     logging.debug('removeslide got info = %s' % str(info))
-    self.slidemanager.removeSlide(info)
+    self.slidemanager.RemoveSlide(info)
 
-  def updateSlide(self, slidetuple):
+  def UpdateSlide(self, slidetuple):
     logging.info('XMPP updateSlide request')
     logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
-    self.slidemanager.updateSlide(slidetuple)
+    self.slidemanager.UpdateSlide(slidetuple)
 
 #### End XMPP Actions
 
-  def checkXmpp(self):
+  def CheckXmpp(self):
     try:
       self.connection.Process(1)
       return True
     except KeyboardInterrupt:
       return False
 
-  def proceed(self):
-    while self.checkXmpp():
+  def Proceed(self):
+    while self.CheckXmpp():
       pass
     raise Exception('Failed to continue checkXmpp')
 
-  def setupXmpp(self):
+  def SetupXmpp(self):
     jid = config.option("client-jid")
     password = config.option("client-password")
     jid = xmpp.protocol.JID(jid)
@@ -95,26 +104,17 @@ class XMPPThread(threading.Thread):
       logging.error("XMPP password was incorrect")
       return False
 
-    self.connection.RegisterHandler("iq", self.generateIqHandler())
+    self.connection.RegisterHandler("iq", self.GenerateIqHandler())
     self.connection.sendInitPresence()
     p = xmpp.Presence(to=config.option("server-jid"))
     p.setStatus('initialsliderequest')
     self.connection.send(p)
-    self.proceed()
+    self.Proceed()
 
-  def setCurrentSlide(self, slide):
-    """Send a global presence packet with the current slide ID.
-
-    Args:
-       slide: (Slide) Slide object to send out presence for
-    """
-    self.status.setStatus('Current=%s' % slide.ID())
-    self.connection.send(self.status)
-
-  def generateIqHandler(self):
-    methods = { "addSlide"    : self.addSlide,
-                "removeSlide" : self.removeSlide,
-                "updateSlide" : self.updateSlide,
+  def GenerateIqHandler(self):
+    methods = { "addSlide"    : self.AddSlide,
+                "removeSlide" : self.RemoveSlide,
+                "updateSlide" : self.UpdateSlide,
               }
 
     def handleIq(connection, iq):
@@ -136,5 +136,6 @@ class XMPPThread(threading.Thread):
       raise xmpp.NodeProcessed
     return handleIq
 
+  ## Lowercase method name to override threading.Thread
   def run(self):
-    self.setupXmpp()
+    self.SetupXmpp()
