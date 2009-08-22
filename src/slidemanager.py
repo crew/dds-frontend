@@ -151,15 +151,15 @@ class SlideManager(object):
     for slide in self._slides:
       if slide.ID() == removalid:
         if slide == self.CurrentSlide():
-          self.next()
+          self.Next()
         self.log.info('Removing slide %s from the deck' % removalid)
         slide.slide.destroy()
         self._slides.remove(slide)
         if slide in self._timers:
           del self._timers[slide]
-        self.logSlideOrder()
-    if self.isEmpty():
-      self.stop()
+        self.LogSlideOrder()
+    if self.IsEmpty():
+      self.Stop()
 
   def Next(self):
     """Runs the timer thread for, and shows the next slide"""
@@ -215,15 +215,15 @@ class SlideManager(object):
       self._slides.append(self._slides.pop(0))
     else:
       self._slides.insert(0, self._slides.pop())
-    self.logSlideOrder()
+    self.LogSlideOrder()
 
   def Advance(self):
     """Forward alias for changeSlideOrder."""
-    self.changeSlideOrder(direction='forward')
+    self.ChangeSlideOrder(direction='forward')
 
   def Rewind(self):
     """Reverse alias for changeSlideOrder."""
-    self.changeSlideOrder(direction='reverse')
+    self.ChangeSlideOrder(direction='reverse')
 
   def LoadNextAndPaint(self):
     """Prepare and paint the next slide.
