@@ -121,7 +121,7 @@ class SlideManager(object):
     self.AddSlideObject(newslide, start=start)
  
   def AddSlideObject(self, newslide, start=True):
-    if newslide.parse():
+    if newslide.Parse():
       self.SafeAddSlide(newslide)
       if start and not self.IsActive():
         self.Start()

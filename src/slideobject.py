@@ -42,7 +42,7 @@ class Slide(object):
     self.slide = None
 
     if filename is not None:
-      self.parseManifest(filename)
+      self.ParseManifest(filename)
 
   @staticmethod
   def CreateSlideWithManifest(manifesttuple):
@@ -74,7 +74,7 @@ class Slide(object):
         os.mkdir(self.dir)
     return self.dir
 
-  def verifyComplete(self):
+  def VerifyComplete(self):
     """Verify that we have everything needed to display this slide."""
     ok = True
     if self.mode not in self.LAYOUTFILE_MAP:
@@ -89,7 +89,7 @@ class Slide(object):
         ok = False
 
     for asset in self.assets:
-      if not self.assetExists(asset):
+      if not self.AssetExists(asset):
         logging.err('Asset missing for slide ID %s: %s' % (slide.id, asset))
         ok = False
 
@@ -99,7 +99,7 @@ class Slide(object):
     else:
       return True
 
-  def parseManifest(self, filename=None, download=True):
+  def ParseManifest(self, filename=None, download=True):
     """Parse a JSON slide manifest.
 
     Args:
@@ -127,7 +127,7 @@ class Slide(object):
     if not os.path.exists(self.manifestfile):
       raise Exception('Could not find manifest for slide ID: %s' % id)
     else:
-      self.parseManifest(self.manifestfile, download=False)
+      self.ParseManifest(self.manifestfile, download=False)
 
   def SaveManifest(self):
     """Save the in-memory slide manifest to disk."""
@@ -174,7 +174,7 @@ class Slide(object):
 
   def AssetExists(self, asset):
     """Get a boolean answer to the question of if an asset exists on disk."""
-    return os.path.exists(self.assetFilePath(asset))
+    return os.path.exists(self.AssetFilePath(asset))
 
   #TODO(wan): Write the retry code.
   def DownloadAsset(self, asset, unused_retry=False):
@@ -221,7 +221,7 @@ class Slide(object):
     """
     self.parsedone = status
 
-  def runParser(self):
+  def RunParser(self):
     """Run the parser for this slide (Executed from a gobject timeout)."""
     parser = self.GetParserMethod()
     self.slide = parser(self.GetLayoutFile(), self.SlideDir())
@@ -293,7 +293,7 @@ class Slide(object):
        newmanifest: (tuple) manifest of (slide metadata, assets)
     """
     info, assets = newmanifest
-    if info['id'] == self.id:
+    if info['id'] == self.ID():
       return True
     return False
 
@@ -305,7 +305,7 @@ class Slide(object):
     """
     self.manifest = newmanifest
     self.SaveManifest()
-    self.parseManifest()
+    self.ParseManifest()
 
   def ID(self):
     """Returns the Integer ID of this slide."""
