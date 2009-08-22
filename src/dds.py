@@ -63,11 +63,11 @@ def OnKeyPressEvent(stage, event, show):
   # Handle `f`
   elif (event.keyval == 102):
     if FLAGS.fullscreenhotkey:
-      toggleFullscreen(stage)
+      ToggleFullscreen(stage)
   elif (event.keyval == 65363):
     if FLAGS.enablemanualadvance:
       logging.debug('Got arrow key, nexting?')
-      show.next()
+      show.Next()
     else:
       logging.debug('Got arrow key, manual advance disabled')
 

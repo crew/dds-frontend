@@ -109,7 +109,7 @@ class Slide(object):
     else:
       return True
 
-  def ParseManifest(self, filename=None, download=True):
+  def ParseManifest(self, filename=None, download=False):
     """Parse a JSON slide manifest.
 
     Args:

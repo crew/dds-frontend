@@ -38,13 +38,13 @@ class SlideManagerTest(unittest.TestCase):
     self.sm._slides.append(object())
     self.assertEqual(True, self.sm.HasMultipleSlides())
 
-  def teststop(self):
+  def testStop(self):
     self.sm._active = True
     self.assertEqual(True, self.sm.IsActive())
-    self.sm.stop()
+    self.sm.Stop()
     self.assertEqual(False, self.sm.IsActive())
   
-  def testlogSlideOrder(self):
+  def testLogSlideOrder(self):
     s1 = slideobject.Slide()
     s1.id = 1
     s2 = slideobject.Slide()
