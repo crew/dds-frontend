@@ -22,9 +22,11 @@ OLD_CONFIG_FILE = os.path.expanduser('~/.dds/config.py')
 # Shared options storage
 OPTIONS = None
 
+
 def config_file():
   """Get an expanded user path to the configuration file."""
   return os.path.expanduser(FLAGS.config_file)
+
 
 def convert_old():
   """Convert old config.py format to new ConfigParser format."""
