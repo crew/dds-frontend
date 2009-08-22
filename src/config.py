@@ -1,6 +1,10 @@
 #!/usr/bin/python
-"""Simple Configuration Module for DDS.
+"""CCIS Crew Digital Display System Frontend/Client
+
+This module is a simple configuration store for key/value pairs.
 """
+
+__author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 import ConfigParser
 import gflags as flags

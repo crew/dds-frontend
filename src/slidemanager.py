@@ -1,4 +1,13 @@
 #!/usr/bin/python
+"""CCIS Crew Digital Display System Frontend/Client
+
+This module handles running the slideshow -- slide ordering, transitions, etc.
+Each slide gets attached to the SlideManager to be displayed.
+"""
+
+__author__ = 'CCIS Crew <crew@ccs.neu.edu>'
+
+
 import clutter
 import config
 import gflags as flags

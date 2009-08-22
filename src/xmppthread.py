@@ -1,4 +1,12 @@
 #!/usr/bin/python
+"""CCIS Crew Digital Display System Frontend/Client
+
+This module handles XMPP communication between the frontends and backend.
+"""
+
+__author__ = 'CCIS Crew <crew@ccs.neu.edu>'
+
+
 import xmpp
 import xmlrpclib
 import os

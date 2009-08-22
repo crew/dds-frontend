@@ -1,4 +1,14 @@
 #!/usr/bin/python
+"""CCIS Crew Digital Display System Frontend/Client
+
+This module holds the representation of a Slide in memory. Each slide's
+metadata and assets are collected here, then parsed and a Clutter Group is
+created for the visual representation of a slides content.
+"""
+
+__author__ = 'CCIS Crew <crew@ccs.neu.edu>'
+
+
 import clutter
 import config
 import gflags as flags
