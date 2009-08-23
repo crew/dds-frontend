@@ -25,7 +25,7 @@ class XMPPThreadTest(unittest.TestCase):
   def tearDown(self):
     del self.xt
 
-  def testsetCurrentSlide(self):
+  def testSetCurrentSlide(self):
     self.xt.connection = FakeConnection()
     slide = slideobject.Slide()
     slide.id = random.randint(0, 1000)
@@ -33,7 +33,7 @@ class XMPPThreadTest(unittest.TestCase):
     self.assertEqual(self.xt.connection.sentobj, self.xt.status)
     self.assertEqual(self.xt.status.getStatus(), 'Current=%s' % slide.id)
 
-  def testattachSlideManager(self):
+  def testAttachSlideManager(self):
     sm = FakeSlideManager()
     self.xt.AttachSlideManager(sm)
     self.assertEqual(self.xt.slidemanager, sm)

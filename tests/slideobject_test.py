@@ -18,7 +18,7 @@ class SlideObjectTest(unittest.TestCase):
     self.sl.id = id
     self.assertEqual(id, self.sl.ID())
 
-  def testsetParseDone(self):
+  def testSetParseDone(self):
     self.assertEqual(None, self.sl.parsedone)
     self.sl.SetParseDone(True)
     self.assertEqual(True, self.sl.parsedone)
