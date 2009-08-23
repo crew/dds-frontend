@@ -171,7 +171,7 @@ class SlideManager(object):
       if self.PreviousSlide() in self._timers:
         del self._timers[self.PreviousSlide()]
       self.LoadNextAndPaint()
-      self.CreateNextTimer(self.next, self.CurrentSlide())
+      self.CreateNextTimer(self.Next, self.CurrentSlide())
       if self.xmpphandler:
         self.xmpphandler.SetCurrentSlide(self.CurrentSlide())
     return False
@@ -277,7 +277,7 @@ class SlideManager(object):
 
 
   def OutAnimation(self):
-    """Run the exit animation of the self.currentSlide() slide."""
+    """Run the exit animation of the self.CurrentSlide() slide."""
     self.log.debug('out animation')
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)

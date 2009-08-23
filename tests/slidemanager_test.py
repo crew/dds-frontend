@@ -20,13 +20,13 @@ class SlideManagerTest(unittest.TestCase):
     del self.sm
     del self.mox
 
-  def testisActive(self):
+  def testIsActive(self):
     self.sm._active = False
     self.assertEqual(False, self.sm.IsActive())
     self.sm._active = True
     self.assertEqual(True, self.sm.IsActive())
 
-  def testhasMultipleSlides(self):
+  def testHasMultipleSlides(self):
     # Should be empty here
     self.assertEqual(False, self.sm.HasMultipleSlides())
     
@@ -53,7 +53,7 @@ class SlideManagerTest(unittest.TestCase):
     emsg = 'Current Slide Order: [1, 2]'
     self.assertEqual(emsg, self.sm.LogSlideOrder())
 
-  def testisEmpty(self):
+  def testIsEmpty(self):
     # Should be empty here
     self.assertEqual(True, self.sm.IsEmpty())
     
@@ -61,7 +61,7 @@ class SlideManagerTest(unittest.TestCase):
     self.sm._slides.append(object())
     self.assertEqual(False, self.sm.IsEmpty())
 
-  def testcurrentSlide(self):
+  def testCurrentSlide(self):
     s1 = slideobject.Slide()
     s1.id = 1
     s2 = slideobject.Slide()
@@ -69,7 +69,7 @@ class SlideManagerTest(unittest.TestCase):
     self.sm._slides = [s1, s2]
     self.assertEqual(s1, self.sm.CurrentSlide())
 
-  def testupdateSlide(self):
+  def testUpdateSlide(self):
     testslidetuple = object()
 
     mockslide1 = mox.MockObject(slideobject.Slide)
