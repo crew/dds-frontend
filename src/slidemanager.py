@@ -251,13 +251,13 @@ class SlideManager(object):
     self.log.debug('Setting up animation')
     if current.transition == "fade":
       current.slide.set_opacity(0)
-    elif(current.transition == "slide-right-left"):
+    elif current.transition == "slide-right-left":
       current.slide.set_x(0 - stage.get_width())
-    elif(current.transition == "slide-left-right"):
+    elif current.transition == "slide-left-right":
       current.slide.set_x(stage.get_width())
-    elif(current.transition == "slide-up-down"):
+    elif current.transition == "slide-up-down":
       current.slide.set_y(0 - stage.get_height())
-    elif(current.transition == "slide-down-up"):
+    elif current.transition == "slide-down-up":
       current.slide.set_y(stage.get_height())
 
   def InAnimation(self, current):
@@ -280,25 +280,24 @@ class SlideManager(object):
     if effect:
       effect.start()
 
-
   def OutAnimation(self):
     """Run the exit animation of the self.CurrentSlide() slide."""
     self.log.debug('out animation')
     timeline = clutter.Timeline(fps=60, duration=500)
     template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
     effect = None
-    if (self.CurrentSlide().transition == "fade"):
+    if self.CurrentSlide().transition == "fade":
       effect = clutter.effect_fade(template, self.CurrentSlide().slide, 0)
-    elif (self.CurrentSlide().transition == "slide-right-left"):
+    elif self.CurrentSlide().transition == "slide-right-left":
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   self._stage.get_width(), 0)
-    elif (self.CurrentSlide().transition == "slide-left-right"):
+    elif self.CurrentSlide().transition == "slide-left-right":
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0 - self._stage.get_width(), 0)
-    elif (self.CurrentSlide().transition == "slide-up-down"):
+    elif self.CurrentSlide().transition == "slide-up-down":
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0, self._stage.get_height())
-    elif (self.CurrentSlide().transition == "slide-down-up"):
+    elif self.CurrentSlide().transition == "slide-down-up":
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0, 0 - self._stage.get_height())
     if effect:
@@ -309,9 +308,8 @@ class SlideManager(object):
 
     try:
       self.CurrentSlide().teardownslide()
-    except Exception, e:
-      self.log.error('Failed to teardown slide with defined teardown method: %s'
-                     % (str(e)))
+    except Exception:
+      self.log.exception('Failed to teardown slide with teardown method.')
 
     if self.HasMultipleSlides():
       self.OutAnimation()
@@ -322,9 +320,8 @@ class SlideManager(object):
 
     try:
       self.CurrentSlide().setupslide()
-    except Exception, e:
-      self.log.error('Failed to setup slide with defined setupslide method: %s'
-                     % (str(e)))
+    except Exception:
+      self.log.exception('Failed to setup slide with setup method.')
 
     if self.HasMultipleSlides():
       self.SetupAnimation()
@@ -402,7 +399,7 @@ class SlideManager(object):
           if child.__class__.__name__ == 'VideoTexture':
             child.move_by(0, h_diff * 1.5)
             noclip = True
-      except:
+      except Exception:
         logging.exception('Caught exception while resizing children.')
 
       # XXX clips the slide to fit the letterbox format

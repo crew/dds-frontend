@@ -20,7 +20,6 @@ import logging
 import os
 import sys
 import threading
-import time
 
 ## DDS Imports
 import xmppthread
@@ -44,9 +43,9 @@ FULLSCREEN = False
 
 def CreateDDSDir():
   """Create the user's DDS dir if it does not exist."""
-  DIR = os.path.expanduser(FLAGS.userdir)
-  if not os.path.exists(DIR):
-    os.makedirs(DIR)
+  directory = os.path.expanduser(FLAGS.userdir)
+  if not os.path.exists(directory):
+    os.makedirs(directory)
 
 def OnKeyPressEvent(stage, event, show):
   """Handle Keypress Events.
@@ -94,12 +93,12 @@ def SetupStartupImage(stage):
   Create a black rectangle as a startup image. This should prevent the
   ugly startup corruption we all know and love.
   """
-  a = clutter.Rectangle()
-  a.set_width(stage.get_width())
-  a.set_height(stage.get_height())
-  a.set_color(clutter.color_parse('black'))
-  a.set_position(0,0)
-  stage.add(a)
+  background = clutter.Rectangle()
+  background.set_width(stage.get_width())
+  background.set_height(stage.get_height())
+  background.set_color(clutter.color_parse('black'))
+  background.set_position(0, 0)
+  stage.add(background)
 
 
 def InitializeLibraries():
@@ -159,14 +158,14 @@ def Main():
   show = slidemanager.SlideManager(stage)
   SetupStage(stage, show)
   if FLAGS.oneslide:
-    s = slideobject.Slide()
-    s.LoadSlideID(FLAGS.oneslide)
-    b = lambda: show.AddSlideObject(s)
-    t = threading.Timer(0.1, b)
+    slide = slideobject.Slide()
+    slide.LoadSlideID(FLAGS.oneslide)
+    addslidemethod = lambda: show.AddSlideObject(slide)
+    timer = threading.Timer(0.1, addslidemethod)
   else:
-    t = xmppthread.XMPPThread()
-    t.AttachSlideManager(show)
-  t.start()
+    timer = xmppthread.XMPPThread()
+    timer.AttachSlideManager(show)
+  timer.start()
 
   clutter.main()
 
