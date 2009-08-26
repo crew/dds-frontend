@@ -9,27 +9,22 @@ __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 import xmpp
 import xmlrpclib
-import os
-import sys
-import json
 import logging
 import config
-import urllib
-import urlparse
-import gobject
-import clutter
 import threading
 
+# This should be a list of XMPP resource strings that the server understands.
 ALLOWABLERESOURCES = ['dds-client']
 
 
 class XMPPThread(threading.Thread):
   """Class for interacting with XMPP portions of the DDS System."""
 
-  def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
-    threading.Thread.__init__(self, group, target, name, args, kwargs)
+  def __init__(self):
+    threading.Thread.__init__(self)
 
     self.slidemanager = None
+    self.connection = None
     self.status = xmpp.Presence()
 
   def AttachSlideManager(self, slidemanager):
@@ -51,7 +46,7 @@ class XMPPThread(threading.Thread):
     self.connection.send(self.status)
 
   def AddSlide(self, slidetuple):
-    """XMPP addSlide method handler.
+    """XMPP AddSlide method handler.
 
     Args:
        slidetuple: (tuple) (slide metadata, slide assets)
@@ -64,7 +59,7 @@ class XMPPThread(threading.Thread):
     self.slidemanager.AddSlide(slidetuple)
 
   def RemoveSlide(self, slidetuple):
-    """XMPP removeSlide method handler.
+    """XMPP RemoveSlide method handler.
 
     Args:
        slidetuple: (tuple)
@@ -75,6 +70,11 @@ class XMPPThread(threading.Thread):
     self.slidemanager.RemoveSlide(info)
 
   def UpdateSlide(self, slidetuple):
+    """XMPP UpdateSlide method handler.
+
+    Args:
+       slidetuple: (tuple) (slide metadata, slide assets)
+    """
     logging.info('XMPP updateSlide request')
     logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
     self.slidemanager.UpdateSlide(slidetuple)
@@ -82,6 +82,11 @@ class XMPPThread(threading.Thread):
 #### End XMPP Actions
 
   def CheckXmpp(self):
+    """Checks the XMPP connection to see if it is alive.
+
+    Returns:
+       True if connection is alive, False if dread.
+    """
     try:
       self.connection.Process(1)
       return True
@@ -89,13 +94,15 @@ class XMPPThread(threading.Thread):
       return False
 
   def Proceed(self):
+    """Call CheckXmpp in a loop, raise an exception if it fails."""
     while self.CheckXmpp():
       pass
     raise Exception('Failed to continue checkXmpp')
 
   def SetupXmpp(self):
-    jid = config.option("client-jid")
-    password = config.option("client-password")
+    """Setup the XMPP Connection."""
+    jid = config.Option("client-jid")
+    password = config.Option("client-password")
     jid = xmpp.protocol.JID(jid)
     self.connection = xmpp.Client(jid.getDomain(), debug=[])
 
@@ -114,18 +121,24 @@ class XMPPThread(threading.Thread):
 
     self.connection.RegisterHandler("iq", self.GenerateIqHandler())
     self.connection.sendInitPresence()
-    p = xmpp.Presence(to=config.option("server-jid"))
-    p.setStatus('initialsliderequest')
-    self.connection.send(p)
+
+    # Say hello to the dds-master server
+    serverhello = xmpp.Presence(to=config.Option("server-jid"))
+    serverhello.setStatus('initialsliderequest')
+    self.connection.send(serverhello)
+
     self.Proceed()
 
   def GenerateIqHandler(self):
+    """Create a function to handle incoming IQ packets."""
     methods = { "addSlide"    : self.AddSlide,
                 "removeSlide" : self.RemoveSlide,
                 "updateSlide" : self.UpdateSlide,
               }
 
-    def handleIq(connection, iq):
+    # pylint: disable-msg=C0103
+    def handleIq(unused_connection, iq):
+      """Handles incoming IQ packets."""
       if iq.getQueryNS() == xmpp.NS_RPC:
         if iq.getAttr("type") == "error":
           logging.error(iq.getAttr("from"), "rpc error")
@@ -144,6 +157,7 @@ class XMPPThread(threading.Thread):
       raise xmpp.NodeProcessed
     return handleIq
 
-  ## Lowercase method name to override threading.Thread
+  # pylint: disable-msg=C0103
   def run(self):
+    """This method is the 'main' method of the thread."""
     self.SetupXmpp()

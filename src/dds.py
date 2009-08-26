@@ -112,7 +112,7 @@ def InitializeLibraries():
 
 def SetupCache():
   """Create cache directory if it does not exist."""
-  cache = config.option("cache")
+  cache = config.Option("cache")
   if not os.path.exists(cache):
     os.makedirs(cache)
 
@@ -155,7 +155,6 @@ def Main():
                       format='%(asctime)s %(filename)s %(lineno)d '
                              '%(levelname)s %(message)s')
   stage = clutter.stage_get_default()
-  config.init()
   SetupCache()
   show = slidemanager.SlideManager(stage)
   SetupStage(stage, show)

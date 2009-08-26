@@ -78,7 +78,7 @@ class Slide(object):
   def SlideDir(self):
     """Get the filesystem directory containing this slide data."""
     if self.dir is None:
-      self.dir = os.path.join(config.option('cache'), str(self.ID()))
+      self.dir = os.path.join(config.Option('cache'), str(self.ID()))
       if not os.path.exists(self.dir):
         os.mkdir(self.dir)
     return self.dir
