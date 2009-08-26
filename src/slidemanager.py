@@ -400,7 +400,7 @@ class SlideManager(object):
             child.move_by(0, h_diff * 1.5)
             noclip = True
       except Exception:
-        logging.exception('Caught exception while resizing children.')
+        self.log.exception('Caught exception while resizing children.')
 
       # XXX clips the slide to fit the letterbox format
       if not noclip:
