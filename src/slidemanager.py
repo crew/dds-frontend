@@ -9,14 +9,9 @@ __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 
 import clutter
-import config
 import gflags as flags
 import gobject
-import hashlib
-import imp
 import logging
-import os
-import sys
 import uuid
 
 import slideobject
@@ -130,6 +125,12 @@ class SlideManager(object):
     self.AddSlideObject(newslide, start=start)
  
   def AddSlideObject(self, newslide, start=True):
+    """Add a slide object to the slide list.
+
+    Args:
+       newslide: (Slide) Object to add
+       start: (Boolean) Starts the slideshow if true.
+    """
     if newslide.Parse():
       self.SafeAddSlide(newslide)
       if start and not self.IsActive():
@@ -284,16 +285,16 @@ class SlideManager(object):
     effect = None
     if (self.CurrentSlide().transition == "fade"):
       effect = clutter.effect_fade(template, self.CurrentSlide().slide, 0)
-    elif(self.CurrentSlide().transition == "slide-right-left"):
+    elif (self.CurrentSlide().transition == "slide-right-left"):
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   self._stage.get_width(), 0)
-    elif(self.CurrentSlide().transition == "slide-left-right"):
+    elif (self.CurrentSlide().transition == "slide-left-right"):
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0 - self._stage.get_width(), 0)
-    elif(self.CurrentSlide().transition == "slide-up-down"):
+    elif (self.CurrentSlide().transition == "slide-up-down"):
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0, self._stage.get_height())
-    elif(self.CurrentSlide().transition == "slide-down-up"):
+    elif (self.CurrentSlide().transition == "slide-down-up"):
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   0, 0 - self._stage.get_height())
     if effect:
@@ -324,11 +325,11 @@ class SlideManager(object):
     if self.HasMultipleSlides():
       self.SetupAnimation()
 
-  def CreateNextTimer(self, next, slide):
+  def CreateNextTimer(self, nextmethod, slide):
     """Schedule a timer for the next slide transition.
 
     Args:
-      next: (method) Function to call when the timer fires
+      nextmethod: (method) Function to call when the timer fires
       slide: (Clutter Slide) Slide object to read duration from
     """
     # This needs some sort of lock, but the one in place before was very
@@ -341,9 +342,10 @@ class SlideManager(object):
 
       nextuuid = str(uuid.uuid4())
       def conditionalnext():
+        """On demand method for a next() call."""
         if nextuuid in self._timers.values():
           self.log.info('Hitting next')
-          next()
+          nextmethod()
           if slide in self._timers:
             del self._timers[slide]
         else:
@@ -376,7 +378,6 @@ class SlideManager(object):
     width, height = self._stage.get_size()
     ratio_w = float(width) / FLAGS.ratiowidth
     ratio_h = float(height) / FLAGS.ratioheight
-    new_width = ratio_w * FLAGS.ratiowidth
     slide.set_anchor_point(0, 0)
     
     if FLAGS.letterbox:
@@ -392,9 +393,9 @@ class SlideManager(object):
       noclip = False
       # XXX Hack to support video letterboxing, sort of
       try:
-        for c in slide.get_children():
-          if c.__class__.__name__ == 'VideoTexture':
-            c.move_by(0, h_diff * 1.5)
+        for child in slide.get_children():
+          if child.__class__.__name__ == 'VideoTexture':
+            child.move_by(0, h_diff * 1.5)
             noclip = True
       except:
         pass
