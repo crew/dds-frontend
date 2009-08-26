@@ -23,6 +23,7 @@ import time
 import urlparse
 import urllib
 
+FLAGS = flags.FLAGS
 
 class Slide(object):
   """Class representing all portions of a DDS Slide (metadata and content)."""
@@ -33,8 +34,6 @@ class Slide(object):
     Args:
        filename: (string) path to slide manifest
     """
-    self.PARSER_MAP = {'layout': self.ParseJSON, 'module': self.ParsePython}
-    self.LAYOUTFILE_MAP = {'layout': 'layout.js', 'module': 'layout.py'}
     self.id = None
     self.duration = None
     self.transition = None
@@ -68,42 +67,41 @@ class Slide(object):
        Also creates cached copy of this slide on disk, and downloads all the
        needed assets.
     """
-    s = Slide()
-    s.manifest = manifesttuple
-    info, assets = s.manifest
-    s.UpdateInfo(info)
-    s.UpdateAssets(assets)
-    s.SaveManifest()
-    return s
+    slide = Slide()
+    slide.manifest = manifesttuple
+    info, assets = slide.manifest
+    slide.UpdateInfo(info)
+    slide.UpdateAssets(assets)
+    slide.SaveManifest()
+    return slide
 
   def SlideDir(self):
     """Get the filesystem directory containing this slide data."""
     if self.dir is None:
-      self.dir = os.path.join(config.option('cache'), str(self.id))
+      self.dir = os.path.join(config.option('cache'), str(self.ID()))
       if not os.path.exists(self.dir):
         os.mkdir(self.dir)
     return self.dir
 
   def VerifyComplete(self):
     """Verify that we have everything needed to display this slide."""
-    ok = True
-    if self.mode not in self.LAYOUTFILE_MAP:
+    complete = True
+    if not self.GetLayoutFile():
       logging.error('Slide ID %s unsupported mode "%s"'
-                    % (self.id, self.mode))
-      ok = False
+                    % (self.ID(), self.mode))
+      complete = False
     else:
-      layoutfilepath = os.path.join(self.SlideDir(),
-                                    self.LAYOUTFILE_MAP[self.mode])
+      layoutfilepath = os.path.join(self.SlideDir(), self.GetLayoutFile())
       if not os.path.exists(layoutfilepath):
-        logging.error('Layout file for slide ID %s missing!' % self.id)
-        ok = False
+        logging.error('Layout file for slide ID %s missing!' % self.ID())
+        complete = False
 
     for asset in self.assets:
       if not self.AssetExists(asset):
-        logging.err('Asset missing for slide ID %s: %s' % (slide.id, asset))
-        ok = False
+        logging.error('Asset missing for slide ID %s: %s' % (self.ID(), asset))
+        complete = False
 
-    if not ok:
+    if not complete:
       logging.error('Slide not consistent, missing components.')
       return False
     else:
@@ -117,34 +115,34 @@ class Slide(object):
     """
     if filename:
       self.manifestfile = filename
-      fh = open(self.manifestfile, 'r')
-      self.manifest = json.load(fh)
-      fh.close()
+      filehandle = open(self.manifestfile, 'r')
+      self.manifest = json.load(filehandle)
+      filehandle.close()
 
     if self.manifest:
       info, assets = self.manifest
       self.UpdateInfo(info)
       self.UpdateAssets(assets, download)
 
-  def LoadSlideID(self, id):
+  def LoadSlideID(self, slideid):
     """Given a Slide ID, try and load a cached copy of it from disk.
     
     Args:
-       id: (int) Slide ID
+       slideid: (int) Slide ID
     """
-    self.id = id
+    self.id = slideid
     self.manifestfile = os.path.join(self.SlideDir(), 'manifest.js')
     if not os.path.exists(self.manifestfile):
-      raise Exception('Could not find manifest for slide ID: %s' % id)
+      raise Exception('Could not find manifest for slide ID: %s' % self.ID())
     else:
       self.ParseManifest(self.manifestfile, download=False)
 
   def SaveManifest(self):
     """Save the in-memory slide manifest to disk."""
     self.manifestfile = os.path.join(self.SlideDir(), 'manifest.js')
-    fh = open(self.manifestfile, 'w')
-    json.dump(self.manifest, fh)
-    fh.close()
+    filehandle = open(self.manifestfile, 'w')
+    json.dump(self.manifest, filehandle)
+    filehandle.close()
 
   def UpdateInfo(self, infohash):
     """Given a dictionary of slide metadata, update our saved copy.
@@ -199,13 +197,23 @@ class Slide(object):
     urllib.urlretrieve(asseturl, destpath)
     return self.AssetExists(asset)
 
-  def GetParserMethod(self):
+  def GetParserMethod(self, modename=None):
     """Using self.mode, get the method to use for parsing this slide."""
-    return self.PARSER_MAP[self.mode]
+    parsermap = {'layout': self.ParseJSON, 'module': self.ParsePython}
+    if not modename:
+      modename = self.mode
+    if modename not in parsermap:
+      return False
+    return parsermap[modename]
 
-  def GetLayoutFile(self):
+  def GetLayoutFile(self, modename=None):
     """Using self.mode, get the filename of this slides layout file."""
-    return self.LAYOUTFILE_MAP[self.mode]
+    layoutfilemap = {'layout': 'layout.js', 'module': 'layout.py'}
+    if not modename:
+      modename = self.mode
+    if modename not in layoutfilemap:
+      return False
+    return layoutfilemap[modename]
 
   def Parse(self):
     """Parse this slide into self.slide."""
@@ -267,8 +275,9 @@ class Slide(object):
       Parsed slide from setupNewSlide
     """
     try:
-      slideModule = self.LoadModule(filename, directory)
-      return slideModule.slide
+      slidemodule = self.LoadModule(filename, directory)
+      return slidemodule.slide
+
     except Exception, e:
       logging.error('Could not load module %s in dir %s because %s'
                     % (filename, directory, e))
@@ -282,15 +291,15 @@ class Slide(object):
     """
     fin = None
     try:
-      currentDirectory = os.getcwd()
-      currentPath = sys.path
+      currentdirectory = os.getcwd()
+      currentpath = sys.path
       sys.path.append(directory)
       os.chdir(directory)
       fin = open(codepath, 'rb')
       module = imp.load_source(hashlib.sha1(codepath).hexdigest(),
                                codepath, fin)
-      os.chdir(currentDirectory)
-      sys.path = currentPath
+      os.chdir(currentdirectory)
+      sys.path = currentpath
       return module
     finally:
       if fin:
@@ -302,8 +311,7 @@ class Slide(object):
     Args:
        newmanifest: (tuple) manifest of (slide metadata, assets)
     """
-    info, assets = newmanifest
-    if info['id'] == self.ID():
+    if newmanifest[0]['id'] == self.ID():
       return True
     return False
 
@@ -323,11 +331,13 @@ class Slide(object):
 
   ## Following two methods virtual as they call a method if present on
   ## self.slide
+  # pylint: disable-msg=C0103
   def teardownslide(self):
     """Safe alias for self.slide.teardownslide."""
     if hasattr(self.slide, 'teardownslide'):
       self.slide.teardownslide()
 
+  # pylint: disable-msg=C0103
   def setupslide(self):
     """Safe alias for self.slide.setupslide."""
     if hasattr(self.slide, 'setupslide'):
