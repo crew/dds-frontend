@@ -48,7 +48,11 @@ class SlideManager(object):
     Returns:
        Boolean True if slide exists, False otherwise
     """
-    return slideid in map(lambda x: x.ID(), self._slides)
+    return slideid in self.SlideIDList()
+
+  def SlideIDList(self):
+    """Get a list of integer slide IDs we currently manage."""
+    return [x.ID() for x in self._slides]
 
   def IsActive(self):
     """Determines if this slider's active."""
@@ -65,7 +69,7 @@ class SlideManager(object):
 
   def LogSlideOrder(self):
     """Create a log message with the current slide order list."""
-    msg = 'Current Slide Order: %s' % str(map(lambda x: x.ID(), self._slides))
+    msg = 'Current Slide Order: %s' % str(self.SlideIDList())
     self.log.info(msg)
     return msg
 
@@ -142,7 +146,7 @@ class SlideManager(object):
     Args:
        removalid: (int) Slide ID to remove
     """
-    if removalid not in map(lambda x: x.ID(), self._slides):
+    if removalid not in self.SlideIDList():
       self.log.debug(('I was told to remove slide id %s from the deck, but its'
                      ' already gone') % removalid)
     else:
@@ -341,6 +345,7 @@ class SlideManager(object):
                     % (slide.ID(), slide.duration))
 
       nextuuid = str(uuid.uuid4())
+      # pylint: disable-msg=C0103
       def conditionalnext():
         """On demand method for a next() call."""
         if nextuuid in self._timers.values():
@@ -362,7 +367,7 @@ class SlideManager(object):
       slides: (list of Clutter Slides)
       slide: (Clutter Slide) Slide to check for presence in slides
     """
-    if slide.ID() not in map(lambda x: x.ID(), self._slides):
+    if slide.ID() not in self.SlideIDList():
       self.log.info('Added slide id %s to slide list' % slide.ID())
       self.ResizeSlide(slide.slide)
       self._slides.append(slide)
@@ -398,7 +403,7 @@ class SlideManager(object):
             child.move_by(0, h_diff * 1.5)
             noclip = True
       except:
-        pass
+        logging.exception('Caught exception while resizing children.')
 
       # XXX clips the slide to fit the letterbox format
       if not noclip:
