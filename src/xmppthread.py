@@ -29,7 +29,7 @@ class XMPPThread(threading.Thread):
 
   def AttachSlideManager(self, slidemanager):
     """Attach a slide manager to this thread.
-    
+
     Args:
        slidemanager: (SlideManager) slidemanager instance
     """
@@ -42,7 +42,7 @@ class XMPPThread(threading.Thread):
     Args:
        slide: (Slide) Slide object to send out presence for
     """
-    self.status.setStatus('Current=%s' % slide.ID())
+    self.status.setStatus(str(slide.ID()))
     self.connection.send(self.status)
 
   def AddSlide(self, slidetuple):
@@ -123,9 +123,9 @@ class XMPPThread(threading.Thread):
     self.connection.sendInitPresence()
 
     # Say hello to the dds-master server
-    serverhello = xmpp.Presence(to=config.Option("server-jid"))
-    serverhello.setStatus('initialsliderequest')
-    self.connection.send(serverhello)
+    self.status = xmpp.Presence(to=config.Option("server-jid"))
+    self.status.setStatus('initialsliderequest')
+    self.connection.send(self.status)
 
     self.Proceed()
 
