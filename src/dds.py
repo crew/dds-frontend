@@ -8,10 +8,6 @@ X SESSION to display pretty slides to users around the world.
 __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 
-# XXX Hide Deprecation warnings
-import warnings
-warnings.simplefilter('ignore', DeprecationWarning)
-
 import clutter
 import config
 import gflags as flags
@@ -96,7 +92,7 @@ def SetupStartupImage(stage):
   background = clutter.Rectangle()
   background.set_width(stage.get_width())
   background.set_height(stage.get_height())
-  background.set_color(clutter.color_parse('black'))
+  background.set_color(clutter.color_from_string('black'))
   background.set_position(0, 0)
   stage.add(background)
 
@@ -105,8 +101,6 @@ def InitializeLibraries():
   """Initialize the external libraries used."""
   gobject.threads_init()
   clutter.threads_init()
-  # Fix a blocky text issue
-  clutter.set_use_mipmapped_text(False)
 
 
 def SetupCache():
@@ -126,7 +120,7 @@ def HandleFullscreen(stage):
   if FLAGS.fullscreen:
     logging.debug('Going Fullscreen')
     FULLSCREEN = True
-    stage.fullscreen()
+    stage.set_fullscreen(True)
     
 
 def SetupStage(stage, show):
@@ -137,11 +131,10 @@ def SetupStage(stage, show):
      show: (Slider) Slideshow instance
   """
   HandleFullscreen(stage)
-  stage.set_color(clutter.color_parse('black'))
+  stage.set_color(clutter.color_from_string('black'))
   SetupStartupImage(stage)
   stage.connect('destroy', clutter.main_quit)
   stage.connect('key-press-event', OnKeyPressEvent, show)
-  stage.hide_cursor()
   stage.set_title('CCIS Digital Display')
   stage.show_all()
 
@@ -153,7 +146,7 @@ def Main():
   logging.basicConfig(level=logging.DEBUG,
                       format='%(asctime)s %(filename)s %(lineno)d '
                              '%(levelname)s %(message)s')
-  stage = clutter.stage_get_default()
+  stage = clutter.Stage()
   SetupCache()
   show = slidemanager.SlideManager(stage)
   SetupStage(stage, show)
