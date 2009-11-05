@@ -249,6 +249,7 @@ class SlideManager(object):
     current = self.CurrentSlide()
     stage = self._stage
     self.log.debug('Setting up animation')
+    return
     if current.transition == "fade":
       current.slide.set_opacity(0)
     elif current.transition == "slide-right-left":
@@ -267,9 +268,13 @@ class SlideManager(object):
       current: (Clutter Slide) The current slide in the deck
     """
     self.log.debug('in animation')
-    timeline = clutter.Timeline(fps=60, duration=500)
-    template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
+    timeline = clutter.Timeline()
+    timeline.set_duration(500)
+    template = clutter.Animation()
+    template.set_timeline(timeline)
     effect = None
+    return
+
     if current.transition == "fade":
       effect = clutter.effect_fade(template, current.slide, 255)
     elif ((current.transition == "slide-right-left") or
@@ -282,12 +287,18 @@ class SlideManager(object):
 
   def OutAnimation(self):
     """Run the exit animation of the self.CurrentSlide() slide."""
+    return
     self.log.debug('out animation')
-    timeline = clutter.Timeline(fps=60, duration=500)
-    template = clutter.EffectTemplate(timeline, clutter.sine_inc_func)
+    timeline = clutter.Timeline()
+    timeline.set_duration(500)
+    template = clutter.Animation()
+    template.set_timeline(timeline)
+    effect = self.CurrentSlide().slide.animate(clutter.EASE_IN_EXPO, 2000)
+    return
+
     effect = None
     if self.CurrentSlide().transition == "fade":
-      effect = clutter.effect_fade(template, self.CurrentSlide().slide, 0)
+      effect = (template, self.CurrentSlide().slide, 0)
     elif self.CurrentSlide().transition == "slide-right-left":
       effect = clutter.effect_move(template, self.CurrentSlide().slide,
                                   self._stage.get_width(), 0)
@@ -313,10 +324,15 @@ class SlideManager(object):
 
     if self.HasMultipleSlides():
       self.OutAnimation()
+
+    self.Advance()
+
+    if self.HasMultipleSlides():
       if self.PreviousSlide():
         self.PreviousSlide().slide.hide_all()
         self._stage.remove(self.PreviousSlide().slide)
-    self.Advance()
+      else:
+        self.log.warning('No previous?')
 
     try:
       self.CurrentSlide().setupslide()
