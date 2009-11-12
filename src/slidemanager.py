@@ -13,6 +13,7 @@ import gflags as flags
 import gobject
 import logging
 import uuid
+import time
 
 import slideobject
 
@@ -168,6 +169,7 @@ class SlideManager(object):
 
   def Next(self):
     """Runs the timer thread for, and shows the next slide"""
+
     if not self.HasMultipleSlides():
       self.Stop()
       return
@@ -206,9 +208,9 @@ class SlideManager(object):
        slide: (Clutter Slide)
     """
     self.log.info('starting paint')
-    self.InAnimation(slide)
-    slide.slide.show_all()
     self._stage.add(slide.slide)
+    slide.slide.show_all()
+    self.InAnimation(slide)
 
   def ChangeSlideOrder(self, direction='forward'):
     """Advance the slide order in the given direction.
@@ -249,17 +251,7 @@ class SlideManager(object):
     current = self.CurrentSlide()
     stage = self._stage
     self.log.debug('Setting up animation')
-    return
-    if current.transition == "fade":
-      current.slide.set_opacity(0)
-    elif current.transition == "slide-right-left":
-      current.slide.set_x(0 - stage.get_width())
-    elif current.transition == "slide-left-right":
-      current.slide.set_x(stage.get_width())
-    elif current.transition == "slide-up-down":
-      current.slide.set_y(0 - stage.get_height())
-    elif current.transition == "slide-down-up":
-      current.slide.set_y(stage.get_height())
+    current.slide.show_all()
 
   def InAnimation(self, current):
     """Run the intro animation of the current slide.
@@ -268,63 +260,50 @@ class SlideManager(object):
       current: (Clutter Slide) The current slide in the deck
     """
     self.log.debug('in animation')
-    timeline = clutter.Timeline()
-    timeline.set_duration(500)
-    template = clutter.Animation()
-    template.set_timeline(timeline)
-    effect = None
-    return
 
-    if current.transition == "fade":
-      effect = clutter.effect_fade(template, current.slide, 255)
-    elif ((current.transition == "slide-right-left") or
-          (current.transition == "slide-left-right") or
-          (current.transition == "slide-up-down") or
-          (current.transition == "slide-down-up")):
-      effect = clutter.effect_move(template, current.slide, 0, 0)
-    if effect:
-      effect.start()
+    self.fade_in = clutter.Timeline()
+    self.fade_in.set_duration(500)
+    self.alpha_in = clutter.Alpha(self.fade_in, clutter.LINEAR)
 
+    self.inbehavior = clutter.BehaviourOpacity(0x0, 0xff, self.alpha_in)
+    self.inbehavior.apply(current.slide)
+    def poop(x):
+      self.log.info('Done fade in')
+      self.inbehavior.remove_all()
+    self.fade_in.connect('completed', poop)
+    self.fade_in.start()
+    
   def OutAnimation(self):
     """Run the exit animation of the self.CurrentSlide() slide."""
-    return
-    self.log.debug('out animation')
-    timeline = clutter.Timeline()
-    timeline.set_duration(500)
-    template = clutter.Animation()
-    template.set_timeline(timeline)
-    effect = self.CurrentSlide().slide.animate(clutter.EASE_IN_EXPO, 2000)
-    return
+    self.log.info('Outro start')
+    self.fadeoutcomplete = False
+    self.fade_out = clutter.Timeline()
+    self.fade_out.set_duration(500)
+    self.alpha_out = clutter.Alpha(self.fade_out, clutter.LINEAR)
+    self.outbehavior = clutter.BehaviourOpacity(0xff, 0x0, self.alpha_out)
+    self.outbehavior.apply(self.CurrentSlide().slide)
+    def poop(x):
+      self.log.info('Done fade out')
+      self.outbehavior.remove_all()
+      self.fadeoutcomplete = True
+    self.fade_out.connect('completed', poop)
+    self.fade_out.start()
 
-    effect = None
-    if self.CurrentSlide().transition == "fade":
-      effect = (template, self.CurrentSlide().slide, 0)
-    elif self.CurrentSlide().transition == "slide-right-left":
-      effect = clutter.effect_move(template, self.CurrentSlide().slide,
-                                  self._stage.get_width(), 0)
-    elif self.CurrentSlide().transition == "slide-left-right":
-      effect = clutter.effect_move(template, self.CurrentSlide().slide,
-                                  0 - self._stage.get_width(), 0)
-    elif self.CurrentSlide().transition == "slide-up-down":
-      effect = clutter.effect_move(template, self.CurrentSlide().slide,
-                                  0, self._stage.get_height())
-    elif self.CurrentSlide().transition == "slide-down-up":
-      effect = clutter.effect_move(template, self.CurrentSlide().slide,
-                                  0, 0 - self._stage.get_height())
-    if effect:
-      effect.start()
+    self.log.info('Outro end')
+      
 
   def LoadNext(self):
     """Prepare the next slide to be painted."""
+
+    if self.HasMultipleSlides():
+      self.OutAnimation()
 
     try:
       self.CurrentSlide().teardownslide()
     except Exception:
       self.log.exception('Failed to teardown slide with teardown method.')
 
-    if self.HasMultipleSlides():
-      self.OutAnimation()
-
+    self.log.info('pre advance')
     self.Advance()
 
     if self.HasMultipleSlides():
