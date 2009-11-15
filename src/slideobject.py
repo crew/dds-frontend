@@ -49,6 +49,8 @@ class Slide(object):
     self.dir = None
     # Clutter group representing this slides content
     self.slide = None
+    # Slide module if python
+    self.app = None
 
     if filename is not None:
       self.ParseManifest(filename)
@@ -222,9 +224,10 @@ class Slide(object):
 
     if not self.VerifyComplete():
       return False
-   
-    gobject.timeout_add(100, self.RunParser)
-    while self.parsedone is None:
+  
+    gobject.idle_add(self.RunParser)
+    while not self.parsedone:
+      logging.info('waiting')
       time.sleep(0.1)
     return self.parsedone
     
@@ -242,7 +245,7 @@ class Slide(object):
   def RunParser(self):
     """Run the parser for this slide (Executed from a gobject timeout)."""
     parser = self.GetParserMethod()
-    self.slide = parser(self.GetLayoutFile(), self.SlideDir())
+    self.slide, self.app = parser(self.GetLayoutFile(), self.SlideDir())
     gobject.idle_add(self.SetParseDone, self.slide is not None)
 
   def ParseJSON(self, filename, directory):
@@ -261,7 +264,7 @@ class Slide(object):
     script = clutter.Script()
     script.add_search_paths(directory)
     script.load_from_file(filename)
-    return script.get_object('slide')
+    return (script.get_object('slide'), None)
 
   def ParsePython(self, filename, directory):
     """Returns a slide from the given python module.
@@ -276,7 +279,7 @@ class Slide(object):
     """
     try:
       slidemodule = self.LoadModule(filename, directory)
-      return slidemodule.slide
+      return (slidemodule.slide, slidemodule.app)
 
     except Exception, e:
       logging.error('Could not load module %s in dir %s because %s'
