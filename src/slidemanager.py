@@ -17,6 +17,7 @@ import time
 
 import slideobject
 
+flags.DEFINE_boolean('resizeslides', True, 'Control resize behavior')
 flags.DEFINE_integer('ratioheight', 1080, 'Height Divisor Constant')
 flags.DEFINE_integer('ratiowidth', 1920, 'Width Divisor Constant')
 flags.DEFINE_boolean('letterbox', False,
@@ -369,10 +370,17 @@ class SlideManager(object):
 
   def ResizeSlide(self, slide):
     """Resize the given slide to fit the stage."""
+    if not FLAGS.resizeslides:
+      self.log.debug('Skipping resize step.')
+      return
     self.log.debug('Start resize')
     # find the ratio based on width
     # slide.set_size(FLAGS.ratiowidth, FLAGS.ratioheight)
     width, height = self._stage.get_size()
+    if FLAGS.ratiowidth == width and FLAGS.ratioheight == height:
+      self.log.debug('No need to resize, already the right size...')
+      return
+
     ratio_w = float(width) / FLAGS.ratiowidth
     ratio_h = float(height) / FLAGS.ratioheight
     slide.set_anchor_point(0, 0)
