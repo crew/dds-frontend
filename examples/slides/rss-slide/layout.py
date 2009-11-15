@@ -1,21 +1,27 @@
-import clutter, gtk.gdk
+import clutter
 import sys
+import cgi
 import feedparser
+import baseslide
+from htmlentitydefs import name2codepoint
+# for some reason, python 2.5.2 doesn't have this one (apostrophe)
+name2codepoint['#39'] = 39
 # regex lib for stripping HTML tags
 import re
 
-# This class displays a single entry (the latest) in an RSS feed.
-# it is strictly static content at the moment - however, this
-# class is intended to be a template to easily incorperate ANY RSS
-# feed into DDS, simply by initializing it with a different feed.
-class RSSDisplay(object):
+# This class displays an RSS feed. It is strictly static content
+# at the moment - however, this class is intended to be a template
+# to easily incorporate ANY RSS feed into DDS, simply by initializing
+# it with a different feed.
+class RSSDisplay(baseslide.BaseSlide):
   def __init__(self, feedURL):
     """ Initializes the stage and score for this slide. """
-    self.group = clutter.Group()
-    self.group.set_size(1920, 1080)
+    baseslide.BaseSlide.__init__(self)
     self.addrss(feedURL)
-    self.group.setupslide = lambda: self.refresh(feedURL)
-    # self.addBackground()
+    self.feedURL = feedURL
+
+  def setupslide(self):
+    self.refresh(self.feedURL)
 
   def refresh(self, feedURL):
     self.group.remove_all()
@@ -26,11 +32,13 @@ class RSSDisplay(object):
     #TODO: ERROR CHECKING: MAKE SURE WE DON'T EXPLODE WITH A BAD FEED
     rssfeed = feedparser.parse(feedURL)
     feedtitle = remove_html_tags(rssfeed.feed.title)
-    feedtitleActor = clutter.label_new_with_text("serif 36", feedtitle)
-    feedtitleActor.set_color(clutter.color_parse("gold"))
+    feedtitleActor = clutter.Text()
+    feedtitleActor.set_text(feedtitle)
+    feedtitleActor.set_font_name("serif 71")
+    feedtitleActor.set_color(clutter.color_from_string("gold"))
     feedtitleActor.set_size(1920, 100)
     feedtitleActor.set_position(0, 0)
-    self.group.add(feedtitleActor)
+    self.group.add(feedtitleActor) 
 
     y = 100
     for entry in rssfeed.entries:
@@ -38,38 +46,45 @@ class RSSDisplay(object):
 
   def add_entry_group(self, entry, starty, width=1920):
     topstorytitle = remove_html_tags(entry.title)
-    title = clutter.label_new_with_text("serif 32", topstorytitle)
+    title = clutter.Text()
+    title.set_text(topstorytitle)
+    title.set_font_name("serif 32")
     title.set_width(width)
-#size(1920, 100)
-    title.set_color(clutter.color_parse("white"))
+    title.set_color(clutter.color_from_string("white"))
     title.set_position(0, starty)
     self.group.add(title)
 
     topstorytext = remove_html_tags(entry.summary)
-    content = clutter.label_new_with_text("serif 24", "test")
+    content = clutter.Text()
+    content.set_text(topstorytext)
+    content.set_font_name("serif 24")
     content.set_line_wrap(True)
     content.set_line_wrap_mode(2)
-    content.set_color(clutter.color_parse("white"))
+    content.set_color(clutter.color_from_string("white"))
     content.set_position(0, starty + title.get_height())
-#    content.set_size(1920, 200)
     content.set_width(width)
-    content.set_text(topstorytext)
-    content.set_clip(0, 0, 1920, 200)
+    content_height = content.get_height()
+    content.set_height(content_height > 200 and 200 or content_height)
+    content.set_ellipsize(3) #Omit characters at the end of the text
     self.group.add(content)
 
-    content_height = content.get_height()
-    return title.get_height() + content_height > 200 and 200 or content_height
+    return title.get_height() + content.get_height()
 
-  def addBackground(self):
-    stageBackground = clutter.Texture('feedimage.png')
-    stageBackground.set_position(0, 0)
-    self.group.add(stageBackground)
+def addBackground(self):
+  stageBackground = clutter.Texture('feedimage.png')
+  stageBackground.set_position(0, 0)
+  self.group.add(stageBackground)
 
+def unescape(s):
+  """ Replaces HTML entities with their unicode equivalent"""
+  # unescape HTML code refs; c.f. http://wiki.python.org/moin/EscapingHtml
+  return re.sub('&(%s);' % '|'.join(name2codepoint),
+            lambda m: unichr(name2codepoint[m.group(1)]), s)
 
 def remove_html_tags(data):
-  """ Removes HTML tags from a given string. """
+  """ Removes HTML tags and unscapes the given string. """
   p = re.compile(r'<.*?>')
-  return p.sub('', data)
+  return unescape(p.sub('', data))
 
 def main(args=None):
   app = RSSDisplay("http://rss.slashdot.org/Slashdot/slashdot")
