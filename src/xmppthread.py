@@ -116,8 +116,10 @@ class XMPPThread(threading.Thread):
       return False
     auth = self.connection.auth(jid.getNode(), password, jid.getResource())
     if not auth:
-      logging.error("XMPP password was incorrect")
-      return False
+      	logging.info("Unrecognized account! Attempting registration")
+  	if not xmpp.features.register(self.connection, jid.getDomain(), {"username": jid.getNode(), "password":password}):
+		return False
+	return self.SetupXmpp()
 
     self.connection.RegisterHandler("iq", self.GenerateIqHandler())
     self.connection.sendInitPresence()
