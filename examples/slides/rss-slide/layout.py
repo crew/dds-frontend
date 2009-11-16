@@ -1,8 +1,10 @@
 import clutter
+import pango
 import sys
 import cgi
 import feedparser
 import baseslide
+import logging
 from htmlentitydefs import name2codepoint
 # for some reason, python 2.5.2 doesn't have this one (apostrophe)
 name2codepoint['#39'] = 39
@@ -42,13 +44,17 @@ class RSSDisplay(baseslide.BaseSlide):
 
     y = 100
     for entry in rssfeed.entries:
+      if y >= 1080:
+        break
       y += self.add_entry_group(entry, y, width=1920) + 20
+
 
   def add_entry_group(self, entry, starty, width=1920):
     topstorytitle = remove_html_tags(entry.title)
     title = clutter.Text()
-    title.set_text(topstorytitle)
     title.set_font_name("serif 32")
+    title.set_text(topstorytitle)
+    title.set_markup('<span underline="single">%s</span>' % topstorytitle)
     title.set_width(width)
     title.set_color(clutter.color_from_string("white"))
     title.set_position(0, starty)
