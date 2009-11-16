@@ -370,22 +370,23 @@ class SlideManager(object):
 
   def ResizeSlide(self, slide):
     """Resize the given slide to fit the stage."""
+    width, height = self._stage.get_size()
+
     if not FLAGS.resizeslides:
       self.log.debug('Skipping resize step.')
       return
-    self.log.debug('Start resize')
-    # find the ratio based on width
-    # slide.set_size(FLAGS.ratiowidth, FLAGS.ratioheight)
-    width, height = self._stage.get_size()
-    if FLAGS.ratiowidth == width and FLAGS.ratioheight == height:
-      self.log.debug('No need to resize, already the right size...')
+    elif FLAGS.ratiowidth == width and FLAGS.ratioheight == height:
+      self.log.debug('No reason to resize, already the right size')
       return
+    else:
+      self.log.debug('Start resize')
 
     ratio_w = float(width) / FLAGS.ratiowidth
     ratio_h = float(height) / FLAGS.ratioheight
     slide.set_anchor_point(0, 0)
-    
+   
     if FLAGS.letterbox:
+      self.Letterbox(slide)
       # TODO support letterboxing on the side, i.e. 4 x 3 shown in 16 x 10
       # anchor at top left, then scale.
       slide.set_scale(ratio_w, ratio_w)
@@ -410,9 +411,7 @@ class SlideManager(object):
         slide.set_clip(0, 0, slide.get_width(), slide.get_height())
     else:
       slide.set_scale(ratio_w, ratio_h)
-    self._stage.queue_redraw()
-    self.log.debug('%d %d' % slide.get_position())
-    self.log.debug('%d %d' % slide.get_size())
+
     self.log.debug('End resize')
     return slide
 
