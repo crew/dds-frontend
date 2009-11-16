@@ -1,7 +1,9 @@
 import clutter
 import sys
 import baseslide
+import logging
 import pywapi
+import os
 
 class WeatherDisplay(baseslide.BaseSlide):
   def __init__(self, location):
@@ -12,6 +14,30 @@ class WeatherDisplay(baseslide.BaseSlide):
     self.photo = None
     self.photo2 = None
     self.addweather(location)
+
+  def IconMap(self, name):
+    icons = {}
+    icons["mostly_cloudy"]    = "weather-sunny-few-clouds"
+    icons["cloudy"]           = "weather-overcast"
+    icons["mostly_sunny"]     = "weather-sunny-very-few-clouds"
+    icons["partly_cloudy"]    = "weather-sunny-very-few-clouds"
+    icons["sunny"]            = "weather-sunny"
+    icons["flurries"]         = "weather-snow"
+    icons["fog"]              = "weather-fog"
+    icons["haze"]             = "weather-haze"
+    icons["icy"]              = "weather-icy"
+    icons["sleet"]            = "weather-sleet"
+    icons["chance_of_sleet"]  = "weather-sleet"
+    icons["snow"]             = "weather-snow"
+    icons["chance_of_snow"]   = "weather-snow"
+    icons["mist"]             = "weather-showers"
+    icons["rain"]             = "weather-showers"
+    icons["chance_of_rain"]   = "weather-showers"
+    icons["storm"]            = "weather-storm"
+    icons["chance_of_storm"]  = "weather-storm"
+    icons["thunderstorm"]     = "weather-thundershower"
+    icons["chance_of_tstorm"] = "weather-thundershower"
+    return icons[name]
 
   def setupslide(self):
     self.refresh(self.location)
@@ -45,8 +71,12 @@ class WeatherDisplay(baseslide.BaseSlide):
     feedtemp.set_position(20, 100)
     self.group.add(feedtemp)
 
-    self.icon = self.GetTextureFromURL('http://www.google.com' +
-       weather['current_conditions']['icon'], self.icon)
+
+    googlefilename = weather['current_conditions']['icon']
+    conditionname = os.path.basename(googlefilename).rsplit('.', 1)[0]
+    path = 'icons/%s.svg' % self.IconMap(conditionname)
+    logging.info(path)
+    self.icon = clutter.Texture(path)
     self.icon.set_position(20, 200)
     self.icon.set_size(256,256)
     self.icon.show()
