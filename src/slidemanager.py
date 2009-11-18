@@ -213,8 +213,8 @@ class SlideManager(object):
     self._stage.add(slide.slide)
     slide.slide.show_all()
     self.InAnimation(slide)
-    gobject.timeout_add(500, self.TakeScreenshot)
-
+    slide.TakeScreenshot()
+ 
   def ChangeSlideOrder(self, direction='forward'):
     """Advance the slide order in the given direction.
 
@@ -369,13 +369,6 @@ class SlideManager(object):
       return True
     else:
       return False
-
-  def TakeScreenshot(self):
-    import os
-    logging.info('Taking screenshot')
-    os.system("import -window root -silent slide-%s.png"
-              % self.CurrentSlide().ID())
-    return False
 
   def ResizeSlide(self, slide):
     """Resize the given slide to fit the stage."""
