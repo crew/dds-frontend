@@ -346,3 +346,20 @@ class Slide(object):
     if hasattr(self.slide, 'setupslide'):
       self.slide.setupslide()
 
+  def ScreenshotPath(self):
+    basepath = os.path.join(config.Option('cache'), '..', 'screenshots')
+    if not os.path.exists(basepath):
+      os.mkdir(basepath)
+    return os.path.join(basepath, 'slide-%s.png' % self.ID())
+
+  def TakeScreenshot(self):
+    if not os.path.exists(self.ScreenshotPath()):
+      gobject.timeout_add(500, self.DoTakeScreenshot)
+
+  def DoTakeScreenshot(self):
+    logging.info('Taking screenshot')
+    os.system("import -window root -silent %s"
+              % self.ScreenshotPath())
+    return False
+
+
