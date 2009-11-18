@@ -12,6 +12,7 @@ import xmlrpclib
 import logging
 import config
 import threading
+import os
 
 # This should be a list of XMPP resource strings that the server understands.
 ALLOWABLERESOURCES = ['dds-client']
@@ -114,12 +115,18 @@ class XMPPThread(threading.Thread):
       logging.error('Invalid JID Resource given. Must be in: %s'
                     % str(ALLOWABLERESOURCES))
       return False
+
     auth = self.connection.auth(jid.getNode(), password, jid.getResource())
     if not auth:
-      	logging.info("Unrecognized account! Attempting registration")
-  	if not xmpp.features.register(self.connection, jid.getDomain(), {"username": jid.getNode(), "password":password}):
-		return False
-	return self.SetupXmpp()
+      logging.warning('Unrecognized XMPP account! Attempting registration')
+      if not xmpp.features.register(self.connection, jid.getDomain(), {"username": jid.getNode(), "password":password}):
+        logging.error('XMPP New Account registration failed. Bailing out!')
+        os.abort()
+        return False
+      else:
+        # At this point, we have created a new XMPP account, and need to restart
+        # the setup process.
+        return self.SetupXmpp()
 
     self.connection.RegisterHandler("iq", self.GenerateIqHandler())
     self.connection.sendInitPresence()
