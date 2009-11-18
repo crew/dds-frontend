@@ -80,13 +80,17 @@ class XMPPThread(threading.Thread):
     logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
     self.slidemanager.UpdateSlide(slidetuple)
 
+  def GetScreenshot(self, slidetuple):
+    logging.warning('STUB: Haven\'t written this code yet. (GetScreenshot)')
+    return
+
 #### End XMPP Actions
 
   def CheckXmpp(self):
     """Checks the XMPP connection to see if it is alive.
 
     Returns:
-       True if connection is alive, False if dread.
+       True if connection is alive, False if dead.
     """
     try:
       self.connection.Process(1)
@@ -140,9 +144,10 @@ class XMPPThread(threading.Thread):
 
   def GenerateIqHandler(self):
     """Create a function to handle incoming IQ packets."""
-    methods = { "addSlide"    : self.AddSlide,
-                "removeSlide" : self.RemoveSlide,
-                "updateSlide" : self.UpdateSlide,
+    methods = { "addSlide"      : self.AddSlide,
+                "removeSlide"   : self.RemoveSlide,
+                "updateSlide"   : self.UpdateSlide,
+                "getScreenshot" : self.GetScreenshot,
               }
 
     # pylint: disable-msg=C0103
