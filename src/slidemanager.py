@@ -373,7 +373,8 @@ class SlideManager(object):
   def TakeScreenshot(self):
     import os
     logging.info('Taking screenshot')
-    os.system("import -window root slide-%s.png" % self.CurrentSlide().ID())
+    os.system("import -window root -silent slide-%s.png"
+              % self.CurrentSlide().ID())
     return False
 
   def ResizeSlide(self, slide):
