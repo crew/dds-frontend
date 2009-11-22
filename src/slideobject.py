@@ -23,6 +23,7 @@ import time
 import urlparse
 import urllib
 
+flags.DEFINE_boolean('enablescreenshot', False, 'Enable slide screenshots')
 FLAGS = flags.FLAGS
 
 class Slide(object):
@@ -353,7 +354,7 @@ class Slide(object):
     return os.path.join(basepath, 'slide-%s.png' % self.ID())
 
   def TakeScreenshot(self):
-    if not os.path.exists(self.ScreenshotPath()):
+    if FLAGS.enablescreenshot and not os.path.exists(self.ScreenshotPath()):
       gobject.timeout_add(500, self.DoTakeScreenshot)
 
   def DoTakeScreenshot(self):

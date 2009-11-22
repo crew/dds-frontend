@@ -30,6 +30,8 @@ flags.DEFINE_string('userdir', '~/.dds', 'user state path')
 flags.DEFINE_boolean('enablemanualadvance', True,
                      'Controls manual slide advancement')
 flags.DEFINE_integer('oneslide', None, 'Display only the given slideid')
+flags.DEFINE_integer('height', 480, 'Windowed Height')
+flags.DEFINE_integer('width', 640, 'Windowed Width')
 
 FLAGS = flags.FLAGS
 
@@ -74,10 +76,9 @@ def ToggleFullscreen(stage):
 
   if FULLSCREEN:
     FULLSCREEN = False
-    stage.unfullscreen()
   else:
     FULLSCREEN = True
-    stage.fullscreen()
+  stage.set_fullscreen(FULLSCREEN)
 
 
 def SetupStartupImage(stage):
@@ -121,6 +122,10 @@ def HandleFullscreen(stage):
     logging.debug('Going Fullscreen')
     FULLSCREEN = True
     stage.set_fullscreen(True)
+  else:
+    stage.set_height(FLAGS.height)
+    stage.set_width(FLAGS.width)
+    stage.set_fullscreen(False)
     
 
 def SetupStage(stage, show):
