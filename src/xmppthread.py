@@ -43,6 +43,8 @@ class XMPPThread(threading.Thread):
     Args:
        slide: (Slide) Slide object to send out presence for
     """
+    # Say hello to the dds-master server with current slideid
+    self.status = xmpp.Presence(to=config.Option("server-jid"))
     self.status.setStatus(str(slide.ID()))
     self.connection.send(self.status)
 
