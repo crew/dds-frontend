@@ -181,8 +181,6 @@ class SlideManager(object):
         del self._timers[self.PreviousSlide()]
       self.LoadNextAndPaint()
       self.CreateNextTimer(self.Next, self.CurrentSlide())
-      if self.xmpphandler:
-        self.xmpphandler.SetCurrentSlide(self.CurrentSlide())
     return False
 
   def Start(self):
@@ -214,6 +212,8 @@ class SlideManager(object):
     slide.slide.show_all()
     self.InAnimation(slide)
     slide.TakeScreenshot()
+    if self.xmpphandler:
+      self.xmpphandler.SetCurrentSlide(self.CurrentSlide())
  
   def ChangeSlideOrder(self, direction='forward'):
     """Advance the slide order in the given direction.
