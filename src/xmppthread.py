@@ -125,7 +125,8 @@ class XMPPThread(threading.Thread):
     auth = self.connection.auth(jid.getNode(), password, jid.getResource())
     if not auth:
       logging.warning('Unrecognized XMPP account! Attempting registration')
-      if not xmpp.features.register(self.connection, jid.getDomain(), {"username": jid.getNode(), "password":password}):
+      ident = {"username": jid.getNode(), "password": password}
+      if not xmpp.features.register(self.connection, jid.getDomain(), ident):
         logging.error('XMPP New Account registration failed. Bailing out!')
         os.abort()
         return False
@@ -138,7 +139,8 @@ class XMPPThread(threading.Thread):
     self.connection.sendInitPresence()
 
     # Say hello to the dds-master server
-    self.status = xmpp.Presence(to=config.Option("server-jid"))
+    server_jid = xmpp.JID(config.Option("server-jid"))
+    self.status = xmpp.Presence(to=server_jid.getStripped())
     self.status.setStatus('initialsliderequest')
     self.connection.send(self.status)
 
