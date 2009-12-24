@@ -52,14 +52,11 @@ class XMPPThread(threading.Thread):
     """XMPP AddSlide method handler.
 
     Args:
-       slidetuple: (tuple) (slide metadata, slide assets)
+       slidetuple: (tuple) (slide metadata)
     """
     logging.info('XMPP addSlide request')
-    if len(slidetuple) != 2:
-      logging.error('Invalid slide tuple passed: %s' % slidetuple)
-      return False
 
-    self.slidemanager.AddSlide(slidetuple)
+    self.slidemanager.AddSlide(slidetuple[0])
 
   def RemoveSlide(self, slidetuple):
     """XMPP RemoveSlide method handler.
@@ -76,11 +73,11 @@ class XMPPThread(threading.Thread):
     """XMPP UpdateSlide method handler.
 
     Args:
-       slidetuple: (tuple) (slide metadata, slide assets)
+       slidetuple: (tuple) (slide metadata)
     """
     logging.info('XMPP updateSlide request')
     logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
-    self.slidemanager.UpdateSlide(slidetuple)
+    self.slidemanager.UpdateSlide(slidetuple[0])
 
   def GetScreenshot(self, slidetuple):
     logging.warning('STUB: Haven\'t written this code yet. (GetScreenshot)')

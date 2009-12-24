@@ -102,16 +102,16 @@ class SlideManager(object):
     if len(self._slides) > 0:
       return self._slides[self._slides.index(self.CurrentSlide())-1]
 
-  def UpdateSlide(self, slidetuple):
+  def UpdateSlide(self, metadata):
     """Using a slide manifest tuple, update it.
 
     Args:
-       slidetuple:
+       metadata: (dictionary) Slide metadata
     """
     for slide in self._slides:
-      if slide.CanUpdateManifest(slidetuple):
+      if slide.ID() == metadata['id']:
         self.log.info('Updating slide %s with new manifest' % slide.ID())
-        slide.UpdateManifest(slidetuple)
+        slide.ReloadFromMetadata(metadata)
 
   def SetXMPPHandler(self, handler):
     """Set the XMPP Thread bound to this slide manager.
@@ -121,14 +121,14 @@ class SlideManager(object):
     """
     self.xmpphandler = handler
 
-  def AddSlide(self, slidetuple, start=True):
+  def AddSlide(self, metadata, start=True):
     """Add a new slide to the internal cache.
 
     Args:
-      slideobj: (Slide) Slide to add to deck
+      metadata: (dictionary) Slide metadata
       start: (boolean) if true, start the show if not already active
     """
-    newslide = slideobject.Slide.CreateSlideWithManifest(slidetuple)
+    newslide = slideobject.Slide.CreateSlideFromMetadata(metadata)
     self.AddSlideObject(newslide, start=start)
 
   def AddSlideObject(self, newslide, start=True):
@@ -138,10 +138,9 @@ class SlideManager(object):
        newslide: (Slide) Object to add
        start: (Boolean) Starts the slideshow if true.
     """
-    if newslide.Parse():
-      self.SafeAddSlide(newslide)
-      if start and not self.IsActive():
-        self.Start()
+    self.SafeAddSlide(newslide)
+    if start and not self.IsActive():
+      self.Start()
 
   def RemoveSlide(self, removalid):
     """Remove the slide with the given id from the cache

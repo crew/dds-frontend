@@ -126,7 +126,7 @@ def HandleFullscreen(stage):
     stage.set_height(FLAGS.height)
     stage.set_width(FLAGS.width)
     stage.set_fullscreen(False)
-    
+
 
 def SetupStage(stage, show):
   """Setup the Clutter Stage.
@@ -156,9 +156,10 @@ def Main():
   show = slidemanager.SlideManager(stage)
   SetupStage(stage, show)
   if FLAGS.oneslide:
-    slide = slideobject.Slide()
-    slide.LoadSlideID(FLAGS.oneslide)
-    addslidemethod = lambda: show.AddSlideObject(slide)
+    def addslidemethod():
+      slide = slideobject.Slide()
+      slide.LoadSlideID(FLAGS.oneslide)
+      show.AddSlideObject(slide)
     timer = threading.Timer(0.1, addslidemethod)
   else:
     timer = xmppthread.XMPPThread()
