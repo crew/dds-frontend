@@ -78,7 +78,7 @@ class SlideManager(object):
 
   def IsEmpty(self):
     """Determines if slides is empty.
-    
+
     Returns:
       Boolean True/False indicating if slides is empty
     """
@@ -106,7 +106,7 @@ class SlideManager(object):
     """Using a slide manifest tuple, update it.
 
     Args:
-       slidetuple: 
+       slidetuple:
     """
     for slide in self._slides:
       if slide.CanUpdateManifest(slidetuple):
@@ -130,7 +130,7 @@ class SlideManager(object):
     """
     newslide = slideobject.Slide.CreateSlideWithManifest(slidetuple)
     self.AddSlideObject(newslide, start=start)
- 
+
   def AddSlideObject(self, newslide, start=True):
     """Add a slide object to the slide list.
 
@@ -203,7 +203,7 @@ class SlideManager(object):
 
   def Paint(self, slide):
     """Paint the next slide to the screen.
-    
+
     Args:
        slide: (Clutter Slide)
     """
@@ -214,7 +214,7 @@ class SlideManager(object):
     slide.TakeScreenshot()
     if self.xmpphandler:
       self.xmpphandler.SetCurrentSlide(self.CurrentSlide())
- 
+
   def ChangeSlideOrder(self, direction='forward'):
     """Advance the slide order in the given direction.
 
@@ -237,7 +237,7 @@ class SlideManager(object):
 
   def LoadNextAndPaint(self):
     """Prepare and paint the next slide.
-    
+
     Returns:
       Tuple with the current and last clutter slides in the deck
     """
@@ -248,7 +248,7 @@ class SlideManager(object):
 
   def SetupAnimation(self):
     """Setup the intro animation for the current slide.
-    
+
     Args:
     """
     current = self.CurrentSlide()
@@ -275,7 +275,7 @@ class SlideManager(object):
       self.inbehavior.remove_all()
     self.fade_in.connect('completed', poop)
     self.fade_in.start()
-    
+
   def OutAnimation(self):
     """Run the exit animation of the self.CurrentSlide() slide."""
     self.log.info('Outro start')
@@ -293,7 +293,7 @@ class SlideManager(object):
     self.fade_out.start()
 
     self.log.info('Outro end')
-      
+
 
   def LoadNext(self):
     """Prepare the next slide to be painted."""
@@ -386,7 +386,7 @@ class SlideManager(object):
     ratio_w = float(width) / FLAGS.ratiowidth
     ratio_h = float(height) / FLAGS.ratioheight
     slide.set_anchor_point(0, 0)
-   
+
     if FLAGS.letterbox:
       self.Letterbox(slide)
       # TODO support letterboxing on the side, i.e. 4 x 3 shown in 16 x 10
