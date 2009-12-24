@@ -158,8 +158,7 @@ class Slide(object):
     if not os.path.exists(bundle_path):
       return False
 
-    bundle = t
-arfile.open(bundle_path)
+    bundle = tarfile.open(bundle_path)
     bundle.extractall(directory)
     fd = open(os.path.join(directory, 'manifest'), 'r')
     manifest = json.load(fd)
