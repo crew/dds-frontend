@@ -129,7 +129,7 @@ class Slide(object):
 
   def LoadSlideID(self, slideid):
     """Given a Slide ID, try and load a cached copy of it from disk.
-    
+
     Args:
        slideid: (int) Slide ID
     """
@@ -225,16 +225,16 @@ class Slide(object):
 
     if not self.VerifyComplete():
       return False
-  
+
     gobject.idle_add(self.RunParser)
     while not self.parsedone:
       logging.info('waiting')
       time.sleep(0.1)
     return self.parsedone
-    
+
   def SetParseDone(self, status=True):
     """Set the parse completion status.
-    
+
     Args:
        stats: (boolean) True/False i
 
