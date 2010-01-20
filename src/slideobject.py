@@ -160,7 +160,7 @@ class Slide(object):
 
     bundle = tarfile.open(bundle_path)
     bundle.extractall(directory)
-    fd = open(os.path.join(directory, 'manifest'), 'r')
+    fd = open(os.path.join(directory, 'manifest.js'), 'r')
     manifest = json.load(fd)
     self.transition = manifest['transition']
     self.mode = manifest['mode']
