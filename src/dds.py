@@ -102,6 +102,9 @@ def InitializeLibraries():
   """Initialize the external libraries used."""
   gobject.threads_init()
   clutter.threads_init()
+  #FIXME This is sort of a hack. We force all clutter clients to use the same
+  # resolution so things look the same across all clients.
+  clutter.Backend.set_resolution(clutter.backend_get_default(), 112)
 
 
 def SetupCache():

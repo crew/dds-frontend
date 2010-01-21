@@ -316,6 +316,7 @@ class SlideManager(object):
         self.log.warning('No previous?')
 
     try:
+      self.log.info('Calling setupslide')
       self.CurrentSlide().setupslide()
     except Exception:
       self.log.exception('Failed to setup slide with setup method.')
