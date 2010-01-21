@@ -44,6 +44,7 @@ class BaseSlide(object):
 
   def GetDataFromURL(self, url):
     try:
+      logging.info('Slide fetching data from %s' % url)
       u = urllib2.urlopen(url)
       data = u.read()
       return data

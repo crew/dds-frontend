@@ -259,8 +259,8 @@ class Slide(object):
   # pylint: disable-msg=C0103
   def setupslide(self):
     """Safe alias for self.slide.setupslide."""
-    if hasattr(self.slide, 'setupslide'):
-      self.slide.setupslide()
+    if hasattr(self.app, 'setupslide'):
+      self.app.setupslide()
 
   def ScreenshotPath(self):
     basepath = os.path.join(config.Option('cache'), '..', 'screenshots')
