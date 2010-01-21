@@ -156,6 +156,7 @@ class Slide(object):
 
     bundle_path = os.path.join(directory, 'bundle.tar.gz')
     if not os.path.exists(bundle_path):
+      logging.error('Bundle path %s does not exist' % bundle_path)
       return False
 
     bundle = tarfile.open(bundle_path)
