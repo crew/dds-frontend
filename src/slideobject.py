@@ -43,6 +43,9 @@ class Slide(object):
     self.duration = 5
     self.priority = 1
 
+    # Parsing time limit
+    self.timeout = 5
+
     self.parsedone = None
     self.transition = None
     self.mode = None
@@ -167,9 +170,14 @@ class Slide(object):
     self.mode = manifest['mode']
     fd.close()
     gobject.idle_add(self.RunParser)
+    parsestart = time.time()
     while not self.parsedone:
-      logging.info('waiting')
-      time.sleep(0.1)
+      if time.time() - parsestart < self.timeout:
+        logging.info('waiting')
+        time.sleep(0.8)
+      else:
+        logging.error('Could not parse fast enough!')
+        break
     return self.parsedone
 
   def SetParseDone(self, status=True):
