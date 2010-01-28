@@ -30,8 +30,8 @@ flags.DEFINE_string('userdir', '~/.dds', 'user state path')
 flags.DEFINE_boolean('enablemanualadvance', True,
                      'Controls manual slide advancement')
 flags.DEFINE_integer('oneslide', None, 'Display only the given slideid')
-flags.DEFINE_integer('height', 480, 'Windowed Height')
-flags.DEFINE_integer('width', 640, 'Windowed Width')
+flags.DEFINE_integer('height', 540, 'Windowed Height')
+flags.DEFINE_integer('width', 960, 'Windowed Width')
 
 FLAGS = flags.FLAGS
 
