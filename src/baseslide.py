@@ -130,3 +130,14 @@ class BaseSlide(object):
     #FIXME: eww.
     html_tag = re.compile(r'<.*?>')
     return self.UnescapeHTMLEntities(html_tag.sub('', data))
+
+  def do_standalone_display(self):
+    """This might be useful somewhere. (no resize)"""
+    stage = clutter.Stage()
+    stage.connect('destroy', clutter.main_quit)
+    stage.connect('key-press-event', lambda x,y: clutter.main_quit())
+    stage.set_fullscreen(True)
+    stage.set_color(clutter.color_from_string('black'))
+    stage.add(self.group)
+    stage.show_all()
+    clutter.main()
