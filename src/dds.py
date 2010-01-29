@@ -10,7 +10,7 @@ __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 import clutter
 import config
-import gflags as flags
+import gflags
 import gobject
 import logging
 import os
@@ -19,21 +19,21 @@ import threading
 
 ## DDS Imports
 import xmppthread
-import slidemanager
+import manager
 import slideobject
 
-flags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
-flags.DEFINE_boolean('fullscreenhotkey', True,
+gflags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
+gflags.DEFINE_boolean('fullscreenhotkey', True,
                      'Enable/Disable `f` for fullscreen')
-flags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
-flags.DEFINE_string('userdir', '~/.dds', 'user state path')
-flags.DEFINE_boolean('enablemanualadvance', True,
+gflags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
+gflags.DEFINE_string('userdir', '~/.dds', 'user state path')
+gflags.DEFINE_boolean('enablemanualadvance', False,
                      'Controls manual slide advancement')
-flags.DEFINE_integer('oneslide', None, 'Display only the given slideid')
-flags.DEFINE_integer('height', 540, 'Windowed Height')
-flags.DEFINE_integer('width', 960, 'Windowed Width')
+gflags.DEFINE_string('oneslide', None, 'Display only the given slidedir')
+gflags.DEFINE_integer('height', 540, 'Windowed Height')
+gflags.DEFINE_integer('width', 960, 'Windowed Width')
 
-FLAGS = flags.FLAGS
+FLAGS = gflags.FLAGS
 
 # Global variable to track fullscreen state
 FULLSCREEN = False
@@ -64,7 +64,7 @@ def OnKeyPressEvent(stage, event, show):
   elif (event.keyval == 65363):
     if FLAGS.enablemanualadvance:
       logging.debug('Got arrow key, nexting?')
-      show.Next()
+      show.next()
     else:
       logging.debug('Got arrow key, manual advance disabled')
 
@@ -155,18 +155,19 @@ def Main():
                              '%(levelname)s %(message)s')
   stage = clutter.Stage()
   SetupCache()
-  show = slidemanager.SlideManager(stage)
+  show = manager.Manager(stage)
   SetupStage(stage, show)
-  if FLAGS.oneslide:
-    def addslidemethod():
-      slide = slideobject.Slide()
-      slide.LoadSlideID(FLAGS.oneslide)
-      show.AddSlideObject(slide)
-    timer = threading.Timer(0.1, addslidemethod)
-  else:
+  if not FLAGS.oneslide:
     timer = xmppthread.XMPPThread()
     timer.AttachSlideManager(show)
-  timer.start()
+    timer.start()
+  else:
+    def foo(): 
+      s = slideobject.Slide()
+      s.oneslide(FLAGS.oneslide)
+      show._add_slide(s)
+    t = threading.Thread(target=foo)
+    t.start()
 
   clutter.main()
 

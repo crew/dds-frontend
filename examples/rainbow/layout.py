@@ -4,7 +4,7 @@ import sys
 class SpectrumDisplay:
   def __init__(self):
     self.stage = clutter.stage_get_default()
-    self.stage.fullscreen()
+    self.stage.set_fullscreen(True)
     self.stage.set_color(clutter.color_parse("black"))
 
     self.spectrum = clutter.Texture('spectrum.png')
@@ -19,9 +19,9 @@ class SpectrumDisplay:
     self.textsliced.set_position(0,0)
     self.stage.add(self.textsliced)
 
-    self.timeline = clutter.Timeline(30, 25)
+    self.timeline = clutter.Timeline(1000)
     self.timeline.set_loop(True)
-    alpha = clutter.Alpha(self.timeline, clutter.ramp_func)
+    alpha = clutter.Alpha(self.timeline, clutter.LINEAR)
     self.behaviour = clutter.BehaviourOpacity(0xdd, 0, alpha)
     self.behaviour.apply(self.textsliced)
 

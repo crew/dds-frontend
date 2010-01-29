@@ -11,7 +11,7 @@ __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 import clutter
 import config
-import gflags as flags
+import gflags
 import gobject
 import hashlib
 import imp
@@ -24,8 +24,12 @@ import tarfile
 import urlparse
 import urllib
 
-flags.DEFINE_boolean('enablescreenshot', False, 'Enable slide screenshots')
-FLAGS = flags.FLAGS
+gflags.DEFINE_boolean('enablescreenshot', False, 'Enable slide screenshots')
+gflags.DEFINE_boolean('enableresize', True, 'Enable slide scaling')
+gflags.DEFINE_integer('targetwidth', 1920, 'Target screen width')
+gflags.DEFINE_integer('targetheight', 1080, 'Target screen height')
+
+FLAGS = gflags.FLAGS
 
 class Slide(object):
   """Class representing all portions of a DDS Slide (metadata and content)."""
@@ -36,30 +40,35 @@ class Slide(object):
     Args:
        filename: (string) path to slide manifest
     """
-    self.id = None
+    self.db_id = None
 
-    # These aren't included in the bundle manifest, so set
-    # defaults for testing.
-    #FIXME: That's a lie.
-    self.duration = 5
-    self.priority = 1
 
     # Parsing time limit
     self.timeout = 10
 
-    self.parsedone = None
+    self.duration = None
+    self.priority = None
     self.transition = None
     self.mode = None
     self.manifestfile = None
     self.manifest = None
     self.dir = None
     # Clutter group representing this slides content
-    self.slide = None
+    self.group = None
     # Slide module if python
     self.app = None
 
+  def __repr__(self):
+    return str(self)
+
+  def __str__(self):
+    if self.manifest and 'title' in self.manifest:
+      return '<Slide #%s [%s]>' % (self.id(), self.manifest['title'])
+    else:
+      return '<Slide #%s>' % (self.id())
+
   @staticmethod
-  def CreateSlideFromMetadata(metadata):
+  def create_slide_from_metadata(metadata):
     """Given slide metadata, create a Slide instance.
 
     Args:
@@ -72,9 +81,22 @@ class Slide(object):
        Also creates cached copy of this slide on disk, downloading it's bundle
        and extracting it.
     """
+    logging.debug('creating slide from metadata')
     slide = Slide()
-    Slide.ReloadSlideFromMetadata(slide, metadata)
+    Slide.reload_slide_from_metadata(slide, metadata)
     return slide
+
+  def oneslide(self, dir):
+    """Given slide metadata and a slide, update that slide's information
+       and bundle.
+
+    Args:
+       metadata: (dictionary) Slide metadata
+    """
+    logging.debug('creating slide from oneslide')
+    self.db_id = -1
+    self.dir = os.path.expanduser(dir)
+    self.parse_directory(self.slide_dir())
 
   @staticmethod
   def ReloadSlideFromMetadata(slide, metadata):
@@ -84,43 +106,42 @@ class Slide(object):
     Args:
        metadata: (dictionary) Slide metadata
     """
-    slide.PopulateInfo(metadata)
-    slide.RetreiveBundle(metadata['url'], slide.SlideDir())
-    slide.ParseBundle(slide.SlideDir())
+    logging.debug('reloading slide from metadata')
+    slide.populate_info(metadata)
+    slide.retrieve_bundle(metadata['url'], slide.slide_dir())
+    slide.parse_bundle(slide.slide_dir())
 
-  def SlideDir(self):
+  def slide_dir(self):
     """Get the filesystem directory containing this slide data."""
     if self.dir is None:
-      self.dir = os.path.join(config.Option('cache'), str(self.ID()))
+      self.dir = os.path.join(config.Option('cache'), str(self.id()))
       if not os.path.exists(self.dir):
         os.mkdir(self.dir)
     return self.dir
 
-  def ID(self):
+  def id(self):
     """Returns the Integer ID of this slide."""
-    return self.id
+    return self.db_id
 
-  def LoadSlideID(self, slideid):
+  def load_slide_id(self, slideid):
     """Given a Slide ID, try and load a cached copy of it from disk.
 
     Args:
        slideid: (int) Slide ID
     """
-    self.id = slideid
-    self.ParseBundle(self.SlideDir())
+    self.db_id = slideid
+    self.parse_bundle(self.slide_dir())
 
-  def PopulateInfo(self, metadata):
+  def populate_info(self, metadata):
     """Given a dictionary of slide metadata, update our information.
 
     Args:
        metadata: (dictionary) Slide metadata
     """
     self.id = metadata['id']
-    self.duration = metadata['duration']
-    self.priority = metadata['priority']
 
   #TODO(wan): Write the retry code.
-  def RetreiveBundle(self, url, directory, unused_retry=False):
+  def retrieve_bundle(self, url, directory, unused_retry=False):
     """Download an slide bundle to disk.
 
     Args:
@@ -132,9 +153,9 @@ class Slide(object):
     bundle_path = os.path.join(directory, 'bundle.tar.gz')
     urllib.urlretrieve(url, bundle_path)
 
-  def GetParserMethod(self, modename=None):
+  def get_parser_method(self, modename=None):
     """Using self.mode, get the method to use for parsing this slide."""
-    parsermap = {'layout': self.ParseJSON, 'module': self.ParsePython}
+    parsermap = {'layout': self.parse_json, 'module': self.parse_python}
     if not modename:
       modename = self.mode
     if modename not in parsermap:
@@ -144,7 +165,7 @@ class Slide(object):
       return False
     return parsermap[modename]
 
-  def GetLayoutFile(self, modename=None):
+  def get_layout_file(self, modename=None):
     """Using self.mode, get the filename of this slides layout file."""
     layoutfilemap = {'layout': 'layout.js', 'module': 'layout.py'}
     if not modename:
@@ -153,52 +174,48 @@ class Slide(object):
       return False
     return layoutfilemap[modename]
 
-  def ParseBundle(self, directory):
-    """Parse the bundle in the given directory into self.slide."""
-    if self.slide:
-      return True
-
+  def extract_bundle(self, directory):
     bundle_path = os.path.join(directory, 'bundle.tar.gz')
     if not os.path.exists(bundle_path):
       logging.error('Bundle path %s does not exist' % bundle_path)
       return False
-
     bundle = tarfile.open(bundle_path)
     bundle.extractall(directory)
-    fd = open(os.path.join(directory, 'manifest.js'), 'r')
-    manifest = json.load(fd)
-    self.transition = manifest['transition']
-    self.mode = manifest['mode']
-    fd.close()
-    gobject.timeout_add(1, self.RunParser)
+    return True
+
+  def ParseBundle(self, directory):
+    if not self.extract_bundle(directory):
+      logging.error('Could not extract bundle for %s in %s' % (self, directory))
+      return False
+    return self.parse_directory(directory)
+
+  def parse_directory(self, directory):
+    """Parse the bundle in the given directory into self.slide."""
+    if self.group:
+      return True
+    self.manifest = json.load(open(os.path.join(directory, 'manifest.js')))
+    self.transition = self.manifest['transition']
+    self.mode = self.manifest['mode']
+    self.duration = self.manifest['duration']
+    self.priority = self.manifest['priority']
+    gobject.timeout_add(1, self.run_parser)
     parsestart = time.time()
-    while not self.parsedone:
+    while self.group is None:
       if time.time() - parsestart < self.timeout:
         logging.info('waiting')
         time.sleep(0.8)
       else:
         logging.error('Could not parse fast enough!')
         return False
-    return self.parsedone
+    self.setupevents()
+    return self.group is None
 
-  def SetParseDone(self, status=True):
-    """Set the parse completion status.
-
-    Args:
-       stats: (boolean) True/False
-
-    Note:
-      Called from gobject.idle_add in runParser
-    """
-    self.parsedone = status
-
-  def RunParser(self):
+  def run_parser(self):
     """Run the parser for this slide (Executed from a gobject timeout)."""
-    parser = self.GetParserMethod()
-    self.slide, self.app = parser(self.GetLayoutFile(), self.SlideDir())
-    gobject.idle_add(self.SetParseDone, self.slide is not None)
+    parser = self.get_parser_method()
+    self.group, self.app = parser(self.get_layout_file(), self.slide_dir())
 
-  def ParseJSON(self, filename, directory):
+  def parse_json(self, filename, directory):
     """Parses the given json file into a slide.
 
     Args:
@@ -210,16 +227,12 @@ class Slide(object):
       Parsed slide from setupNewSlide
     """
     filename = os.path.join(directory, filename)
-    logging.debug('1 Parsing JSON layout filename: %s' % filename)
     script = clutter.Script()
-    logging.debug('2 Parsing JSON layout filename: %s' % filename)
     script.add_search_paths(directory)
-    logging.debug('3 Parsing JSON layout filename: %s' % filename)
     script.load_from_file(filename)
-    logging.debug('4 Parsing JSON layout filename: %s' % filename)
     return (script.get_object('slide'), None)
 
-  def ParsePython(self, filename, directory):
+  def parse_python(self, filename, directory):
     """Returns a slide from the given python module.
 
     Args:
@@ -231,14 +244,14 @@ class Slide(object):
       Parsed slide from setupNewSlide
     """
     try:
-      slidemodule = self.LoadModule(filename, directory)
+      slidemodule = self.load_module(filename, directory)
       return (slidemodule.slide, slidemodule.app)
 
     except Exception, e:
       logging.error('Could not load module %s in dir %s because %s'
                     % (filename, directory, e))
 
-  def LoadModule(self, codepath, directory):
+  def load_module(self, codepath, directory):
     """Returns the module object for the python file at the given path.
 
     Args:
@@ -252,6 +265,7 @@ class Slide(object):
       sys.path.append(directory)
       os.chdir(directory)
       fin = open(codepath, 'rb')
+      # WTF is this
       module = imp.load_source(hashlib.sha1(codepath).hexdigest(),
                                codepath, fin)
       os.chdir(currentdirectory)
@@ -261,34 +275,43 @@ class Slide(object):
       if fin:
         fin.close()
 
-  ## Following two methods virtual as they call a method if present on
-  ## self.slide
-  # pylint: disable-msg=C0103
-  def teardownslide(self):
-    """Safe alias for self.slide.teardownslide."""
-    if hasattr(self.slide, 'teardownslide'):
-      self.slide.teardownslide()
-
-  # pylint: disable-msg=C0103
-  def setupslide(self):
-    """Safe alias for self.slide.setupslide."""
-    if hasattr(self.app, 'setupslide'):
-      self.app.setupslide()
-
-  def ScreenshotPath(self):
+  def screenshot_path(self):
     basepath = os.path.join(config.Option('cache'), '..', 'screenshots')
     if not os.path.exists(basepath):
       os.mkdir(basepath)
     return os.path.join(basepath, 'slide-%s.png' % self.ID())
 
-  def TakeScreenshot(self):
-    if FLAGS.enablescreenshot and not os.path.exists(self.ScreenshotPath()):
-      gobject.timeout_add(500, self.DoTakeScreenshot)
+  def take_screenshot(self):
+    if FLAGS.enablescreenshot and not os.path.exists(self.screenshot_path()):
+      gobject.timeout_add(500, self.do_take_screenshot)
 
-  def DoTakeScreenshot(self):
+  def do_take_screenshot(self):
     logging.info('Taking screenshot')
     os.system("import -window root -silent %s"
-              % self.ScreenshotPath())
+              % self.screenshot_path())
     return False
 
+  def resize(self, current_width, current_height):
+    if ((current_width == FLAGS.targetwidth) and
+        (current_height == FLAGS.targetheight)):
+      logging.debug('Skipping resize step, already target size')
+    elif not FLAGS.enableresize:
+      logging.debug('Skipping resize step, resize disabled')
+    else:
+      scale_w = float(current_width) / FLAGS.targetwidth
+      scale_h = float(current_height) / FLAGS.targetheight
+      self.group.set_anchor_point(0, 0)
+      self.group.set_scale(scale_w, scale_h)
 
+  def _setupevent(self, event):
+      n = 'event_%s' % event
+      logging.info('setting up %s in %s' % (n, str(self)))
+      if hasattr(self.app, n):
+        setattr(self, n, getattr(self.app, n))
+      else:
+        setattr(self, n, lambda: logging.warning('%s undefined in %s'
+                                                 % (n, str(self))))
+
+  def setupevents(self):
+    for x in ['beforeshow', 'aftershow', 'loop', 'beforehide', 'afterhide']:
+      self._setupevent(x)

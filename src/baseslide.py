@@ -16,12 +16,24 @@ class BaseSlide(object):
   def __init__(self):
     self.group = clutter.Group()
   
-  def setupslide(self):
+  def event_beforeshow(self):
     """Hook to be called before display on screen."""
     pass
 
-  def teardownslide(self):
+  def event_aftershow(self):
     """Hook to be called after display on screen."""
+    pass
+
+  def event_loop(self):
+    """Hook to be called periodically while on screen."""
+    pass
+
+  def event_beforehide(self):
+    """Hook to be called before removal from screen."""
+    pass
+
+  def event_afterhide(self):
+    """Hook to be called after removal from screen."""
     pass
 
   def TextureFromPixbuf(self, pixbuf, texture=None):

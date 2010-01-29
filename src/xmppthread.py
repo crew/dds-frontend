@@ -35,7 +35,7 @@ class XMPPThread(threading.Thread):
        slidemanager: (SlideManager) slidemanager instance
     """
     self.slidemanager = slidemanager
-    self.slidemanager.SetXMPPHandler(self)
+    self.slidemanager.set_xmpp_handler(self)
 
   def SetCurrentSlide(self, slide):
     """Send a global presence packet with the current slide ID.
@@ -45,7 +45,7 @@ class XMPPThread(threading.Thread):
     """
     # Say hello to the dds-master server with current slideid
     self.status = xmpp.Presence(to=config.Option("server-jid"))
-    self.status.setStatus(str(slide.ID()))
+    self.status.setStatus(str(slide.id()))
     self.connection.send(self.status)
 
   def AddSlide(self, slidetuple):
@@ -55,8 +55,7 @@ class XMPPThread(threading.Thread):
        slidetuple: (tuple) (slide metadata)
     """
     logging.info('XMPP addSlide request')
-
-    self.slidemanager.AddSlide(slidetuple[0])
+    self.slidemanager.add_slide(slidetuple[0])
 
   def RemoveSlide(self, slidetuple):
     """XMPP RemoveSlide method handler.
@@ -65,9 +64,7 @@ class XMPPThread(threading.Thread):
        slidetuple: (tuple)
     """
     logging.info("XMPP removeSlide request")
-    info = slidetuple[0]
-    logging.debug('removeslide got info = %s' % str(info))
-    self.slidemanager.RemoveSlide(info)
+    self.slidemanager.remove_slide(slidetuple[0])
 
   def UpdateSlide(self, slidetuple):
     """XMPP UpdateSlide method handler.
@@ -76,8 +73,7 @@ class XMPPThread(threading.Thread):
        slidetuple: (tuple) (slide metadata)
     """
     logging.info('XMPP updateSlide request')
-    logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
-    self.slidemanager.UpdateSlide(slidetuple[0])
+    self.slidemanager.update_slide(slidetuple[0])
 
   def GetScreenshot(self, slidetuple):
     logging.warning('STUB: Haven\'t written this code yet. (GetScreenshot)')
