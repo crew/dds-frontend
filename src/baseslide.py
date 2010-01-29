@@ -116,7 +116,8 @@ class BaseSlide(object):
     if '#39' not in htmlentitydefs.name2codepoint:
       htmlentitydefs.name2codepoint['#39'] = 39
     return re.sub('&(%s);' % '|'.join(htmlentitydefs.name2codepoint),
-                  lambda m: unichr(name2codepoint[m.group(1)]), data)
+                  lambda m: unichr(htmlentitydefs.name2codepoint[m.group(1)]),
+                  data)
 
   def RemoveHTMLTags(self, data):
     """Remove HTML tags from the given data after unescaping.
