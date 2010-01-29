@@ -40,11 +40,12 @@ class Slide(object):
 
     # These aren't included in the bundle manifest, so set
     # defaults for testing.
+    #FIXME: That's a lie.
     self.duration = 5
     self.priority = 1
 
     # Parsing time limit
-    self.timeout = 5
+    self.timeout = 10
 
     self.parsedone = None
     self.transition = None
@@ -169,7 +170,7 @@ class Slide(object):
     self.transition = manifest['transition']
     self.mode = manifest['mode']
     fd.close()
-    gobject.idle_add(self.RunParser)
+    gobject.timeout_add(1, self.RunParser)
     parsestart = time.time()
     while not self.parsedone:
       if time.time() - parsestart < self.timeout:
@@ -177,7 +178,7 @@ class Slide(object):
         time.sleep(0.8)
       else:
         logging.error('Could not parse fast enough!')
-        break
+        return False
     return self.parsedone
 
   def SetParseDone(self, status=True):
@@ -209,10 +210,13 @@ class Slide(object):
       Parsed slide from setupNewSlide
     """
     filename = os.path.join(directory, filename)
-    logging.debug('Parsing JSON layout filename: %s' % filename)
+    logging.debug('1 Parsing JSON layout filename: %s' % filename)
     script = clutter.Script()
+    logging.debug('2 Parsing JSON layout filename: %s' % filename)
     script.add_search_paths(directory)
+    logging.debug('3 Parsing JSON layout filename: %s' % filename)
     script.load_from_file(filename)
+    logging.debug('4 Parsing JSON layout filename: %s' % filename)
     return (script.get_object('slide'), None)
 
   def ParsePython(self, filename, directory):
