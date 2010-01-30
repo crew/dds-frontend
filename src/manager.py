@@ -7,12 +7,14 @@ import gflags
 import logging
 import thread
 import gobject
+import clutter
 
 import collection
 import slideobject
 
 FLAGS = gflags.FLAGS
 
+gflags.DEFINE_boolean('transitions', True, 'Fade in and out slides')
 
 class Manager(object):
     def __init__(self, stage):
@@ -43,22 +45,52 @@ class Manager(object):
     def update_slide(self, metadata):
         self.log.error('NOT IMPLEMENTED update_slide %s' % metadata)
     
+    
+    def hide_slide(self, animation, slide):
+        self.stage.remove(slide.group)
+        self.log.info('afterhide')
+        slide.event_afterhide()
+
+    def fade_out_slide(self, slide):
+        self.log.info('beforehide')
+        slide.event_beforehide()
+        if FLAGS.transitions:
+            timeline = clutter.Timeline(2000)
+            alpha = clutter.Alpha(timeline, clutter.EASE_OUT_QUAD)
+            slide.group.set_opacity(255)
+            self.fade_out_behavior = clutter.BehaviourOpacity(alpha=alpha, opacity_start=255, opacity_end=0)
+            self.fade_out_behavior.apply(slide.group)
+            timeline.connect('completed', self.hide_slide, slide)
+            timeline.start()
+        else:
+            self.hide_slide(None, slide)
+
+    def fade_in_slide(self, slide):
+        self.log.info('beforeshow')
+        slide.event_beforeshow()
+        if FLAGS.transitions:
+            timeline = clutter.Timeline(2000)
+            alpha = clutter.Alpha(timeline, clutter.EASE_IN_QUAD)
+            slide.group.set_opacity(0)
+            self.fade_in_behavior = clutter.BehaviourOpacity(alpha=alpha, opacity_start=0, opacity_end=255)
+            self.fade_in_behavior.apply(slide.group)
+            timeline.start()
+        else:
+            slide.group.set_opacity(255)
+        self.stage.add(slide.group)
+        slide.group.show()
+        self.log.info('aftershow')
+        slide.event_aftershow()
+        self.xmpphandler.SetCurrentSlide(slide)
+
     def next(self, firsttime=False):
         if not firsttime:
-            self.log.info('beforehide')
-            self.slides.current_slide().event_beforehide()
-            self.stage.remove_all()
-            self.log.info('afterhide')
-            self.slides.current_slide().event_afterhide()
+            self.fade_out_slide(self.slides.current_slide())
             self.slides.advance()
-        self.log.info('beforeshow')
-        self.slides.current_slide().event_beforeshow()
-        self.paint()
+        self.fade_in_slide(self.slides.current_slide())
         if not FLAGS.oneslide:
             gobject.timeout_add(self.slides.current_slide().duration * 1000,
                                 self.next)
-        self.log.info('aftershow')
-        self.slides.current_slide().event_aftershow()
 
     def start(self):
         self.log.error('NOT IMPLEMENTED start')
@@ -66,10 +98,4 @@ class Manager(object):
     def resize_slide(self, slide):
         width, height = self.stage.get_size()
         slide.resize(width, height)
-
-    def paint(self):
-        self.log.info('Painting %s' % self.slides.current_slide())
-        self.stage.add(self.slides.current_slide().group)
-        self.stage.show()
-        self.xmpphandler.SetCurrentSlide(self.slides.current_slide())
 
