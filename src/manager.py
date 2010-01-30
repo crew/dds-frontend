@@ -68,7 +68,7 @@ class Manager(object):
         slide.resize(width, height)
 
     def paint(self):
-        self.log.info('painting with brushes')
+        self.log.info('Painting %s' % self.slides.current_slide())
         self.stage.add(self.slides.current_slide().group)
         self.stage.show()
         self.xmpphandler.SetCurrentSlide(self.slides.current_slide())

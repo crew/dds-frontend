@@ -99,7 +99,7 @@ class Slide(object):
     self.parse_directory(self.slide_dir())
 
   @staticmethod
-  def ReloadSlideFromMetadata(slide, metadata):
+  def reload_slide_from_metadata(slide, metadata):
     """Given slide metadata and a slide, update that slide's information
        and bundle.
 
@@ -138,7 +138,7 @@ class Slide(object):
     Args:
        metadata: (dictionary) Slide metadata
     """
-    self.id = metadata['id']
+    self.db_id = metadata['id']
 
   #TODO(wan): Write the retry code.
   def retrieve_bundle(self, url, directory, unused_retry=False):
@@ -183,7 +183,7 @@ class Slide(object):
     bundle.extractall(directory)
     return True
 
-  def ParseBundle(self, directory):
+  def parse_bundle(self, directory):
     if not self.extract_bundle(directory):
       logging.error('Could not extract bundle for %s in %s' % (self, directory))
       return False
@@ -279,7 +279,7 @@ class Slide(object):
     basepath = os.path.join(config.Option('cache'), '..', 'screenshots')
     if not os.path.exists(basepath):
       os.mkdir(basepath)
-    return os.path.join(basepath, 'slide-%s.png' % self.ID())
+    return os.path.join(basepath, 'slide-%s.png' % self.id())
 
   def take_screenshot(self):
     if FLAGS.enablescreenshot and not os.path.exists(self.screenshot_path()):
@@ -308,9 +308,13 @@ class Slide(object):
       logging.info('setting up %s in %s' % (n, str(self)))
       if hasattr(self.app, n):
         setattr(self, n, getattr(self.app, n))
-      else:
+      elif self.mode == 'module':
         setattr(self, n, lambda: logging.warning('%s undefined in %s'
                                                  % (n, str(self))))
+      else:
+        ## Doesn't do anything. This is intentional because JSON slides have no
+        ## methods
+        setattr(self, n, lambda: [])
 
   def setupevents(self):
     for x in ['beforeshow', 'aftershow', 'loop', 'beforehide', 'afterhide']:
