@@ -58,7 +58,8 @@ class Manager(object):
             timeline = clutter.Timeline(2000)
             alpha = clutter.Alpha(timeline, clutter.EASE_OUT_QUAD)
             slide.group.set_opacity(255)
-            self.fade_out_behavior = clutter.BehaviourOpacity(alpha=alpha, opacity_start=255, opacity_end=0)
+            self.fade_out_behavior = clutter.BehaviourOpacity(alpha=alpha,
+                                              opacity_start=255, opacity_end=0)
             self.fade_out_behavior.apply(slide.group)
             timeline.connect('completed', self.hide_slide, slide)
             timeline.start()
@@ -72,7 +73,8 @@ class Manager(object):
             timeline = clutter.Timeline(2000)
             alpha = clutter.Alpha(timeline, clutter.EASE_IN_QUAD)
             slide.group.set_opacity(0)
-            self.fade_in_behavior = clutter.BehaviourOpacity(alpha=alpha, opacity_start=0, opacity_end=255)
+            self.fade_in_behavior = clutter.BehaviourOpacity(alpha=alpha,
+                                             opacity_start=0, opacity_end=255)
             self.fade_in_behavior.apply(slide.group)
             timeline.start()
         else:
@@ -81,13 +83,16 @@ class Manager(object):
         slide.group.show()
         self.log.info('aftershow')
         slide.event_aftershow()
-        self.xmpphandler.SetCurrentSlide(slide)
+        if self.xmpphandler is not None:
+            self.xmpphandler.SetCurrentSlide(slide)
 
     def next(self, firsttime=False):
         if not firsttime:
             self.fade_out_slide(self.slides.current_slide())
             self.slides.advance()
-        self.fade_in_slide(self.slides.current_slide())
+        #XXX: ew.
+        gobject.timeout_add(1,
+                lambda:  self.fade_in_slide(self.slides.current_slide()))
         if not FLAGS.oneslide:
             gobject.timeout_add(self.slides.current_slide().duration * 1000,
                                 self.next)
