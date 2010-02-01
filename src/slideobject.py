@@ -23,6 +23,7 @@ import time
 import tarfile
 import urlparse
 import urllib
+import thread
 
 gflags.DEFINE_boolean('enablescreenshot', False, 'Enable slide screenshots')
 gflags.DEFINE_boolean('enableresize', True, 'Enable slide scaling')
@@ -57,6 +58,8 @@ class Slide(object):
     self.group = None
     # Slide module if python
     self.app = None
+    # lock for parsing operations
+    self.lock = thread.allocate_lock()
 
   def __repr__(self):
     return str(self)
@@ -64,8 +67,13 @@ class Slide(object):
   def __str__(self):
     if self.manifest and 'title' in self.manifest:
       return '<Slide #%s [%s]>' % (self.id(), self.manifest['title'])
-    else:
+    elif self.id() is not None:
       return '<Slide #%s>' % (self.id())
+    else:
+      return '<Slide>'
+
+  def __eq__(self, other):
+    return (type(self) == type(other)) and (self.id() == other.id())
 
   @staticmethod
   def create_slide_from_metadata(metadata):
@@ -106,10 +114,23 @@ class Slide(object):
     Args:
        metadata: (dictionary) Slide metadata
     """
-    logging.debug('reloading slide from metadata')
-    slide.populate_info(metadata)
-    slide.retrieve_bundle(metadata['url'], slide.slide_dir())
-    slide.parse_bundle(slide.slide_dir())
+    slide.reload(metadata)
+
+  def reload(self, metadata):
+    """Given slide metadata the slide's information and bundle.
+
+    Args:
+       metadata: (dictionary) Slide metadata
+    """
+    if self.lock.locked():
+      logging.warning('Cannot reload %s, already in progress' % self)
+      return
+
+    with self.lock:
+      logging.debug('reloading %s from metadata' % self)
+      self.populate_info(metadata)
+      self.retrieve_bundle(metadata['url'], self.slide_dir())
+      self.parse_bundle(self.slide_dir(), force=True)
 
   def slide_dir(self):
     """Get the filesystem directory containing this slide data."""
@@ -183,15 +204,15 @@ class Slide(object):
     bundle.extractall(directory)
     return True
 
-  def parse_bundle(self, directory):
+  def parse_bundle(self, directory, force=False):
     if not self.extract_bundle(directory):
       logging.error('Could not extract bundle for %s in %s' % (self, directory))
       return False
-    return self.parse_directory(directory)
+    return self.parse_directory(directory, force)
 
-  def parse_directory(self, directory):
+  def parse_directory(self, directory, force=False):
     """Parse the bundle in the given directory into self.slide."""
-    if self.group:
+    if self.group and not force:
       return True
     self.manifest = json.load(open(os.path.join(directory, 'manifest.js')))
     self.transition = self.manifest['transition']
