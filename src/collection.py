@@ -49,7 +49,23 @@ class Collection(object):
     def id_exists(self, id):
         return id in self.id_list()
 
+    def get_by_id(self, id):
+        """Get the slide with the given id.
+
+        Args:
+           id: (int) slide id number
+
+        Returns:
+           slide object or None if not found
+        """
+        with self.lock:
+            for slide in self.slides:
+                if slide.id() == id:
+                    return slide
+        return None
+
     def log_order(self):
+        """Log the current slide order to info log."""
         self.log.info('Current Order: %s' % self.id_list())
 
     def current_slide(self):
