@@ -140,6 +140,7 @@ def SetupStage(stage, show):
   HandleFullscreen(stage)
   stage.set_color(clutter.color_from_string('black'))
   SetupStartupImage(stage)
+  stage.hide_cursor()
   stage.connect('destroy', clutter.main_quit)
   stage.connect('key-press-event', OnKeyPressEvent, show)
   stage.set_title('CCIS Digital Display')
