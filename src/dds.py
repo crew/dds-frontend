@@ -143,7 +143,6 @@ def SetupStage(stage, show):
      stage: (Clutter Stage)
      show: (Slider) Slideshow instance
   """
-  HandleFullscreen(stage)
   stage.set_color(clutter.color_from_string('black'))
   SetupStartupImage(stage)
   stage.hide_cursor()
@@ -161,6 +160,7 @@ def Main():
                       format='%(asctime)s %(filename)s %(lineno)d '
                              '%(levelname)s %(message)s')
   stage = clutter.Stage()
+  HandleFullscreen(stage)
   SetupCache()
   show = manager.Manager(stage)
   SetupStage(stage, show)

@@ -23,6 +23,15 @@ class Manager(object):
         self.stage = stage
         self.log = logging.getLogger('manager')
         self.xmpphandler = None
+        self.setup_fade_to_black()
+
+    def setup_fade_to_black(self):
+        self.blackfader = clutter.Rectangle()
+        self.blackfader.set_position(0,0)
+        self.blackfader.set_size(self.stage.get_width(),
+                                 self.stage.get_height())
+        self.blackfader.set_color(clutter.color_from_string("black"))
+        self.stage.add(self.blackfader)
 
     def set_xmpp_handler(self, handler):
         self.xmpphandler = handler
@@ -65,47 +74,51 @@ class Manager(object):
             slide.reload(metadata)
             gobject.timeout_add(2, lambda: self.resize_slide(slide))
     
-    def hide_slide(self, animation, slide):
+    def advance_after_transition(self, animation, slide):
         self.stage.remove(slide.group)
         self.log.info('afterhide')
         slide.event_afterhide()
+        self.slides.current_slide().lock.release()
+        self.slides.advance()
+        self.show_slide()
 
-    def move_out_slide(self, slide):
+    def show_slide(self):
+        gobject.timeout_add(1,
+            lambda:  self.fade_in_slide(self.slides.current_slide()))
+        self.slides.current_slide().lock.acquire()
+
+    def fade_out_slide(self, slide, after):
         self.log.info('beforehide')
         slide.event_beforehide()
         if FLAGS.transitions:
             timeline = clutter.Timeline(2000)
             alpha = clutter.Alpha(timeline, clutter.LINEAR)
-            slide.group.set_position(0, 0)
-            slide.group.set_clip(0, 0, FLAGS.targetwidth,
-                                       FLAGS.targetheight)
-            path = clutter.Path()
-            path.add_move_to(0, 0)
-            path.add_line_to(-self.stage.get_width(), 0)
-            self.move_out_behavior = clutter.BehaviourPath(alpha, path)
-            self.move_out_behavior.apply(slide.group)
-            timeline.connect('completed', self.hide_slide, slide)
+            self.blackfader.set_opacity(0)
+            self.fade_out_behavior = clutter.BehaviourOpacity(alpha=alpha,
+                                                              opacity_start=0,
+                                                              opacity_end=255)
+            self.fade_out_behavior.apply(self.blackfader)
+            self.blackfader.raise_top()
+            self.blackfader.show()
+            timeline.connect('completed', after, slide)
             timeline.start()
         else:
-            self.hide_slide(None, slide)
+            self.advance_after_transition(None, slide)
 
-    def move_in_slide(self, slide):
+    def fade_in_slide(self, slide):
         slide.event_beforeshow()
+        self.stage.add(slide.group)
         if FLAGS.transitions:
             timeline = clutter.Timeline(2000)
             alpha = clutter.Alpha(timeline, clutter.LINEAR)
-            slide.group.set_clip(0, 0, FLAGS.targetwidth,
-                                       FLAGS.targetheight)
-            slide.group.set_position(self.stage.get_width(), 0)
-            path = clutter.Path()
-            path.add_move_to(self.stage.get_width(), 0)
-            path.add_line_to(0, 0)
-            self.move_in_behavior = clutter.BehaviourPath(alpha, path)
-            self.move_in_behavior.apply(slide.group)
+            self.blackfader.raise_top()
+            self.blackfader.show()
+            self.blackfader.set_opacity(255)
+            self.fade_in_behavior = clutter.BehaviourOpacity(alpha=alpha,
+                                                             opacity_start=255,
+                                                             opacity_end=0)
+            self.fade_in_behavior.apply(self.blackfader)
             timeline.start()
-        else:
-            slide.group.set_position(0,0)
-        self.stage.add(slide.group)
         slide.group.show()
         slide.event_aftershow()
         if self.xmpphandler is not None:
@@ -113,14 +126,11 @@ class Manager(object):
 
     def next(self, firsttime=False):
         self.slides.log_order()
-        if not firsttime:
-            self.move_out_slide(self.slides.current_slide())
-            self.slides.current_slide().lock.release()
-            self.slides.advance()
-        #XXX: ew.
-        gobject.timeout_add(1,
-                lambda:  self.move_in_slide(self.slides.current_slide()))
-        self.slides.current_slide().lock.acquire()
+        if firsttime:
+            self.show_slide()
+        else:
+            self.fade_out_slide(self.slides.current_slide(),
+                                self.advance_after_transition)
         if not FLAGS.oneslide:
             gobject.timeout_add(self.slides.current_slide().duration * 1000,
                                 self.next)
