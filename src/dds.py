@@ -9,6 +9,7 @@ __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 
 import clutter
+import cairo
 import config
 import gflags
 import gobject
@@ -105,6 +106,11 @@ def InitializeLibraries():
   # resolution so things look the same across all clients.
   clutter.Backend.set_resolution(clutter.backend_get_default(), 112)
 
+  # Make the font rendering look a little nicer
+  font_options = clutter.Backend.get_font_options(clutter.backend_get_default())
+  font_options.set_hint_style(cairo.HINT_STYLE_NONE);
+  font_options.set_antialias(cairo.ANTIALIAS_SUBPIXEL);
+  clutter.Backend.set_font_options(clutter.backend_get_default(), font_options);
 
 def SetupCache():
   """Create cache directory if it does not exist."""
