@@ -8,7 +8,7 @@ while true
 do
 logfile=`mktemp`
 git pull
-./dds.py > $logfile
+./dds.py 2>&1 > $logfile
 cat $logfile|mail -s "DDS Crash on $host" ddscrashes@compbrain.net
 rm $logfile
 done
