@@ -74,24 +74,25 @@ class Manager(object):
             slide.reload(metadata)
             gobject.timeout_add(2, lambda: self.resize_slide(slide))
     
-    def advance_after_transition(self, animation, slide):
+    def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
         self.log.info('afterhide')
         slide.event_afterhide()
-        self.slides.current_slide().lock.release()
-        self.slides.advance()
+        slide.lock.release()
         self.show_slide()
 
     def show_slide(self):
         gobject.timeout_add(1,
             lambda:  self.fade_in_slide(self.slides.current_slide()))
-        self.slides.current_slide().lock.acquire()
+        if not FLAGS.oneslide:
+            gobject.timeout_add(self.slides.current_slide().duration * 1000,
+                                self.next) 
 
     def fade_out_slide(self, slide, after):
         self.log.info('beforehide')
         slide.event_beforehide()
         if FLAGS.transitions:
-            timeline = clutter.Timeline(2000)
+            timeline = clutter.Timeline(500)
             alpha = clutter.Alpha(timeline, clutter.LINEAR)
             self.blackfader.set_opacity(0)
             self.fade_out_behavior = clutter.BehaviourOpacity(alpha=alpha,
@@ -103,13 +104,12 @@ class Manager(object):
             timeline.connect('completed', after, slide)
             timeline.start()
         else:
-            self.advance_after_transition(None, slide)
+            self.after_transition(None, slide)
 
     def fade_in_slide(self, slide):
-        slide.event_beforeshow()
         self.stage.add(slide.group)
         if FLAGS.transitions:
-            timeline = clutter.Timeline(2000)
+            timeline = clutter.Timeline(500)
             alpha = clutter.Alpha(timeline, clutter.LINEAR)
             self.blackfader.raise_top()
             self.blackfader.show()
@@ -127,13 +127,16 @@ class Manager(object):
     def next(self, firsttime=False):
         self.slides.log_order()
         if firsttime:
+            self.slides.current_slide().lock.acquire()
+            self.slides.current_slide().event_beforeshow()
             self.show_slide()
         else:
-            self.fade_out_slide(self.slides.current_slide(),
-                                self.advance_after_transition)
-        if not FLAGS.oneslide:
-            gobject.timeout_add(self.slides.current_slide().duration * 1000,
-                                self.next)
+            last_slide = self.slides.current_slide()
+            self.slides.advance()
+            self.slides.current_slide().lock.acquire()
+            self.slides.current_slide().event_beforeshow()
+            self.fade_out_slide(last_slide,
+                                self.after_transition)
 
     def resize_slide(self, slide):
         width, height = self.stage.get_size()
