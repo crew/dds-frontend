@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 origdir=`pwd`
 newdir=`dirname $0`
 host=`hostname -f`
@@ -8,7 +8,7 @@ while true
 do
 logfile=`mktemp`
 git pull
-./dds.py 2>&1 > $logfile
+./dds.py &> $logfile
 cat $logfile|mail -s "DDS Crash on $host" ddscrashes@compbrain.net
 rm $logfile
 done
