@@ -24,8 +24,6 @@ import manager
 import slideobject
 
 gflags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
-gflags.DEFINE_boolean('fullscreenhotkey', True,
-                     'Enable/Disable `f` for fullscreen')
 gflags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 gflags.DEFINE_string('userdir', '~/.dds', 'user state path')
 gflags.DEFINE_boolean('enablemanualadvance', False,
@@ -58,28 +56,12 @@ def OnKeyPressEvent(stage, event, show):
   if (event.keyval == 113):
     clutter.main_quit()
     sys.exit(0)
-  # Handle `f`
-  elif (event.keyval == 102):
-    if FLAGS.fullscreenhotkey:
-      ToggleFullscreen(stage)
   elif (event.keyval == 65363):
     if FLAGS.enablemanualadvance:
       logging.debug('Got arrow key, nexting?')
       show.next()
     else:
       logging.debug('Got arrow key, manual advance disabled')
-
-
-def ToggleFullscreen(stage):
-  """Toggle the fullscreen state."""
-  global FULLSCREEN
-  logging.info('Toggling fullscreen: Current = %s' % FULLSCREEN)
-
-  if FULLSCREEN:
-    FULLSCREEN = False
-  else:
-    FULLSCREEN = True
-  stage.set_fullscreen(FULLSCREEN)
 
 
 def SetupStartupImage(stage):
