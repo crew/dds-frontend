@@ -328,7 +328,12 @@ class Slide(object):
       n = 'event_%s' % event
       logging.info('setting up %s in %s' % (n, str(self)))
       if hasattr(self.app, n):
-        setattr(self, n, getattr(self.app, n))
+        def callmethod():
+          logging.info('Calling %s in %s' % (n, self))
+          f = getattr(self.app, n)
+          gobject.timeout_add(1, f)
+          logging.info('Calling %s in %s complete' % (n, self))
+        setattr(self, n,  callmethod)
       elif self.mode == 'module':
         setattr(self, n, lambda: logging.warning('%s undefined in %s'
                                                  % (n, str(self))))

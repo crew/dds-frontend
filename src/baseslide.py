@@ -18,23 +18,23 @@ class BaseSlide(object):
   
   def event_beforeshow(self):
     """Hook to be called before display on screen."""
-    pass
+    logging.warning('beforeshow undefined')
 
   def event_aftershow(self):
     """Hook to be called after display on screen."""
-    pass
+    logging.warning('aftershow undefined')
 
   def event_loop(self):
     """Hook to be called periodically while on screen."""
-    pass
+    logging.warning('loop undefined')
 
   def event_beforehide(self):
     """Hook to be called before removal from screen."""
-    pass
+    logging.warning('loop beforehide')
 
   def event_afterhide(self):
     """Hook to be called after removal from screen."""
-    pass
+    logging.warning('loop afterhide')
 
   def TextureFromPixbuf(self, pixbuf, texture=None):
     """Given a pixbuf, create a clutter texture or update an existing texture.
