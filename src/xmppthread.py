@@ -35,7 +35,7 @@ class XMPPThread(threading.Thread):
        slidemanager: (SlideManager) slidemanager instance
     """
     self.slidemanager = slidemanager
-    self.slidemanager.SetXMPPHandler(self)
+    self.slidemanager.set_xmpp_handler(self)
 
   def SetCurrentSlide(self, slide):
     """Send a global presence packet with the current slide ID.
@@ -45,21 +45,17 @@ class XMPPThread(threading.Thread):
     """
     # Say hello to the dds-master server with current slideid
     self.status = xmpp.Presence(to=config.Option("server-jid"))
-    self.status.setStatus(str(slide.ID()))
+    self.status.setStatus(str(slide.id()))
     self.connection.send(self.status)
 
   def AddSlide(self, slidetuple):
     """XMPP AddSlide method handler.
 
     Args:
-       slidetuple: (tuple) (slide metadata, slide assets)
+       slidetuple: (tuple) (slide metadata)
     """
     logging.info('XMPP addSlide request')
-    if len(slidetuple) != 2:
-      logging.error('Invalid slide tuple passed: %s' % slidetuple)
-      return False
-
-    self.slidemanager.AddSlide(slidetuple)
+    self.slidemanager.add_slide(slidetuple[0])
 
   def RemoveSlide(self, slidetuple):
     """XMPP RemoveSlide method handler.
@@ -68,19 +64,16 @@ class XMPPThread(threading.Thread):
        slidetuple: (tuple)
     """
     logging.info("XMPP removeSlide request")
-    info = slidetuple[0]
-    logging.debug('removeslide got info = %s' % str(info))
-    self.slidemanager.RemoveSlide(info)
+    self.slidemanager.remove_slide(slidetuple[0])
 
   def UpdateSlide(self, slidetuple):
     """XMPP UpdateSlide method handler.
 
     Args:
-       slidetuple: (tuple) (slide metadata, slide assets)
+       slidetuple: (tuple) (slide metadata)
     """
     logging.info('XMPP updateSlide request')
-    logging.debug('Update slide: %s' % str(slidetuple[0]['id']))
-    self.slidemanager.UpdateSlide(slidetuple)
+    self.slidemanager.update_slide(slidetuple[0])
 
   def GetScreenshot(self, slidetuple):
     logging.warning('STUB: Haven\'t written this code yet. (GetScreenshot)')
@@ -125,7 +118,8 @@ class XMPPThread(threading.Thread):
     auth = self.connection.auth(jid.getNode(), password, jid.getResource())
     if not auth:
       logging.warning('Unrecognized XMPP account! Attempting registration')
-      if not xmpp.features.register(self.connection, jid.getDomain(), {"username": jid.getNode(), "password":password}):
+      ident = {"username": jid.getNode(), "password": password}
+      if not xmpp.features.register(self.connection, jid.getDomain(), ident):
         logging.error('XMPP New Account registration failed. Bailing out!')
         os.abort()
         return False
@@ -138,7 +132,8 @@ class XMPPThread(threading.Thread):
     self.connection.sendInitPresence()
 
     # Say hello to the dds-master server
-    self.status = xmpp.Presence(to=config.Option("server-jid"))
+    server_jid = xmpp.JID(config.Option("server-jid"))
+    self.status = xmpp.Presence(to=server_jid.getStripped())
     self.status.setStatus('initialsliderequest')
     self.connection.send(self.status)
 
