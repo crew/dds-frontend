@@ -14,6 +14,7 @@ import config
 import gflags
 import gobject
 import hashlib
+import imp
 import json
 import logging
 import os
@@ -278,14 +279,21 @@ class Slide(object):
       codepath: (string) filename to load
       directory: (string) directory that filename resides in
     """
-    currentdirectory = os.getcwd()
-    currentpath = sys.path
-    sys.path.append(directory)
-    os.chdir(directory)
-    module = __import__('layout')
-    os.chdir(currentdirectory)
-    sys.path = currentpath
-    return module
+    fin = None
+    try:
+      currentdirectory = os.getcwd()
+      currentpath = sys.path
+      sys.path.append(directory)
+      os.chdir(directory)
+      fin = open(codepath, 'rb')
+      module = imp.load_source(hashlib.sha1(codepath).hexdigest(), codepath,
+                               fin)
+      os.chdir(currentdirectory)
+      sys.path = currentpath
+      return module
+    finally:
+      if fin:
+        fin.close()
 
   def screenshot_path(self):
     basepath = os.path.join(config.Option('cache'), '..', 'screenshots')
