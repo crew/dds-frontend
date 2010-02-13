@@ -154,7 +154,10 @@ def Main():
     def foo(): 
       s = slideobject.Slide()
       s.oneslide(FLAGS.oneslide)
+      a = slideobject.Slide()
+      a.oneslide(FLAGS.oneslide, id=-2)
       show._add_slide(s)
+      show._add_slide(a)
     t = threading.Thread(target=foo)
     t.start()
 

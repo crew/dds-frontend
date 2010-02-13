@@ -14,7 +14,6 @@ import config
 import gflags
 import gobject
 import hashlib
-import imp
 import json
 import logging
 import os
@@ -94,7 +93,7 @@ class Slide(object):
     Slide.reload_slide_from_metadata(slide, metadata)
     return slide
 
-  def oneslide(self, dir):
+  def oneslide(self, dir, id=-1):
     """Given slide metadata and a slide, update that slide's information
        and bundle.
 
@@ -102,7 +101,7 @@ class Slide(object):
        metadata: (dictionary) Slide metadata
     """
     logging.debug('creating slide from oneslide')
-    self.db_id = -1
+    self.db_id = id
     self.dir = os.path.expanduser(dir)
     self.parse_directory(self.slide_dir())
 
@@ -269,8 +268,8 @@ class Slide(object):
       return (slidemodule.slide, slidemodule.app)
 
     except Exception, e:
-      logging.error('Could not load module %s in dir %s because %s'
-                    % (filename, directory, e))
+      logging.exception('Could not load module %s in dir %s because %s'
+                        % (filename, directory, e))
 
   def load_module(self, codepath, directory):
     """Returns the module object for the python file at the given path.
@@ -279,22 +278,14 @@ class Slide(object):
       codepath: (string) filename to load
       directory: (string) directory that filename resides in
     """
-    fin = None
-    try:
-      currentdirectory = os.getcwd()
-      currentpath = sys.path
-      sys.path.append(directory)
-      os.chdir(directory)
-      fin = open(codepath, 'rb')
-      # WTF is this
-      module = imp.load_source(hashlib.sha1(codepath).hexdigest(),
-                               codepath, fin)
-      os.chdir(currentdirectory)
-      sys.path = currentpath
-      return module
-    finally:
-      if fin:
-        fin.close()
+    currentdirectory = os.getcwd()
+    currentpath = sys.path
+    sys.path.append(directory)
+    os.chdir(directory)
+    module = __import__('layout')
+    os.chdir(currentdirectory)
+    sys.path = currentpath
+    return module
 
   def screenshot_path(self):
     basepath = os.path.join(config.Option('cache'), '..', 'screenshots')

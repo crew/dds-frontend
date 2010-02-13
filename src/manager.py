@@ -76,7 +76,6 @@ class Manager(object):
     
     def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
-        self.log.info('afterhide')
         slide.event_afterhide()
         slide.lock.release()
         self.show_slide()
@@ -84,12 +83,10 @@ class Manager(object):
     def show_slide(self):
         gobject.timeout_add(1,
             lambda:  self.fade_in_slide(self.slides.current_slide()))
-        if not FLAGS.oneslide:
-            gobject.timeout_add(self.slides.current_slide().duration * 1000,
-                                self.next) 
+        gobject.timeout_add(self.slides.current_slide().duration * 1000,
+                            self.next)
 
     def fade_out_slide(self, slide, after):
-        self.log.info('beforehide')
         slide.event_beforehide()
         if FLAGS.transitions:
             timeline = clutter.Timeline(500)
