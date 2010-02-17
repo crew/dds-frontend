@@ -124,7 +124,6 @@ class Manager(object):
             self.xmpphandler.SetCurrentSlide(slide)
 
     def next(self, firsttime=False):
-        self.slides.log_order()
         if firsttime:
             self.slides.current_slide().lock.acquire()
             self.slides.current_slide().event_beforeshow()
