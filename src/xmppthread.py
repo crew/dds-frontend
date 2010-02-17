@@ -57,6 +57,20 @@ class XMPPThread(threading.Thread):
     logging.info('XMPP addSlide request')
     self.slidemanager.add_slide(slidetuple[0])
 
+  def SetPlaylist(self, datatuple):
+    """XMPP SetPlaylist method handler.
+
+    Args:
+       datatuple: (tuple) (playlist metadata)
+    """
+    logging.info('XMPP setPlaylist request')
+    self.slidemanager.slides.playlist.purge()
+    packet = datatuple[0]
+    for i in packet['playlist']:
+      self.slidemanager.slides.playlist.add(i)
+    for slide in packet['slides']:
+      self.slidemanager.add_slide(slide)
+
   def RemoveSlide(self, slidetuple):
     """XMPP RemoveSlide method handler.
 
@@ -134,7 +148,7 @@ class XMPPThread(threading.Thread):
     # Say hello to the dds-master server
     server_jid = xmpp.JID(config.Option("server-jid"))
     self.status = xmpp.Presence(to=server_jid.getStripped())
-    self.status.setStatus('initialsliderequest')
+    self.status.setStatus('playlistrequest')
     self.connection.send(self.status)
 
     self.Proceed()
@@ -145,6 +159,7 @@ class XMPPThread(threading.Thread):
                 "removeSlide"   : self.RemoveSlide,
                 "updateSlide"   : self.UpdateSlide,
                 "getScreenshot" : self.GetScreenshot,
+                "setPlaylist"   : self.SetPlaylist,
               }
 
     # pylint: disable-msg=C0103
