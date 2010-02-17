@@ -94,7 +94,7 @@ class BaseSlide(object):
        data string on success, None on failure
     """
     try:
-      logging.info('Slide fetching data from %s' % url)
+      logging.debug('Slide fetching data from %s' % url)
       u = urllib.urlopen(url)
       data = u.read()
       return data
@@ -163,7 +163,6 @@ class BaseSlide(object):
 
   def download_fetch_ical(self, uri, force=False):
     """Fetch an iCal feed and store it locally."""
-    logging.info(self.ourpath)
     if self.calendar is None or force:
       tmpfile = os.path.join(os.path.dirname(self.ourpath), 'calcache.ics')
       fetchit = lambda: urllib.urlretrieve(uri, tmpfile)

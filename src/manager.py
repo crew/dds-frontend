@@ -45,10 +45,11 @@ class Manager(object):
 
     def _add_slide(self, o):
         self.log.debug('add_slide %s' % o)
-        wasempty = self.slides.empty()
+        wasempty = ((self.slides.current_slide() is None) or
+                    len(self.stage.get_children()) == 1) 
         self.resize_slide(o)
         self.slides.add_slide(o)
-        if wasempty and not self.slides.empty():
+        if wasempty and self.slides.current_slide():
             self.next(firsttime=True)
     
     def remove_slide(self, metadata):
