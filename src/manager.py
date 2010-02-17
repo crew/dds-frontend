@@ -45,10 +45,11 @@ class Manager(object):
 
     def _add_slide(self, o):
         self.log.debug('add_slide %s' % o)
-        wasempty = self.slides.empty()
+        wasempty = ((self.slides.current_slide() is None) or
+                    len(self.stage.get_children()) == 1) 
         self.resize_slide(o)
         self.slides.add_slide(o)
-        if wasempty and not self.slides.empty():
+        if wasempty and self.slides.current_slide():
             self.next(firsttime=True)
     
     def remove_slide(self, metadata):
@@ -77,7 +78,8 @@ class Manager(object):
     def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
         slide.event_afterhide()
-        slide.lock.release()
+        if self.slides.current_slide() != slide:
+            slide.lock.release()
         self.show_slide()
 
     def show_slide(self):
@@ -130,7 +132,8 @@ class Manager(object):
         else:
             last_slide = self.slides.current_slide()
             self.slides.advance()
-            self.slides.current_slide().lock.acquire()
+            if self.slides.current_slide() != last_slide:
+                self.slides.current_slide().lock.acquire()
             self.slides.current_slide().event_beforeshow()
             self.fade_out_slide(last_slide,
                                 self.after_transition)

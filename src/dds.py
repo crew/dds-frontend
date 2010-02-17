@@ -24,6 +24,7 @@ import manager
 import slideobject
 
 gflags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
+gflags.DEFINE_boolean('debug', False, 'Enable debug logging')
 gflags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 gflags.DEFINE_string('userdir', '~/.dds', 'user state path')
 gflags.DEFINE_boolean('enablemanualadvance', False,
@@ -138,7 +139,10 @@ def Main():
   """Initiate a DDS frontend."""
   CreateDDSDir()
   InitializeLibraries()
-  logging.basicConfig(level=logging.DEBUG,
+  level = logging.INFO
+  if FLAGS.debug:
+    level = logging.DEBUG
+  logging.basicConfig(level=level,
                       format='%(asctime)s %(filename)s %(lineno)d '
                              '%(levelname)s %(message)s')
   stage = clutter.Stage()

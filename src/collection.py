@@ -6,6 +6,7 @@
 import gflags
 import logging
 import thread
+import playlist
 
 FLAGS = gflags.FLAGS
 
@@ -15,6 +16,9 @@ class Collection(object):
         self.slides = []
         self.lock = thread.allocate_lock()
         self.log = logging.getLogger('collection')
+        self.playlist = playlist.Playlist()
+        self.currentid = None
+        self.cachedcurrent = None
 
     def empty(self):
         self.log.debug('Checking if empty')
@@ -27,20 +31,11 @@ class Collection(object):
             return len(self.slides) > 1
 
     def rotate(self, direction='forward'):
-        if self.empty():
-            return
-        with self.lock:
-            if direction == 'forward':
-                self.slides.append(self.slides.pop(0))
-            else:
-                self.slides.insert(0, self.slides.pop())
-    
+        self.playlist.rotate(direction)
+
     def advance(self):
         self.rotate(direction='forward')
-
-    def rewind(self):
-        self.rotate(direction='reverse')
-
+    
     def id_list(self):
         self.log.debug('Getting ID list')
         with self.lock:
@@ -70,9 +65,11 @@ class Collection(object):
 
     def current_slide(self):
         self.log.debug('Getting current slide')
-        if not self.empty():
-            with self.lock:
-                return self.slides[0]
+        if (self.cachedcurrent is None or
+            self.currentid != self.playlist.current_slide()):
+            self.currentid = self.playlist.current_slide()
+            self.cachedcurrent = self.get_by_id(self.currentid)
+        return self.cachedcurrent
     
     def add_slide(self, slideobj):
         self.log.debug('Adding slide %s' % slideobj)
