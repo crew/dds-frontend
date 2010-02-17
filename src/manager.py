@@ -77,7 +77,8 @@ class Manager(object):
     def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
         slide.event_afterhide()
-        slide.lock.release()
+        if self.slides.current_slide() != slide:
+            slide.lock.release()
         self.show_slide()
 
     def show_slide(self):
@@ -130,7 +131,8 @@ class Manager(object):
         else:
             last_slide = self.slides.current_slide()
             self.slides.advance()
-            self.slides.current_slide().lock.acquire()
+            if self.slides.current_slide() != last_slide:
+                self.slides.current_slide().lock.acquire()
             self.slides.current_slide().event_beforeshow()
             self.fade_out_slide(last_slide,
                                 self.after_transition)

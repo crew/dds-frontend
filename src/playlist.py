@@ -30,14 +30,15 @@ class SlideItem(object):
     def slide(self):
         return self.safepick(self.ids)
 
-class SingleSlideItem(SlideItem):
-    pass
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return 'Playlist(%d, %s, %s)' % (self.position, self.mode, self.ids)
 
 class RandomSlideItem(SlideItem):
     def slide(self):
-        return self.sa
-        if self.ids:
-            return random.choice(self.ids)
+        return self.safepick(self.ids)
 
 class WeightedSlideItem(SlideItem):
     def buildchoicelist(self):
@@ -69,19 +70,21 @@ class Playlist(object):
     def rotate(self, direction='forward'):
         if self.empty():
             return
+        logging.info('playlist rotation')
         with self.lock:
+            logging.info('playlist rotation: %s' % direction)
             if direction == 'forward':
                 self.items.append(self.items.pop(0))
             else:
                 self.items.insert(0, self.items.pop())
+        self.log.debug('Playlist: %s' % str(self.items))
+        self.currentid = None
     
     def advance(self):
         self.rotate(direction='forward')
-        self.currentid = None
 
     def rewind(self):
         self.rotate(direction='reverse')
-        self.currentid = None
 
     def purge(self):
         self.items = []
@@ -90,10 +93,11 @@ class Playlist(object):
         if self.currentid is None:
             self.currentid = self.items[0].slide()
             self.log.debug('Playlist picked %d' % self.currentid)
+            self.log.debug('Playlist: %s' % str(self.items))
         return self.currentid
 
     def add(self, itm):
-        plclass = {'single':SingleSlideItem, 'random':RandomSlideItem,
+        plclass = {'single':SlideItem, 'random':RandomSlideItem,
                    'weighted':WeightedSlideItem}
         item = plclass[itm['mode']](itm['position'], itm['slides'],
                                     itm['weights'], itm['mode'])

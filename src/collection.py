@@ -17,6 +17,8 @@ class Collection(object):
         self.lock = thread.allocate_lock()
         self.log = logging.getLogger('collection')
         self.playlist = playlist.Playlist()
+        self.currentid = None
+        self.cachedcurrent = None
 
     def empty(self):
         self.log.debug('Checking if empty')
@@ -63,7 +65,11 @@ class Collection(object):
 
     def current_slide(self):
         self.log.debug('Getting current slide')
-        return self.get_by_id(self.playlist.current_slide())
+        if (self.cachedcurrent is None or
+            self.currentid != self.playlist.current_slide()):
+            self.currentid = self.playlist.current_slide()
+            self.cachedcurrent = self.get_by_id(self.currentid)
+        return self.cachedcurrent
     
     def add_slide(self, slideobj):
         self.log.debug('Adding slide %s' % slideobj)
