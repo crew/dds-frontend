@@ -77,7 +77,7 @@ class Manager(object):
     
     def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
-        slide.event_afterhide()
+        gobject.timeout_add(1, slide.event_afterhide)
         if self.slides.current_slide() != slide:
             slide.lock.release()
         self.show_slide()
