@@ -155,7 +155,11 @@ def Main():
     timer.AttachSlideManager(show)
     timer.start()
   else:
-    def foo(): 
+    def foo():
+      show.slides.playlist.add({'position':1, 'mode':'single', 'slides':[-1],
+                                'weights':[1]})
+      show.slides.playlist.add({'position':1, 'mode':'single', 'slides':[-2],
+                                'weights':[1]})
       s = slideobject.Slide()
       s.oneslide(FLAGS.oneslide)
       a = slideobject.Slide()

@@ -71,7 +71,7 @@ class Manager(object):
     def update_slide(self, metadata):
         self.log.debug('update_slide %s' % metadata)
         slide = self.slides.get_by_id(metadata['id'])
-        if slide:
+        if slide and slide.needs_update(metadata):
             slide.reload(metadata)
             gobject.timeout_add(2, lambda: self.resize_slide(slide))
     

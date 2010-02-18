@@ -47,6 +47,7 @@ class Slide(object):
     # Parsing time limit
     self.timeout = 10
 
+    self.timestamp = None
     self.duration = None
     self.priority = None
     self.transition = None
@@ -93,6 +94,12 @@ class Slide(object):
     slide = Slide()
     Slide.reload_slide_from_metadata(slide, metadata)
     return slide
+
+  def needs_update(self, metadata):
+    needed = self.timestamp != metadata['modified']
+    if needed:
+      logging.warning('%s needs update per timestamp' % str(self))
+    return needed
 
   def oneslide(self, dir, id=-1):
     """Given slide metadata and a slide, update that slide's information
@@ -160,6 +167,7 @@ class Slide(object):
        metadata: (dictionary) Slide metadata
     """
     self.db_id = metadata['id']
+    self.timestamp = metadata['modified']
 
   #TODO(wan): Write the retry code.
   def retrieve_bundle(self, url, directory, unused_retry=False):
