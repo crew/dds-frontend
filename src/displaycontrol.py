@@ -45,6 +45,16 @@ class SharpAquos(SerialDevice):
   INPUT_VIDEO = '1'
   INPUT_COMPONENT = '2'
 
+  MUTE_TOGGLE = 0
+  MUTE_ON = 1
+  MUTE_OFF = 2
+
+  SURROUND_TOGGLE = 0
+  SURROUND_ON = 1
+  SURROUND_OFF = 2
+
+  WIDE_DOT_BY_DOT = 8
+
   def _formatcmd(self, cmd, arg):
     cmd = cmd.upper()
     arg = str(arg)
@@ -72,7 +82,12 @@ class SharpAquos(SerialDevice):
   def power(self, on=True):
     self._sendcmd('POWR', int(on))
 
+  def restrict_power(self, on=False):
+    self._sendcmd('RSPW', int(on))
+
   def widescreen_mode(self, mode):
+    #FIXME
+    assert mode in [ self.WIDE_DOT_BY_DOT ]
     self._sendcmd('WIDE', mode)
 
   def volume(self, val=0):
@@ -91,3 +106,36 @@ class SharpAquos(SerialDevice):
     assert input in [ self.INPUT_SELECT_IN1, self.INPUT_SELECT_IN3 ]
     assert mode in [ self.INPUT_AUTO, self.INPUT_VIDEO, self.INPUT_COMPONENT ]
     self.sendcmd('INP'+input[1], mode)
+
+  def mute(self, mode):
+    assert mode in [ self.MUTE_TOGGLE, self.MUTE_ON, self.MUTE_OFF ]
+    self.sendcmd('MUTE', mode)
+
+  def surround(self, mode):
+    assert mode in [ self.SURROUND_TOGGLE, self.SURROUND_ON,
+                     self.SURROUND_OFF ]
+    self.sendcmd('ACSU', mode)
+
+  def audio_selection(self):
+    """Toggle audio selection"""
+    self.sendcmd('ACHA', 0)
+
+  def closed_caption(self):
+    """Toggle CC selection"""
+    self.sendcmd('CLCP', 0)
+
+  def channel(self):
+    #FIXME
+    pass
+
+  def sleep_time(self):
+    #FIXME
+    pass
+
+  def position(self):
+    #FIXME
+    pass
+
+  def av_mode(self):
+    #FIXME
+    pass
