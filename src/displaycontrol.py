@@ -80,19 +80,19 @@ class SharpAquos(SerialDevice):
     time.sleep(1)
 
   def power(self, on=True):
-    self._sendcmd('POWR', int(on))
+    return self._sendcmd('POWR', int(on))
 
   def restrict_power(self, on=False):
-    self._sendcmd('RSPW', int(on))
+    return self._sendcmd('RSPW', int(on))
 
   def widescreen_mode(self, mode):
     #FIXME
     assert mode in [ self.WIDE_DOT_BY_DOT ]
-    self._sendcmd('WIDE', mode)
+    return self._sendcmd('WIDE', mode)
 
   def volume(self, val=0):
     assert 0 <= val <= 60
-    self._sendcmd('VOLM', '%02d' % val)
+    return self._sendcmd('VOLM', '%02d' % val)
 
   def input_select(self, input):
     assert input in [ self.INPUT_SELECT_TOGGLE, self.INPUT_SELECT_TV,
@@ -100,29 +100,29 @@ class SharpAquos(SerialDevice):
                       self.INPUT_SELECT_IN3, self.INPUT_SELECT_IN4,
                       self.INPUT_SELECT_IN5, self.INPUT_SELECT_IN6,
                       self.INPUT_SELECT_IN7 ]
-    self._sendcmd(input[0], input[1])
+    return self._sendcmd(input[0], input[1])
 
   def input_select_b(self, input, mode):
     assert input in [ self.INPUT_SELECT_IN1, self.INPUT_SELECT_IN3 ]
     assert mode in [ self.INPUT_AUTO, self.INPUT_VIDEO, self.INPUT_COMPONENT ]
-    self.sendcmd('INP'+input[1], mode)
+    return self._sendcmd('INP'+input[1], mode)
 
   def mute(self, mode):
     assert mode in [ self.MUTE_TOGGLE, self.MUTE_ON, self.MUTE_OFF ]
-    self.sendcmd('MUTE', mode)
+    return self._sendcmd('MUTE', mode)
 
   def surround(self, mode):
     assert mode in [ self.SURROUND_TOGGLE, self.SURROUND_ON,
                      self.SURROUND_OFF ]
-    self.sendcmd('ACSU', mode)
+    return self._sendcmd('ACSU', mode)
 
   def audio_selection(self):
     """Toggle audio selection"""
-    self.sendcmd('ACHA', 0)
+    return self._sendcmd('ACHA', 0)
 
   def closed_caption(self):
     """Toggle CC selection"""
-    self.sendcmd('CLCP', 0)
+    return self._sendcmd('CLCP', 0)
 
   def channel(self):
     #FIXME
