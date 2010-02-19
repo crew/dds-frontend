@@ -17,7 +17,7 @@ class BaseDevice(object):
 class SerialDevice(BaseDevice):
   def __init__(self, port='/dev/ttyUSB0'):
     BaseDevice.__init__(self)
-    self._port is None
+    self._port = None
     self.port = port
 
   def serial_port(self):
