@@ -80,12 +80,14 @@ class SharpAquos(SerialDevice):
     self._sendcmd('VOLM', '%02d' % val)
 
   def input_select(self, input):
-    assert input in [ INPUT_SELECT_TOGGLE, INPUT_SELECT_TV, INPUT_SELECT_IN1,
-                      INPUT_SELECT_IN2, INPUT_SELECT_IN3, INPUT_SELECT_IN4,
-                      INPUT_SELECT_IN5, INPUT_SELECT_IN6, INPUT_SELECT_IN7 ]
+    assert input in [ self.INPUT_SELECT_TOGGLE, self.INPUT_SELECT_TV,
+                      self.INPUT_SELECT_IN1, self.INPUT_SELECT_IN2,
+                      self.INPUT_SELECT_IN3, self.INPUT_SELECT_IN4,
+                      self.INPUT_SELECT_IN5, self.INPUT_SELECT_IN6,
+                      self.INPUT_SELECT_IN7 ]
     self._sendcmd(input[0], input[1])
 
   def input_select_b(self, input, mode):
-    assert input in [ INPUT_SELECT_IN1, INPUT_SELECT_IN3 ]
-    assert mode in [ INPUT_AUTO, INPUT_VIDEO, INPUT_COMPONENT ]
+    assert input in [ self.INPUT_SELECT_IN1, self.INPUT_SELECT_IN3 ]
+    assert mode in [ self.INPUT_AUTO, self.INPUT_VIDEO, self.INPUT_COMPONENT ]
     self.sendcmd('INP'+input[1], mode)
