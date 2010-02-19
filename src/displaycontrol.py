@@ -55,6 +55,12 @@ class SharpAquos(SerialDevice):
 
   WIDE_DOT_BY_DOT = 8
 
+  SLEEP_OFF = 0
+  SLEEP_30M = 1
+  SLEEP_60M = 2
+  SLEEP_90M = 3
+  SLEEP_120M = 4
+
   def _formatcmd(self, cmd, arg):
     cmd = cmd.upper()
     arg = str(arg)
@@ -83,7 +89,7 @@ class SharpAquos(SerialDevice):
     return self._sendcmd('POWR', int(on))
 
   def restrict_power(self, on=False):
-    return self._sendcmd('RSPW', int(on))
+    return self._sendcmd('RSPW', int(not on))
 
   def widescreen_mode(self, mode):
     #FIXME
@@ -124,13 +130,32 @@ class SharpAquos(SerialDevice):
     """Toggle CC selection"""
     return self._sendcmd('CLCP', 0)
 
-  def channel(self):
-    #FIXME
-    pass
+  def channel_up(self):
+    return self._sendcmd('CHUP', 0)
 
-  def sleep_time(self):
+  def channel_down(self):
+    return self._sendcmd('CHDW', 0)
+
+  def digital_channel(self, prefix, suffix):
+    assert 1 <= prefix <= 99
+    assert 0 <= suffix <= 99
+    return self._sendcmd('DA2P', '%02d%02d' % (prefix, suffix))
+
+  def long_digital_channel(self, prefix, suffix):
+    assert 1 <= prefix <= 999
+    assert 0 <= suffix <= 999
+    return self._sendcmd('DC2U', '%03d' % prefix)
+    return self._sendcmd('DC2L', '%03d' % suffix)
+
+  def analog_channel(self, num):
     #FIXME
-    pass
+    assert 1 <= num <= 135
+    return self._sendcmd('DCCH', '%03d' % num)
+
+  def sleep_timer(self, mode):
+    assert mode in [ self.SLEEP_OFF, self.SLEEP_30M, self.SLEEP_60M,
+                     self.SLEEP_90M, self.SLEEP_120M ]
+    return self._sendcmd('OFTM', mode)
 
   def position(self):
     #FIXME
