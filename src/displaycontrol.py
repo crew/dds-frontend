@@ -54,7 +54,7 @@ class SharpAquos(SerialDevice):
     if arglen > 4:
       raise Exception('Aquos arguments must be 4 chars in length.')
     elif arglen < 4:
-      arg = arg + ' '*4-arglen
+      arg = arg + ' '*(4-arglen)
     return cmd+arg
 
   def _sendcmd(self, cmd, arg):
