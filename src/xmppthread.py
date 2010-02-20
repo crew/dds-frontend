@@ -14,10 +14,13 @@ import config
 import threading
 import os
 import displaycontrol
+import gflags
 
 # This should be a list of XMPP resource strings that the server understands.
 ALLOWABLERESOURCES = ['dds-client']
 
+gflags.DEFINE_boolean('enablexmppkill', True, 'Enable killing DDS via XMPP')
+FLAGS = gflags.FLAGS
 
 class XMPPThread(threading.Thread):
   """Class for interacting with XMPP portions of the DDS System."""
@@ -83,11 +86,17 @@ class XMPPThread(threading.Thread):
     self.slidemanager.remove_slide(slidetuple[0])
 
   def DisplayControl(self, datatuple):
+    logging.info("XMPP dplyControl request")
     packet = datatuple[0]
     if 'setpower' in packet:
       self.display.power(packet['setpower'])
     if 'cmd' in packet:
       self.display._sendcmd(packet['cmd']['cmd'], packet['cmd']['arg'])
+
+  def KillDDS(self, datatuple):
+    logging.info("XMPP killDDS request")
+    if FLAGS.enablexmppkill:
+      os.abort()
 
   def UpdateSlide(self, slidetuple):
     """XMPP UpdateSlide method handler.
@@ -170,6 +179,7 @@ class XMPPThread(threading.Thread):
                 "getScreenshot" : self.GetScreenshot,
                 "setPlaylist"   : self.SetPlaylist,
                 "dplyControl"   : self.DisplayControl,
+                "killDDS"       : self.KillDDS,
               }
 
     # pylint: disable-msg=C0103
