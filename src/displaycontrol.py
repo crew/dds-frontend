@@ -26,6 +26,13 @@ class SerialDevice(BaseDevice):
       self._port = serial.Serial(port=self.port)
     return self._port
 
+  def close_port(self):
+    if self._port is not None:
+      try:
+        self._port.close()
+      finally:
+        self._port = None
+
 class SharpAquos(SerialDevice):
 
   REJECT_POWER_ON = 0
@@ -101,6 +108,7 @@ class SharpAquos(SerialDevice):
         recvbuf += self.serial_port().read()
     logging.debug('Got "%s" as result of packet %s'
                   % (recvbuf.strip(), packet))
+    self.close_port()
     time.sleep(1)
 
   def power(self, on=True):
