@@ -53,7 +53,16 @@ class SharpAquos(SerialDevice):
   SURROUND_ON = 1
   SURROUND_OFF = 2
 
+  WIDE_TOGGLE_AV = 0
+  WIDE_SIDEBAR_AV = 1
+  WIDE_SSTRETCH_AV = 2
+  WIDE_ZOOM_AV = 3
+  WIDE_STRETCH_AV = 4
+  WIDE_NORMAL_PC = 5
+  WIDE_ZOOM_PC = 6
+  WIDE_STRETCH_PC = 7
   WIDE_DOT_BY_DOT = 8
+  WIDE_FULLSCREEN_AV = 9
 
   SLEEP_OFF = 0
   SLEEP_30M = 1
@@ -136,21 +145,47 @@ class SharpAquos(SerialDevice):
   def channel_down(self):
     return self._sendcmd('CHDW', 0)
 
-  def digital_channel(self, prefix, suffix):
+  def ota_digital_channel(self, prefix, suffix):
+    prefix, suffix = map(int, [prefix, suffix])
     assert 1 <= prefix <= 99
     assert 0 <= suffix <= 99
     return self._sendcmd('DA2P', '%02d%02d' % (prefix, suffix))
 
-  def long_digital_channel(self, prefix, suffix):
+  def cable_digital_channel(self, prefix, suffix):
+    prefix, suffix = map(int, [prefix, suffix])
     assert 1 <= prefix <= 999
     assert 0 <= suffix <= 999
-    return self._sendcmd('DC2U', '%03d' % prefix)
-    return self._sendcmd('DC2L', '%03d' % suffix)
+    self._sendcmd('DC2U', '%03d' % prefix)
+    self._sendcmd('DC2L', '%03d' % suffix)
+
+  def cable_single_digital_channel(self, num):
+    num = int(num)
+    assert 1 <= num <= 16382
+    if num < 10000:
+      cmd = 'DC10'
+    else:
+      cmd = 'DC11'
+    return self._sendcmd(cmd, '%04d' % (num-9999))
 
   def analog_channel(self, num):
-    #FIXME
+    num = int(num)
     assert 1 <= num <= 135
     return self._sendcmd('DCCH', '%03d' % num)
+
+  def set_channel(self, num, chantype='ota'):
+    if chantype == 'ota':
+      parts = num.split('.')
+      assert len(parts) == 2
+      return self.ota_digital_channel(parts[0], parts[1])
+    elif chantype == 'cable':
+      if '.' in num:
+        parts = num.split('.')
+        assert len(parts) == 2
+        return self.cable_digital_channel(parts[0], parts[1])
+      else:
+        return self.cable_single_digital_channel(num)
+    else:
+      return self.analog_channel(num)
 
   def sleep_timer(self, mode):
     assert mode in [ self.SLEEP_OFF, self.SLEEP_30M, self.SLEEP_60M,
