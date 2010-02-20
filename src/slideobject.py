@@ -61,6 +61,8 @@ class Slide(object):
     self.app = None
     # lock for parsing operations
     self.lock = thread.allocate_lock()
+    # gobject event source id of loop event
+    self.loop_id = None
 
   def __repr__(self):
     return str(self)
@@ -349,6 +351,23 @@ class Slide(object):
         ## methods
         setattr(self, n, lambda: [])
 
+  def start_event_loop(self):
+    if self.loop_id:
+       self.stop_event_loop()
+    if (self.mode == 'module' and self.manifest and
+        'interval' in self.manifest and hasattr(self.app, 'event_loop')):
+      logging.info('Starting event loop in %s' % self)
+      self.loop_id = gobject.timeout_add(int(self.manifest['interval']),
+                                   lambda: self.app.event_loop() or True)
+
+  def stop_event_loop(self):
+    if self.loop_id:
+      if not gobject.source_remove(self.loop_id):
+         logging.error('Failed to remove loop event in %s' % self)
+      else:
+         logging.info('Stopped event loop in %s' % self)
+         self.loop_id = None
+
   def setupevents(self):
-    for x in ['beforeshow', 'aftershow', 'loop', 'beforehide', 'afterhide']:
+    for x in ['beforeshow', 'aftershow', 'beforehide', 'afterhide']:
       self._setupevent(x)

@@ -27,7 +27,7 @@ gflags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
 gflags.DEFINE_boolean('debug', False, 'Enable debug logging')
 gflags.DEFINE_string('logfile', '~/.dds/log', 'Log file path')
 gflags.DEFINE_string('userdir', '~/.dds', 'user state path')
-gflags.DEFINE_boolean('enablemanualadvance', False,
+gflags.DEFINE_boolean('manualadvance', True,
                      'Controls manual slide advancement')
 gflags.DEFINE_string('oneslide', None, 'Display only the given slidedir')
 gflags.DEFINE_integer('height', 540, 'Windowed Height')
@@ -58,7 +58,7 @@ def OnKeyPressEvent(stage, event, show):
     clutter.main_quit()
     sys.exit(0)
   elif (event.keyval == 65363):
-    if FLAGS.enablemanualadvance:
+    if FLAGS.manualadvance:
       logging.debug('Got arrow key, nexting?')
       show.next()
     else:

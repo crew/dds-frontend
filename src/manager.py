@@ -24,6 +24,7 @@ class Manager(object):
         self.log = logging.getLogger('manager')
         self.xmpphandler = None
         self.setup_fade_to_black()
+        self.next_timer = None
 
     def setup_fade_to_black(self):
         self.blackfader = clutter.Rectangle()
@@ -45,8 +46,7 @@ class Manager(object):
 
     def _add_slide(self, o):
         self.log.debug('add_slide %s' % o)
-        wasempty = ((self.slides.current_slide() is None) or
-                    len(self.stage.get_children()) == 1) 
+        wasempty = (self.slides.current_slide() is None) 
         self.resize_slide(o)
         self.slides.add_slide(o)
         if wasempty and self.slides.current_slide():
@@ -85,7 +85,8 @@ class Manager(object):
     def show_slide(self):
         gobject.timeout_add(1,
             lambda:  self.fade_in_slide(self.slides.current_slide()))
-        gobject.timeout_add(self.slides.current_slide().duration * 1000,
+        self.next_timer = gobject.timeout_add(
+                            self.slides.current_slide().duration * 1000,
                             self.next)
 
     def fade_out_slide(self, slide, after):
@@ -119,11 +120,15 @@ class Manager(object):
             self.fade_in_behavior.apply(self.blackfader)
             timeline.start()
         slide.group.show()
+        slide.start_event_loop()
         slide.event_aftershow()
         if self.xmpphandler is not None:
             self.xmpphandler.SetCurrentSlide(slide)
 
     def next(self, firsttime=False):
+        if self.next_timer:
+            if not gobject.source_remove(self.next_timer):
+                logging.error('Failed to remove "next" timer event!')
         if firsttime:
             self.slides.current_slide().lock.acquire()
             self.slides.current_slide().event_beforeshow()
@@ -134,6 +139,7 @@ class Manager(object):
             if self.slides.current_slide() != last_slide:
                 self.slides.current_slide().lock.acquire()
             self.slides.current_slide().event_beforeshow()
+            last_slide.stop_event_loop()
             self.fade_out_slide(last_slide,
                                 self.after_transition)
 
