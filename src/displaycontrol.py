@@ -70,6 +70,15 @@ class SharpAquos(SerialDevice):
   SLEEP_90M = 3
   SLEEP_120M = 4
 
+  AV_MODE_TOGGLE = 0
+  AV_MODE_STANDARD = 1
+  AV_MODE_MOVIE = 2
+  AV_MODE_GAME = 3
+  AV_MODE_USER = 4
+  AV_MODE_DYNAMIC_FIXED = 5
+  AV_MODE_DYNAMIC = 6
+  AV_MODE_PC = 7
+
   def _formatcmd(self, cmd, arg):
     cmd = cmd.upper()
     arg = str(arg)
@@ -101,8 +110,11 @@ class SharpAquos(SerialDevice):
     return self._sendcmd('RSPW', int(not on))
 
   def widescreen_mode(self, mode):
-    #FIXME
-    assert mode in [ self.WIDE_DOT_BY_DOT ]
+    assert mode in [ self.WIDE_TOGGLE_AV, self.WIDE_SIDEBAR_AV,
+                     self.WIDE_SSTRETCH_AV, self.WIDE_ZOOM_AV,
+                     self.WIDE_STRETCH_AV, self.WIDE_NORMAL_PC,
+                     self.WIDE_ZOOM_PC, self.WIDE_STRETCH_PC,
+                     self.WIDE_DOT_BY_DOT, self.WIDE_FULLSCREEN_AV ]
     return self._sendcmd('WIDE', mode)
 
   def volume(self, val=0):
@@ -192,10 +204,21 @@ class SharpAquos(SerialDevice):
                      self.SLEEP_90M, self.SLEEP_120M ]
     return self._sendcmd('OFTM', mode)
 
-  def position(self):
-    #FIXME
-    pass
+  def position(self, hpos=None, vpos=None, clock=None, phase=None):
+    if hpos is not None:
+      self._sendcmd('HPOS', '%03d' % hpos)
+    if vpos is not None:
+      self._sendcmd('VPOS', '%03d' % vpos)
+    if clock is not None:
+      assert 0 <= clock <= 180
+      self._sendcmd('CLCK', '%03d' % clock)
+    if phase is not None:
+      assert 0 <= phase <= 40
+      self._sendcmd('PHSE', '%03d' % phase)
 
-  def av_mode(self):
-    #FIXME
-    pass
+  def av_mode(self, mode):
+    assert mode in [ self.AV_MODE_TOGGLE, self.AV_MODE_STANDARD,
+                     self.AV_MODE_MOVIE, self.AV_MODE_GAME, self.AV_MODE_USER,
+                     self.AV_MODE_DYNAMIC_FIXED, self.AV_MODE_DYNAMIC,
+                     self.AV_MODE_PC ]
+    self._sendcmd('AVMD', mode)
