@@ -103,7 +103,11 @@ class SharpAquos(SerialDevice):
     logging.debug('Sending %s packet "%s"' % (self.__class__, packet))
     recvbuf = ''
     self.serial_port().write(packet + '\r\n')
+    stime = time.time()
     while 'OK' not in recvbuf and 'ERR' not in recvbuf:
+      if time.time() - stime > 2:
+        logging.debug('Waiting for response took too long!')
+        break
       while self.serial_port().inWaiting():
         recvbuf += self.serial_port().read()
     logging.debug('Got "%s" as result of packet %s'
