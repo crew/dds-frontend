@@ -4,6 +4,7 @@ import serial
 import logging
 import time
 import ConfigParser
+import subprocess
 
 
 class BaseDevice(object):
@@ -16,11 +17,17 @@ class BaseDevice(object):
   def power_off(self):
     self.power(on=False)
 
-  def sendcmd(self):
+  def sendcmd(self, cmd, arg):
     pass
 
 class X11Device(BaseDevice):
-  pass
+  def power(self, on=True):
+    if on:
+      cmd = 'xset dpms force on'
+    else:
+      cmd = 'xset dpms force off'
+    sp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
 class SerialDevice(BaseDevice):
   def __init__(self, port=None):
