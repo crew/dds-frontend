@@ -31,7 +31,7 @@ class XMPPThread(threading.Thread):
     self.slidemanager = None
     self.connection = None
     self.status = xmpp.Presence()
-    self.display = displaycontrol.SharpAquos()
+    self.display = displaycontrol.get_controller()
 
   def AttachSlideManager(self, slidemanager):
     """Attach a slide manager to this thread.
@@ -87,11 +87,14 @@ class XMPPThread(threading.Thread):
 
   def DisplayControl(self, datatuple):
     logging.info("XMPP dplyControl request")
-    packet = datatuple[0]
-    if 'setpower' in packet:
-      self.display.power(packet['setpower'])
-    if 'cmd' in packet:
-      self.display._sendcmd(packet['cmd']['cmd'], packet['cmd']['arg'])
+    try:
+      packet = datatuple[0]
+      if 'setpower' in packet:
+        self.display.power(packet['setpower'])
+      if 'cmd' in packet:
+        self.display.sendcmd(packet['cmd']['cmd'], packet['cmd']['arg'])
+    except:
+      logging.exception('DisplayControl Exception')
 
   def KillDDS(self, datatuple):
     logging.info("XMPP killDDS request")

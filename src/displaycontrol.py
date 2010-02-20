@@ -3,22 +3,33 @@ import config
 import serial
 import logging
 import time
+import ConfigParser
 
 
 class BaseDevice(object):
   def power(self, on=True):
     pass
+  
   def power_on(self):
     self.power(on=True)
 
   def power_off(self):
     self.power(on=False)
 
+  def sendcmd(self):
+    pass
+
+class X11Device(BaseDevice):
+  pass
+
 class SerialDevice(BaseDevice):
-  def __init__(self, port='/dev/ttyUSB0'):
+  def __init__(self, port=None):
     BaseDevice.__init__(self)
     self._port = None
-    self.port = port
+    if port is None:
+      self.port = '/dev/ttyUSB0'
+    else:
+      self.port = port
 
   def serial_port(self):
     if not self._port:
@@ -98,7 +109,7 @@ class SharpAquos(SerialDevice):
       arg = arg + ' '*(4-arglen)
     return cmd+arg
 
-  def _sendcmd(self, cmd, arg):
+  def sendcmd(self, cmd, arg):
     packet = self._formatcmd(cmd, arg)
     logging.debug('Sending %s packet "%s"' % (self.__class__, packet))
     recvbuf = ''
@@ -116,10 +127,10 @@ class SharpAquos(SerialDevice):
     time.sleep(1)
 
   def power(self, on=True):
-    return self._sendcmd('POWR', int(on))
+    return self.sendcmd('POWR', int(on))
 
   def restrict_power(self, on=False):
-    return self._sendcmd('RSPW', int(not on))
+    return self.sendcmd('RSPW', int(not on))
 
   def widescreen_mode(self, mode):
     assert mode in [ self.WIDE_TOGGLE_AV, self.WIDE_SIDEBAR_AV,
@@ -127,11 +138,11 @@ class SharpAquos(SerialDevice):
                      self.WIDE_STRETCH_AV, self.WIDE_NORMAL_PC,
                      self.WIDE_ZOOM_PC, self.WIDE_STRETCH_PC,
                      self.WIDE_DOT_BY_DOT, self.WIDE_FULLSCREEN_AV ]
-    return self._sendcmd('WIDE', mode)
+    return self.sendcmd('WIDE', mode)
 
   def volume(self, val=0):
     assert 0 <= val <= 60
-    return self._sendcmd('VOLM', '%02d' % val)
+    return self.sendcmd('VOLM', '%02d' % val)
 
   def input_select(self, input):
     assert input in [ self.INPUT_SELECT_TOGGLE, self.INPUT_SELECT_TV,
@@ -139,48 +150,48 @@ class SharpAquos(SerialDevice):
                       self.INPUT_SELECT_IN3, self.INPUT_SELECT_IN4,
                       self.INPUT_SELECT_IN5, self.INPUT_SELECT_IN6,
                       self.INPUT_SELECT_IN7 ]
-    return self._sendcmd(input[0], input[1])
+    return self.sendcmd(input[0], input[1])
 
   def input_select_b(self, input, mode):
     assert input in [ self.INPUT_SELECT_IN1, self.INPUT_SELECT_IN3 ]
     assert mode in [ self.INPUT_AUTO, self.INPUT_VIDEO, self.INPUT_COMPONENT ]
-    return self._sendcmd('INP'+input[1], mode)
+    return self.sendcmd('INP'+input[1], mode)
 
   def mute(self, mode):
     assert mode in [ self.MUTE_TOGGLE, self.MUTE_ON, self.MUTE_OFF ]
-    return self._sendcmd('MUTE', mode)
+    return self.sendcmd('MUTE', mode)
 
   def surround(self, mode):
     assert mode in [ self.SURROUND_TOGGLE, self.SURROUND_ON,
                      self.SURROUND_OFF ]
-    return self._sendcmd('ACSU', mode)
+    return self.sendcmd('ACSU', mode)
 
   def audio_selection(self):
     """Toggle audio selection"""
-    return self._sendcmd('ACHA', 0)
+    return self.sendcmd('ACHA', 0)
 
   def closed_caption(self):
     """Toggle CC selection"""
-    return self._sendcmd('CLCP', 0)
+    return self.sendcmd('CLCP', 0)
 
   def channel_up(self):
-    return self._sendcmd('CHUP', 0)
+    return self.sendcmd('CHUP', 0)
 
   def channel_down(self):
-    return self._sendcmd('CHDW', 0)
+    return self.sendcmd('CHDW', 0)
 
   def ota_digital_channel(self, prefix, suffix):
     prefix, suffix = map(int, [prefix, suffix])
     assert 1 <= prefix <= 99
     assert 0 <= suffix <= 99
-    return self._sendcmd('DA2P', '%02d%02d' % (prefix, suffix))
+    return self.sendcmd('DA2P', '%02d%02d' % (prefix, suffix))
 
   def cable_digital_channel(self, prefix, suffix):
     prefix, suffix = map(int, [prefix, suffix])
     assert 1 <= prefix <= 999
     assert 0 <= suffix <= 999
-    self._sendcmd('DC2U', '%03d' % prefix)
-    self._sendcmd('DC2L', '%03d' % suffix)
+    self.sendcmd('DC2U', '%03d' % prefix)
+    self.sendcmd('DC2L', '%03d' % suffix)
 
   def cable_single_digital_channel(self, num):
     num = int(num)
@@ -194,7 +205,7 @@ class SharpAquos(SerialDevice):
   def analog_channel(self, num):
     num = int(num)
     assert 1 <= num <= 135
-    return self._sendcmd('DCCH', '%03d' % num)
+    return self.sendcmd('DCCH', '%03d' % num)
 
   def set_channel(self, num, chantype='ota'):
     if chantype == 'ota':
@@ -214,23 +225,43 @@ class SharpAquos(SerialDevice):
   def sleep_timer(self, mode):
     assert mode in [ self.SLEEP_OFF, self.SLEEP_30M, self.SLEEP_60M,
                      self.SLEEP_90M, self.SLEEP_120M ]
-    return self._sendcmd('OFTM', mode)
+    return self.sendcmd('OFTM', mode)
 
   def position(self, hpos=None, vpos=None, clock=None, phase=None):
     if hpos is not None:
-      self._sendcmd('HPOS', '%03d' % hpos)
+      self.sendcmd('HPOS', '%03d' % hpos)
     if vpos is not None:
-      self._sendcmd('VPOS', '%03d' % vpos)
+      self.sendcmd('VPOS', '%03d' % vpos)
     if clock is not None:
       assert 0 <= clock <= 180
-      self._sendcmd('CLCK', '%03d' % clock)
+      self.sendcmd('CLCK', '%03d' % clock)
     if phase is not None:
       assert 0 <= phase <= 40
-      self._sendcmd('PHSE', '%03d' % phase)
+      self.sendcmd('PHSE', '%03d' % phase)
 
   def av_mode(self, mode):
     assert mode in [ self.AV_MODE_TOGGLE, self.AV_MODE_STANDARD,
                      self.AV_MODE_MOVIE, self.AV_MODE_GAME, self.AV_MODE_USER,
                      self.AV_MODE_DYNAMIC_FIXED, self.AV_MODE_DYNAMIC,
                      self.AV_MODE_PC ]
-    self._sendcmd('AVMD', mode)
+    self.sendcmd('AVMD', mode)
+
+def get_controller():
+  try:
+    controltype = config.Option('displaycontrol-type')
+  except ConfigParser.NoOptionError:
+    controltype = 'default'
+  try:
+    controlport = config.Option('displaycontrol-port')
+  except ConfigParser.NoOptionError:
+    controlport = None
+
+  if controltype == 'x11':
+    logging.debug('Using X11Device displaycontrol')
+    return X11Device()
+  elif controltype == 'sharpaquos':
+    logging.debug('Using SharpAquos displaycontrol')
+    return SharpAquos(port=controlport)
+  else:
+    logging.debug('Using BaseDevice displaycontrol')
+    return BaseDevice()
