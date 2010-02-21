@@ -94,7 +94,7 @@ class Slide(object):
     """
     logging.debug('creating slide from metadata')
     slide = Slide()
-    Slide.reload_slide_from_metadata(slide, metadata, width, height)
+    slide.reload(metadata, width, height)
     return slide
 
   def needs_update(self, metadata):
@@ -115,16 +115,6 @@ class Slide(object):
     self.dir = os.path.expanduser(dir)
     self.parse_directory(self.slide_dir())
 
-  @staticmethod
-  def reload_slide_from_metadata(slide, metadata, width, height):
-    """Given slide metadata and a slide, update that slide's information
-       and bundle.
-
-    Args:
-       metadata: (dictionary) Slide metadata
-    """
-    slide.reload(metadata, width, height)
-
   def reload(self, metadata, width, height):
     """Given slide metadata the slide's information and bundle.
 
@@ -133,7 +123,7 @@ class Slide(object):
     """
     if self.lock.locked():
       logging.debug('Failed to reload %s due to lock. Trying again...')
-      gobject.timeout_add(5000, lambda: self.reload(metadata))
+      gobject.timeout_add(5000, lambda: self.reload(metadata, width, height))
       return
 
     with self.lock:
