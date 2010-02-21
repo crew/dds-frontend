@@ -214,8 +214,8 @@ class Slide(object):
     return self.parse_directory(directory, force)
 
   def install_fonts(self, directory):
-    fonts = self.manifest['fonts']
-    if fonts:
+    if 'fonts' in self.manifest:
+      fonts = self.manifest['fonts']
       fonts_directory = os.path.expanduser('~/.fonts/')
       if not os.path.exists(fonts_directory):
         os.makedirs(fonts_directory)
