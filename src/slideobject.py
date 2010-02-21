@@ -24,6 +24,7 @@ import tarfile
 import urlparse
 import urllib
 import thread
+import shutil
 
 gflags.DEFINE_boolean('enablescreenshot', False, 'Enable slide screenshots')
 gflags.DEFINE_boolean('enableresize', True, 'Enable slide scaling')
@@ -212,6 +213,16 @@ class Slide(object):
       return False
     return self.parse_directory(directory, force)
 
+  def install_fonts(self, directory):
+    fonts = self.manifest['fonts']
+    if fonts:
+      fonts_directory = os.path.expanduser('~/.fonts/')
+      if not os.path.exists(fonts_directory):
+        os.makedirs(fonts_directory)
+      for font_path in fonts:
+        shutil.copy(os.path.join(directory, font_path),
+          os.path.join(fonts_directory, os.path.basename(font_path)))
+
   def parse_directory(self, directory, force=False):
     """Parse the bundle in the given directory into self.slide."""
     if self.group and not force:
@@ -221,6 +232,7 @@ class Slide(object):
     self.mode = self.manifest['mode']
     self.duration = self.manifest['duration']
     self.priority = self.manifest['priority']
+    self.install_fonts(directory)
     gobject.timeout_add(1, self.run_parser)
     parsestart = time.time()
     while self.group is None:

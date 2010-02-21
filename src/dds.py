@@ -164,6 +164,8 @@ def Main():
       s.oneslide(FLAGS.oneslide)
       a = slideobject.Slide()
       a.oneslide(FLAGS.oneslide, id=-2)
+      s.resize(stage.get_width(), stage.get_height())
+      a.resize(stage.get_width(), stage.get_height())
       show._add_slide(s)
       show._add_slide(a)
     t = threading.Thread(target=foo)
