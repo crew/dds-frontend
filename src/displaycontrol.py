@@ -10,7 +10,7 @@ import subprocess
 class BaseDevice(object):
   def power(self, on=True):
     pass
-  
+
   def power_on(self):
     self.power(on=True)
 
