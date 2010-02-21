@@ -36,7 +36,7 @@ class Manager(object):
 
     def set_xmpp_handler(self, handler):
         self.xmpphandler = handler
-    
+
     def add_slide(self, metadata):
         if self.slides.id_exists(metadata['id']):
             self.update_slide(metadata)
@@ -46,12 +46,12 @@ class Manager(object):
 
     def _add_slide(self, o):
         self.log.debug('add_slide %s' % o)
-        wasempty = (self.slides.current_slide() is None) 
+        wasempty = (self.slides.current_slide() is None)
         self.resize_slide(o)
         self.slides.add_slide(o)
         if wasempty and self.slides.current_slide():
             self.next(firsttime=True)
-    
+
     def remove_slide(self, metadata):
         self.log.debug('remove_slide %s' % metadata)
         slide = self.slides.get_by_id(metadata)
