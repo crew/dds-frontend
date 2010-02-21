@@ -41,13 +41,14 @@ class Manager(object):
         if self.slides.id_exists(metadata['id']):
             self.update_slide(metadata)
         else:
-            o = slideobject.Slide.create_slide_from_metadata(metadata)
+            o = slideobject.Slide.create_slide_from_metadata(metadata,
+                                                      self.stage.get_width(),
+                                                      self.stage.get_height())
             self._add_slide(o)
 
     def _add_slide(self, o):
         self.log.debug('add_slide %s' % o)
-        wasempty = (self.slides.current_slide() is None)
-        self.resize_slide(o)
+        wasempty = (self.slides.current_slide() is None) 
         self.slides.add_slide(o)
         if wasempty and self.slides.current_slide():
             self.next(firsttime=True)
@@ -72,9 +73,9 @@ class Manager(object):
         self.log.debug('update_slide %s' % metadata)
         slide = self.slides.get_by_id(metadata['id'])
         if slide and slide.needs_update(metadata):
-            slide.reload(metadata)
-            gobject.timeout_add(2, lambda: self.resize_slide(slide))
-
+            slide.reload(metadata, self.stage.get_width(),
+                         self.stage.get_height())
+    
     def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
         gobject.timeout_add(1, slide.event_afterhide)

@@ -79,7 +79,7 @@ class Slide(object):
     return (type(self) == type(other)) and (self.id() == other.id())
 
   @staticmethod
-  def create_slide_from_metadata(metadata):
+  def create_slide_from_metadata(metadata, width, height):
     """Given slide metadata, create a Slide instance.
 
     Args:
@@ -94,7 +94,7 @@ class Slide(object):
     """
     logging.debug('creating slide from metadata')
     slide = Slide()
-    Slide.reload_slide_from_metadata(slide, metadata)
+    Slide.reload_slide_from_metadata(slide, metadata, width, height)
     return slide
 
   def needs_update(self, metadata):
@@ -116,23 +116,24 @@ class Slide(object):
     self.parse_directory(self.slide_dir())
 
   @staticmethod
-  def reload_slide_from_metadata(slide, metadata):
+  def reload_slide_from_metadata(slide, metadata, width, height):
     """Given slide metadata and a slide, update that slide's information
        and bundle.
 
     Args:
        metadata: (dictionary) Slide metadata
     """
-    slide.reload(metadata)
+    slide.reload(metadata, width, height)
 
-  def reload(self, metadata):
+  def reload(self, metadata, width, height):
     """Given slide metadata the slide's information and bundle.
 
     Args:
        metadata: (dictionary) Slide metadata
     """
     if self.lock.locked():
-      logging.warning('Cannot reload %s, already in progress' % self)
+      logging.debug('Failed to reload %s due to lock. Trying again...')
+      gobject.timeout_add(5000, lambda: self.reload(metadata))
       return
 
     with self.lock:
@@ -140,6 +141,7 @@ class Slide(object):
       self.populate_info(metadata)
       self.retrieve_bundle(metadata['url'], self.slide_dir())
       self.parse_bundle(self.slide_dir(), force=True)
+      self.resize(width, height)
 
   def slide_dir(self):
     """Get the filesystem directory containing this slide data."""
