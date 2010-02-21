@@ -74,7 +74,7 @@ class Manager(object):
         if slide and slide.needs_update(metadata):
             slide.reload(metadata)
             gobject.timeout_add(2, lambda: self.resize_slide(slide))
-    
+
     def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
         gobject.timeout_add(1, slide.event_afterhide)
