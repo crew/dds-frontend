@@ -8,10 +8,10 @@ import gflags as flags
 FLAGS = flags.FLAGS
 
 
-from slidemanager_test import SlideManagerTest
-from slideobject_test import SlideObjectTest
-from xmppthread_test import XMPPThreadTest
+#from slideobject_test import SlideObjectTest
+#from xmppthread_test import XMPPThreadTest
 from config_test import ConfigTest
+from playlist_test import PlaylistTest
 
 if __name__ == '__main__':
     FLAGS(sys.argv)

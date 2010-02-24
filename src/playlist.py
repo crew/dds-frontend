@@ -48,6 +48,7 @@ class WeightedSlideItem(SlideItem):
                 self.choicelist.update(self.ids[x]*self.weights[x])
 
     def slide(self):
+        self.buildchoicelist()
         return self.safepick(self.choicelist)
 
 class Playlist(object):
