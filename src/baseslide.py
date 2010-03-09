@@ -94,13 +94,19 @@ class BaseSlide(object):
        data string on success, None on failure
     """
     try:
-      logging.debug('Slide fetching data from %s' % url)
-      u = urllib.urlopen(url)
-      data = u.read()
-      return data
-    except:
-      logging.exception('Uh oh!')
-      return None
+      deftimeout = socket.getdefaulttimeout()
+      socket.setdefaulttimeout(1)
+      try:
+        logging.debug('Slide fetching data from %s' % url)
+        u = urllib.urlopen(url)
+        data = u.read()
+        return data
+      except:
+        logging.exception('Uh oh!')
+        return None
+    finally:
+      socket.setdefaulttimeout(deftimeout)
+
 
   def GetTextureFromURL(self, url, texture=None):
     """Given a URL, get a clutter.Texture from its data.
