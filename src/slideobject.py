@@ -127,12 +127,16 @@ class Slide(object):
       gobject.timeout_add(5000, lambda: self.reload(metadata, width, height))
       return
 
+    logging.debug('Using lock')
     with self.lock:
       logging.debug('reloading %s from metadata' % self)
       self.populate_info(metadata)
       self.retrieve_bundle(metadata['url'], self.slide_dir())
       self.parse_bundle(self.slide_dir(), force=True)
-      self.resize(width, height)
+      if self.group:
+        self.resize(width, height)
+      else:
+        logging.error('Slide not parsed after parse_bundle! Skipping resize!')
 
   def slide_dir(self):
     """Get the filesystem directory containing this slide data."""

@@ -48,6 +48,9 @@ class Manager(object):
 
     def _add_slide(self, o):
         self.log.debug('add_slide %s' % o)
+        if not o.group:
+            self.log.warning('Aborting _add_slide because the group is bad')
+            return
         wasempty = (self.slides.current_slide() is None)
         self.slides.add_slide(o)
         if wasempty and self.slides.current_slide():
