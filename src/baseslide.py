@@ -12,6 +12,7 @@ import vobject
 import pytz
 import os
 import datetime
+import socket
 
 
 class BaseSlide(object):
