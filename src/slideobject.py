@@ -240,7 +240,7 @@ class Slide(object):
         logging.info('waiting')
         time.sleep(0.8)
       else:
-        logging.error('Could not parse fast enough!')
+        logging.error('Could not parse %s fast enough!' % str(self))
         return False
     self.setupevents()
     return self.group is None
