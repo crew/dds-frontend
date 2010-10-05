@@ -8,9 +8,13 @@ Dependencies:
 
 * python-dns
 
+* python-vobject
+
+* python-tz
+
 Getting Started:
 
-* copy examples/config.py to ~/.dds (or point it to a config file with the
+* copy examples/frontend.cfg to ~/.dds (or point it to a config file with the
   -c command line option).
 
 * configure config.py with the location of your slide cache (by default it's ~/.dds/slides),
