@@ -24,6 +24,7 @@ class Manager(object):
         self.log = logging.getLogger('manager')
         self.xmpphandler = None
         self.setup_fade_to_black()
+        self.next_timer = None
 
     def setup_fade_to_black(self):
         self.blackfader = clutter.Rectangle()
@@ -35,23 +36,26 @@ class Manager(object):
 
     def set_xmpp_handler(self, handler):
         self.xmpphandler = handler
-    
+
     def add_slide(self, metadata):
         if self.slides.id_exists(metadata['id']):
             self.update_slide(metadata)
         else:
-            o = slideobject.Slide.create_slide_from_metadata(metadata)
+            o = slideobject.Slide.create_slide_from_metadata(metadata,
+                                                      self.stage.get_width(),
+                                                      self.stage.get_height())
             self._add_slide(o)
 
     def _add_slide(self, o):
         self.log.debug('add_slide %s' % o)
-        wasempty = ((self.slides.current_slide() is None) or
-                    len(self.stage.get_children()) == 1) 
-        self.resize_slide(o)
+        if not o.group:
+            self.log.warning('Aborting _add_slide because the group is bad')
+            return
+        wasempty = (self.slides.current_slide() is None)
         self.slides.add_slide(o)
         if wasempty and self.slides.current_slide():
             self.next(firsttime=True)
-    
+
     def remove_slide(self, metadata):
         self.log.debug('remove_slide %s' % metadata)
         slide = self.slides.get_by_id(metadata)
@@ -71,13 +75,13 @@ class Manager(object):
     def update_slide(self, metadata):
         self.log.debug('update_slide %s' % metadata)
         slide = self.slides.get_by_id(metadata['id'])
-        if slide:
-            slide.reload(metadata)
-            gobject.timeout_add(2, lambda: self.resize_slide(slide))
-    
+        if slide and slide.needs_update(metadata):
+            self.slides.remove_slide(slide)
+            self.add_slide(metadata)
+
     def after_transition(self, animation, slide):
         self.stage.remove(slide.group)
-        slide.event_afterhide()
+        gobject.timeout_add(1, slide.event_afterhide)
         if self.slides.current_slide() != slide:
             slide.lock.release()
         self.show_slide()
@@ -85,7 +89,8 @@ class Manager(object):
     def show_slide(self):
         gobject.timeout_add(1,
             lambda:  self.fade_in_slide(self.slides.current_slide()))
-        gobject.timeout_add(self.slides.current_slide().duration * 1000,
+        self.next_timer = gobject.timeout_add(
+                            self.slides.current_slide().duration * 1000,
                             self.next)
 
     def fade_out_slide(self, slide, after):
@@ -119,12 +124,15 @@ class Manager(object):
             self.fade_in_behavior.apply(self.blackfader)
             timeline.start()
         slide.group.show()
+        slide.start_event_loop()
         slide.event_aftershow()
         if self.xmpphandler is not None:
             self.xmpphandler.SetCurrentSlide(slide)
 
     def next(self, firsttime=False):
-        self.slides.log_order()
+        if self.next_timer:
+            if not gobject.source_remove(self.next_timer):
+                logging.error('Failed to remove "next" timer event!')
         if firsttime:
             self.slides.current_slide().lock.acquire()
             self.slides.current_slide().event_beforeshow()
@@ -135,6 +143,7 @@ class Manager(object):
             if self.slides.current_slide() != last_slide:
                 self.slides.current_slide().lock.acquire()
             self.slides.current_slide().event_beforeshow()
+            last_slide.stop_event_loop()
             self.fade_out_slide(last_slide,
                                 self.after_transition)
 

@@ -70,7 +70,7 @@ class Collection(object):
             self.currentid = self.playlist.current_slide()
             self.cachedcurrent = self.get_by_id(self.currentid)
         return self.cachedcurrent
-    
+
     def add_slide(self, slideobj):
         self.log.debug('Adding slide %s' % slideobj)
         if not self.id_exists(slideobj.id()):

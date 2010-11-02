@@ -24,6 +24,7 @@ import tarfile
 import urlparse
 import urllib
 import thread
+import shutil
 
 gflags.DEFINE_boolean('enablescreenshot', False, 'Enable slide screenshots')
 gflags.DEFINE_boolean('enableresize', True, 'Enable slide scaling')
@@ -47,6 +48,7 @@ class Slide(object):
     # Parsing time limit
     self.timeout = 10
 
+    self.timestamp = None
     self.duration = None
     self.priority = None
     self.transition = None
@@ -60,6 +62,8 @@ class Slide(object):
     self.app = None
     # lock for parsing operations
     self.lock = thread.allocate_lock()
+    # gobject event source id of loop event
+    self.loop_id = None
 
   def __repr__(self):
     return str(self)
@@ -76,7 +80,7 @@ class Slide(object):
     return (type(self) == type(other)) and (self.id() == other.id())
 
   @staticmethod
-  def create_slide_from_metadata(metadata):
+  def create_slide_from_metadata(metadata, width, height):
     """Given slide metadata, create a Slide instance.
 
     Args:
@@ -91,8 +95,14 @@ class Slide(object):
     """
     logging.debug('creating slide from metadata')
     slide = Slide()
-    Slide.reload_slide_from_metadata(slide, metadata)
+    slide.reload(metadata, width, height)
     return slide
+
+  def needs_update(self, metadata):
+    needed = self.timestamp != metadata['modified']
+    if needed:
+      logging.warning('%s needs update per timestamp' % str(self))
+    return needed
 
   def oneslide(self, dir, id=-1):
     """Given slide metadata and a slide, update that slide's information
@@ -106,31 +116,27 @@ class Slide(object):
     self.dir = os.path.expanduser(dir)
     self.parse_directory(self.slide_dir())
 
-  @staticmethod
-  def reload_slide_from_metadata(slide, metadata):
-    """Given slide metadata and a slide, update that slide's information
-       and bundle.
-
-    Args:
-       metadata: (dictionary) Slide metadata
-    """
-    slide.reload(metadata)
-
-  def reload(self, metadata):
+  def reload(self, metadata, width, height):
     """Given slide metadata the slide's information and bundle.
 
     Args:
        metadata: (dictionary) Slide metadata
     """
     if self.lock.locked():
-      logging.warning('Cannot reload %s, already in progress' % self)
+      logging.debug('Failed to reload %s due to lock. Trying again...')
+      gobject.timeout_add(5000, lambda: self.reload(metadata, width, height))
       return
 
+    logging.debug('Using lock')
     with self.lock:
       logging.debug('reloading %s from metadata' % self)
       self.populate_info(metadata)
       self.retrieve_bundle(metadata['url'], self.slide_dir())
       self.parse_bundle(self.slide_dir(), force=True)
+      if self.group:
+        self.resize(width, height)
+      else:
+        logging.error('Slide not parsed after parse_bundle! Skipping resize!')
 
   def slide_dir(self):
     """Get the filesystem directory containing this slide data."""
@@ -160,6 +166,7 @@ class Slide(object):
        metadata: (dictionary) Slide metadata
     """
     self.db_id = metadata['id']
+    self.timestamp = metadata['modified']
 
   #TODO(wan): Write the retry code.
   def retrieve_bundle(self, url, directory, unused_retry=False):
@@ -210,6 +217,16 @@ class Slide(object):
       return False
     return self.parse_directory(directory, force)
 
+  def install_fonts(self, directory):
+    if 'fonts' in self.manifest:
+      fonts = self.manifest['fonts']
+      fonts_directory = os.path.expanduser('~/.fonts/')
+      if not os.path.exists(fonts_directory):
+        os.makedirs(fonts_directory)
+      for font_path in fonts:
+        shutil.copy(os.path.join(directory, font_path),
+          os.path.join(fonts_directory, os.path.basename(font_path)))
+
   def parse_directory(self, directory, force=False):
     """Parse the bundle in the given directory into self.slide."""
     if self.group and not force:
@@ -219,6 +236,7 @@ class Slide(object):
     self.mode = self.manifest['mode']
     self.duration = self.manifest['duration']
     self.priority = self.manifest['priority']
+    self.install_fonts(directory)
     gobject.timeout_add(1, self.run_parser)
     parsestart = time.time()
     while self.group is None:
@@ -226,7 +244,7 @@ class Slide(object):
         logging.info('waiting')
         time.sleep(0.8)
       else:
-        logging.error('Could not parse fast enough!')
+        logging.error('Could not parse %s fast enough!' % str(self))
         return False
     self.setupevents()
     return self.group is None
@@ -341,6 +359,23 @@ class Slide(object):
         ## methods
         setattr(self, n, lambda: [])
 
+  def start_event_loop(self):
+    if self.loop_id:
+       self.stop_event_loop()
+    if (self.mode == 'module' and self.manifest and
+        'interval' in self.manifest and hasattr(self.app, 'event_loop')):
+      logging.info('Starting event loop in %s' % self)
+      self.loop_id = gobject.timeout_add(int(self.manifest['interval']),
+                                   lambda: self.app.event_loop() or True)
+
+  def stop_event_loop(self):
+    if self.loop_id:
+      if not gobject.source_remove(self.loop_id):
+         logging.error('Failed to remove loop event in %s' % self)
+      else:
+         logging.info('Stopped event loop in %s' % self)
+         self.loop_id = None
+
   def setupevents(self):
-    for x in ['beforeshow', 'aftershow', 'loop', 'beforehide', 'afterhide']:
+    for x in ['beforeshow', 'aftershow', 'beforehide', 'afterhide']:
       self._setupevent(x)

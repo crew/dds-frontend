@@ -34,7 +34,8 @@ class SlideItem(object):
         return str(self)
 
     def __str__(self):
-        return 'Playlist(%d, %s, %s)' % (self.position, self.mode, self.ids)
+        return ('PLItem(pos:%d, type:%s, slides:%s)'
+                % (self.position, self.mode, self.ids))
 
 class RandomSlideItem(SlideItem):
     def slide(self):
@@ -45,9 +46,11 @@ class WeightedSlideItem(SlideItem):
         if self.choicelist is None:
             self.choicelist = []
             for x in range(len(self.ids)):
-                self.choicelist.update(self.ids[x]*self.weights[x])
+                idval = [self.ids[x]]*self.weights[x]
+                self.choicelist.extend(idval)
 
     def slide(self):
+        self.buildchoicelist()
         return self.safepick(self.choicelist)
 
 class Playlist(object):
