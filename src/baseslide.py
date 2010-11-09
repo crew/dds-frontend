@@ -173,14 +173,26 @@ class BaseSlide(object):
     if self.calendar is None or force:
       tmpfile = os.path.join(os.path.dirname(self.ourpath), 'calcache.ics')
       fetchit = lambda: urllib.urlretrieve(uri, tmpfile)
-      if not os.path.exists(tmpfile):
-        fetchit()
-      stats = os.stat(tmpfile)
-      lmdate = datetime.datetime.fromtimestamp(stats[8], self.localtime)
+
+      # Variables to check when the .ics file was last modified
       now   = datetime.datetime.now(self.localtime)
       delta = datetime.timedelta(days=1)
-      if not lmdate < now+delta:
+
+      # If a cache file exists, lets check to see if it's younger than a day
+      if os.path.exists(tmpfile):
+        modtime = datetime.datetime.fromtimestamp(os.path.getmtime(tmpfile), now.tzinfo)
+        one_day = datetime.timedelta(days=1)
+        delttt=now-one_day
+
+        # If we're older than one day, delete it and get a fresh one.
+        if modtime < delttt:
+          os.remove(tmpfile)
+          fetchit()
+
+      else:
         fetchit()
+
+      # Finally load in the .ics file
       self.calendar = vobject.readOne(open(tmpfile).read())
 
   def update_calevents(self, within=20, mindesc=100, allday=False):
