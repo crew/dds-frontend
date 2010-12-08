@@ -13,6 +13,7 @@ import pytz
 import os
 import datetime
 import socket
+import lxml.html
 
 
 class BaseSlide(object):
@@ -153,9 +154,7 @@ class BaseSlide(object):
     Returns:
        cleaned string
     """
-    #FIXME: eww.
-    html_tag = re.compile(r'<.*?>')
-    return self.UnescapeHTMLEntities(html_tag.sub('', data))
+    return self.UnescapeHTMLEntities(lxml.html.fromstring(data).text_content())
 
   def do_standalone_display(self):
     """This might be useful somewhere. (no resize)"""
