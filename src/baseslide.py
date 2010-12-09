@@ -56,8 +56,8 @@ class BaseSlide(object):
       clutter.Texture on success, None on failure
     """
 
-    data   = pixbuf.get_pixels()
-    width  = pixbuf.get_width()
+    data = pixbuf.get_pixels()
+    width = pixbuf.get_width()
     height = pixbuf.get_height()
     has_alpha = pixbuf.get_has_alpha()
     rowstride = pixbuf.get_rowstride()
@@ -174,7 +174,7 @@ class BaseSlide(object):
       fetchit = lambda: urllib.urlretrieve(uri, tmpfile)
 
       # Variables to check when the .ics file was last modified
-      now   = datetime.datetime.now(self.localtime)
+      now = datetime.datetime.now(self.localtime)
       delta = datetime.timedelta(days=1)
 
       # If a cache file exists, lets check to see if it's younger than a day
@@ -195,7 +195,7 @@ class BaseSlide(object):
       self.calendar = vobject.readOne(open(tmpfile).read())
 
   def update_calevents(self, within=20, mindesc=100, allday=False):
-    now   = datetime.datetime.now(self.localtime)
+    now = datetime.datetime.now(self.localtime)
     delta = datetime.timedelta(days=within)
     self.calevents = []
 
