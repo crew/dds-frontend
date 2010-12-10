@@ -1,24 +1,21 @@
-Dependencies:
+Dependencies
+============
+Python 2.4+
+python-clutter >= 0.8
+python-xmpp
+python-json
+python-dns
+python-vobject
+python-tz
+python-lxml
 
-* python-clutter >= 0.8
+Setup
+=====
+Copy examples/frontend.cfg to ~/.dds (or point it to a config file with the -c
+command line option).
 
-* python-xmpp
+Configure config.py with the location of your slide cache (by default it's ~/.dds/slides),
+the jabber ID and password for the client, and the jabber ID for the server.
 
-* python-json
-
-* python-dns
-
-* python-vobject
-
-* python-tz
-
-Getting Started:
-
-* copy examples/frontend.cfg to ~/.dds (or point it to a config file with the
-  -c command line option).
-
-* configure config.py with the location of your slide cache (by default it's ~/.dds/slides),
-  the jabber ID and password for the client, and the jabber ID for the server.
-
-* make sure that slides are registered to your client's jabber ID on the server, or
-  of course, it won't recieve any slides to display
+Make sure that slides are registered to your client's jabber ID on the server, or
+of course, it won't receive any slides to display.
