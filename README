@@ -7,15 +7,17 @@ python-json
 python-dns
 python-vobject
 python-tz
+python-gflags
 python-lxml
 
 Setup
 =====
-Copy examples/frontend.cfg to ~/.dds (or point it to a config file with the -c
-command line option).
+Copy examples/frontend.cfg to ~/.dds (or point it to a config file with the 
+-c command line option).
 
-Configure config.py with the location of your slide cache (by default it's ~/.dds/slides),
-the jabber ID and password for the client, and the jabber ID for the server.
+Configure frontend.cfg with the location of your slide cache (by default 
+it's ~/.dds/slides), the jabber ID and password for the client, and the 
+jabber ID for the server.
 
-Make sure that slides are registered to your client's jabber ID on the server, or
-of course, it won't receive any slides to display.
+Make sure that slides are registered to your client's jabber ID on the 
+server, or of course, it won't receive any slides to display.
