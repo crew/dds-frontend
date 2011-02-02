@@ -3,7 +3,6 @@ Dependencies
 Python 2.4+
 python-clutter >= 0.8
 python-xmpp
-python-json
 python-dns
 python-vobject
 python-tz
