@@ -11,12 +11,24 @@ python-lxml
 
 Setup
 =====
-Copy examples/frontend.cfg to ~/.dds (or point it to a config file with the 
--c command line option).
+- Install the listed dependencies
 
-Configure frontend.cfg with the location of your slide cache (by default 
-it's ~/.dds/slides), the jabber ID and password for the client, and the 
-jabber ID for the server.
+- Install the frontend package by running::
+      python setup.py install
 
-Make sure that slides are registered to your client's jabber ID on the 
-server, or of course, it won't receive any slides to display.
+- Copy the example configuration (examples/frontend.cfg) to ~/.dds. Configure
+  frontend.cfg with the location of your slide cache (by default it's
+  ~/.dds/slides), the jabber ID and password for the client, and the jabber ID
+  for the server.
+
+- Make sure that slides are registered to your client's jabber ID on the
+  server. It won't receive slides to display otherwise.
+
+Running
+=======
+To test individual slides, run dds.py (which should be in your path after
+installing this package) with the --oneslide option and the full path of that
+slide.
+
+To run the frontend in a production environment, run runner.sh, which should
+also be in your path. (More documentation to come..)

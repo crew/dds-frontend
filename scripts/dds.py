@@ -10,7 +10,6 @@ __author__ = 'CCIS Crew <crew@ccs.neu.edu>'
 
 import clutter
 import cairo
-import config
 import gflags
 import gobject
 import logging
@@ -19,9 +18,7 @@ import sys
 import threading
 
 ## DDS Imports
-import xmppthread
-import manager
-import slideobject
+from crew.dds import xmppthread, manager, slideobject, config
 
 gflags.DEFINE_boolean('fullscreen', True, 'Control fullscreen behavior')
 gflags.DEFINE_boolean('debug', False, 'Enable debug logging')
