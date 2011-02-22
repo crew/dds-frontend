@@ -22,7 +22,7 @@
 import gobject
 import gtk
 import webkit
-
+from crew.dds import baseslide
 
 class BrowserPage(webkit.WebView):
 
@@ -257,8 +257,22 @@ def destroy_cb(window, content_pane):
         num_pages = num_pages - 1
     window.destroy()
 
+class WebkitSlide(baseslide.BaseSlide):
 
-def main(url):
-    webbrowser = WebBrowser(url)
-    webbrowser.fullscreen()
-    gtk.main()
+    def __init__(self, url):
+        super(self.__class__, self).__init__()
+        self.url = url
+        self.browser = None
+
+    def event_beforeshow(self):
+        self.browser = WebBrowser(self.url, show_toolbar=False)
+        self.browser.fullscreen()
+
+    def event_aftershow(self):
+        pass
+
+    def event_beforehide(self):
+        pass
+
+    def event_afterhide(self):
+        self.browser.destroy()
