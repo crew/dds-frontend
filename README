@@ -30,5 +30,6 @@ To test individual slides, run dds.py (which should be in your path after
 installing this package) with the --oneslide option and the full path of that
 slide.
 
-To run the frontend in a production environment, run runner.sh, which should
-also be in your path. (More documentation to come..)
+Deployment
+==========
+See <https://wiki.ccs.neuu.edu/>
