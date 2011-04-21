@@ -29,8 +29,6 @@ class Manager(object):
     def setup_fade_to_black(self):
         self.blackfader = clutter.Rectangle()
         self.blackfader.set_position(0,0)
-        self.blackfader.set_size(self.stage.get_width(),
-                                 self.stage.get_height())
         self.blackfader.set_color(clutter.color_from_string("black"))
         self.stage.add(self.blackfader)
 
@@ -98,6 +96,11 @@ class Manager(object):
         if FLAGS.transitions:
             timeline = clutter.Timeline(500)
             alpha = clutter.Alpha(timeline, clutter.LINEAR)
+            # FIXME this really shouldn't be here. We should set blackfader
+            # while initializing dds, but that's broken for some reason..
+            # This'll work for now.
+            self.blackfader.set_size(self.stage.get_width(),
+                                     self.stage.get_height())
             self.blackfader.set_opacity(0)
             self.fade_out_behavior = clutter.BehaviourOpacity(alpha=alpha,
                                                               opacity_start=0,
